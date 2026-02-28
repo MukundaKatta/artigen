@@ -1,0 +1,20 @@
+import { Stack } from 'expo-router';
+import { colors } from '@/lib/theme';
+
+export default function CameraLayout() {
+  return (
+    <Stack
+      screenOptions={{
+        headerStyle: { backgroundColor: colors.background },
+        headerTintColor: colors.text,
+        headerShadowVisible: false,
+      }}
+    >
+      <Stack.Screen name="camera" options={{ title: 'Camera' }} />
+      <Stack.Screen name="new-post" options={{ title: 'New Post' }} />
+      <Stack.Screen name="new-story" options={{ title: 'New Story' }} />
+      <Stack.Screen name="new-reel" options={{ title: 'New Reel' }} />
+      <Stack.Screen name="generate" options={{ title: 'Generate with AI' }} />
+    </Stack>
+  );
+}
