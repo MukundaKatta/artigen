@@ -18,6 +18,36 @@ export async function getComments(postId: string, page = 0) {
   return { data: (data as unknown as CommentWithUser[]) || [], error };
 }
 
+export async function getReplies(commentId: string, page = 0) {
+  const from = page * COMMENTS_PAGE_SIZE;
+  const to = from + COMMENTS_PAGE_SIZE - 1;
+
+  const { data, error } = await supabase
+    .from('comments')
+    .select('*, user:profiles!user_id(*)')
+    .eq('parent_comment_id', commentId)
+    .order('created_at', { ascending: true })
+    .range(from, to);
+
+  return { data: (data as unknown as CommentWithUser[]) || [], error };
+}
+
+export async function getReplyCount(commentIds: string[]) {
+  if (commentIds.length === 0) return new Map<string, number>();
+
+  const { data } = await supabase
+    .from('comments')
+    .select('parent_comment_id')
+    .in('parent_comment_id', commentIds);
+
+  const counts = new Map<string, number>();
+  (data || []).forEach((d: any) => {
+    const id = d.parent_comment_id;
+    counts.set(id, (counts.get(id) || 0) + 1);
+  });
+  return counts;
+}
+
 export async function addComment(
   userId: string,
   postId: string,

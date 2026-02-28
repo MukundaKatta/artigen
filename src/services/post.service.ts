@@ -283,6 +283,36 @@ export async function unsavePost(userId: string, postId: string) {
   return { error };
 }
 
+// ── Pin Posts ────────────────────────────────────────────────────
+
+export async function pinPost(postId: string, userId: string) {
+  // Check max 3 pinned posts
+  const { count } = await supabase
+    .from('posts')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .eq('is_pinned', true);
+
+  if ((count || 0) >= 3) {
+    return { error: { message: 'You can only pin up to 3 posts' } };
+  }
+
+  const { error } = await supabase
+    .from('posts')
+    .update({ is_pinned: true, pinned_at: new Date().toISOString() })
+    .eq('id', postId)
+    .eq('user_id', userId);
+  return { error };
+}
+
+export async function unpinPost(postId: string) {
+  const { error } = await supabase
+    .from('posts')
+    .update({ is_pinned: false, pinned_at: null })
+    .eq('id', postId);
+  return { error };
+}
+
 // ── Reels ────────────────────────────────────────────────────────
 
 export async function getReels(userId: string, page = 0) {

@@ -1,7 +1,12 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
+import { HighlightCircle } from '@/components/profile/HighlightCircle';
+import { ActionSheet } from '@/components/ui/ActionSheet';
+import { getHighlights } from '@/services/highlight.service';
+import type { HighlightWithStories } from '@/services/highlight.service';
 import { colors, fontSize, spacing, typography } from '@/lib/theme';
 import { formatNumber } from '@/utils/format-number';
 import type { Profile } from '@/types/database';
@@ -15,6 +20,9 @@ type Props = {
   onEditPress: () => void;
   onFollowersPress: () => void;
   onFollowingPress: () => void;
+  onReport?: () => void;
+  onBlock?: () => void;
+  onHighlightPress?: (highlight: HighlightWithStories) => void;
 };
 
 export function ProfileHeader({
@@ -26,7 +34,17 @@ export function ProfileHeader({
   onEditPress,
   onFollowersPress,
   onFollowingPress,
+  onReport,
+  onBlock,
+  onHighlightPress,
 }: Props) {
+  const [highlights, setHighlights] = useState<HighlightWithStories[]>([]);
+  const [showMoreSheet, setShowMoreSheet] = useState(false);
+
+  useEffect(() => {
+    getHighlights(profile.id).then(({ data }) => setHighlights(data as HighlightWithStories[]));
+  }, [profile.id]);
+
   return (
     <View style={styles.container}>
       {/* Top row: Avatar + Stats */}
@@ -41,7 +59,15 @@ export function ProfileHeader({
 
       {/* Name and Bio */}
       <View style={styles.info}>
-        <Text style={styles.fullName}>{profile.full_name}</Text>
+        <View style={styles.nameRow}>
+          <Text style={styles.fullName}>{profile.full_name}</Text>
+          {profile.is_private && (
+            <Ionicons name="lock-closed" size={14} color={colors.textSecondary} style={{ marginLeft: 4 }} />
+          )}
+          {profile.is_verified && (
+            <Ionicons name="checkmark-circle" size={14} color={colors.primary} style={{ marginLeft: 4 }} />
+          )}
+        </View>
         {profile.bio ? <Text style={styles.bio}>{profile.bio}</Text> : null}
         {profile.website ? (
           <Text style={styles.website}>{profile.website}</Text>
@@ -59,16 +85,56 @@ export function ProfileHeader({
             style={styles.actionButton}
           />
         ) : (
-          <Button
-            title={isFollowing ? 'Following' : 'Follow'}
-            variant={isFollowing ? 'outline' : 'primary'}
-            size="sm"
-            loading={followLoading}
-            onPress={onFollowPress}
-            style={styles.actionButton}
-          />
+          <View style={styles.otherUserActions}>
+            <Button
+              title={isFollowing ? 'Following' : 'Follow'}
+              variant={isFollowing ? 'outline' : 'primary'}
+              size="sm"
+              loading={followLoading}
+              onPress={onFollowPress}
+              style={styles.followButton}
+            />
+            <TouchableOpacity
+              style={styles.moreButton}
+              onPress={() => setShowMoreSheet(true)}
+            >
+              <Ionicons name="ellipsis-horizontal" size={18} color={colors.text} />
+            </TouchableOpacity>
+          </View>
         )}
       </View>
+
+      {/* Story Highlights */}
+      {highlights.length > 0 && (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.highlightsContainer}
+          contentContainerStyle={styles.highlightsContent}
+        >
+          {highlights.map((h) => (
+            <HighlightCircle
+              key={h.id}
+              highlight={h}
+              onPress={() => onHighlightPress?.(h)}
+            />
+          ))}
+        </ScrollView>
+      )}
+
+      {/* Report/Block action sheet for other users */}
+      <ActionSheet
+        visible={showMoreSheet}
+        onClose={() => setShowMoreSheet(false)}
+        items={[
+          ...(onReport
+            ? [{ label: 'Report User', onPress: () => { setShowMoreSheet(false); onReport(); } }]
+            : []),
+          ...(onBlock
+            ? [{ label: `Block @${profile.username}`, destructive: true, onPress: () => { setShowMoreSheet(false); onBlock(); } }]
+            : []),
+        ]}
+      />
     </View>
   );
 }
@@ -130,6 +196,10 @@ const styles = StyleSheet.create({
   info: {
     marginTop: spacing.sm,
   },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   fullName: {
     fontSize: fontSize.md,
     fontFamily: typography.semiBold,
@@ -153,5 +223,26 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     width: '100%',
+  },
+  otherUserActions: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  followButton: {
+    flex: 1,
+  },
+  moreButton: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    paddingHorizontal: spacing.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  highlightsContainer: {
+    marginTop: spacing.md,
+  },
+  highlightsContent: {
+    paddingRight: spacing.lg,
   },
 });

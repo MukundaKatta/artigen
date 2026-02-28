@@ -34,7 +34,7 @@ export function ProfileScreen() {
       .eq('is_archived', false)
       .order('created_at', { ascending: false });
 
-    setPosts((data as GridPost[]) || []);
+    setPosts((data as unknown as GridPost[]) || []);
     setLoading(false);
   }
 

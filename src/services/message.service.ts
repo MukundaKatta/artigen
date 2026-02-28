@@ -170,8 +170,10 @@ export async function getMessages(conversationId: string, page = 0) {
 export async function sendMessage(
   conversationId: string,
   senderId: string,
-  content: string,
-  messageType: Message['message_type'] = 'text'
+  content: string | null,
+  messageType: Message['message_type'] = 'text',
+  mediaUrl?: string,
+  sharedPostId?: string
 ) {
   const { data, error } = await supabase
     .from('messages')
@@ -180,6 +182,8 @@ export async function sendMessage(
       sender_id: senderId,
       content,
       message_type: messageType,
+      media_url: mediaUrl || null,
+      shared_post_id: sharedPostId || null,
     })
     .select('*, sender:profiles!sender_id(*)')
     .single();
@@ -193,6 +197,35 @@ export async function sendMessage(
   }
 
   return { data: data as unknown as MessageWithSender | null, error };
+}
+
+export async function sendStoryReply(
+  senderId: string,
+  storyUserId: string,
+  content: string
+) {
+  const { data: conversation, error: convError } = await getOrCreateConversation(senderId, storyUserId);
+  if (convError || !conversation) return { data: null, error: convError };
+
+  return sendMessage(conversation.id, senderId, content, 'story_reply');
+}
+
+export async function getSharedPost(postId: string) {
+  const { data, error } = await supabase
+    .from('posts')
+    .select('*, user:profiles!user_id(id, username, avatar_url), media:post_media(*)')
+    .eq('id', postId)
+    .single();
+  return { data, error };
+}
+
+export async function getReadStatus(conversationId: string, currentUserId: string) {
+  const { data } = await supabase
+    .from('conversation_participants')
+    .select('user_id, last_read_at')
+    .eq('conversation_id', conversationId)
+    .neq('user_id', currentUserId);
+  return data as { user_id: string; last_read_at: string | null }[] | null;
 }
 
 export async function markAsRead(conversationId: string, userId: string) {

@@ -1,40 +1,70 @@
 import { Platform } from 'react-native';
 
-export const colors = {
-  // Primary brand colors
+// Theme colors type — shared keys between light and dark
+export type ThemeColors = {
+  primary: string;
+  primaryDark: string;
+  background: string;
+  backgroundSecondary: string;
+  text: string;
+  textSecondary: string;
+  textLight: string;
+  border: string;
+  like: string;
+  success: string;
+  warning: string;
+  error: string;
+  link: string;
+  notificationUnread: string;
+  storyGradient: readonly string[];
+  overlay: string;
+};
+
+export const lightColors: ThemeColors = {
   primary: '#0095F6',
   primaryDark: '#0074CC',
-
-  // Backgrounds
   background: '#FFFFFF',
   backgroundSecondary: '#FAFAFA',
-  backgroundDark: '#000000',
-  backgroundDarkSecondary: '#121212',
-
-  // Text
   text: '#262626',
   textSecondary: '#8E8E8E',
   textLight: '#FFFFFF',
-
-  // Borders
   border: '#DBDBDB',
-  borderDark: '#363636',
-
-  // Actions
   like: '#ED4956',
   success: '#58C322',
   warning: '#FFBB00',
   error: '#ED4956',
-
-  // Semantic
   link: '#00376B',
   notificationUnread: 'rgba(0, 149, 246, 0.08)',
-
-  // Story gradient
-  storyGradient: ['#F58529', '#DD2A7B', '#8134AF', '#515BD4'] as const,
-
-  // Transparent
+  storyGradient: ['#F58529', '#DD2A7B', '#8134AF', '#515BD4'],
   overlay: 'rgba(0, 0, 0, 0.5)',
+};
+
+export const darkColors: ThemeColors = {
+  primary: '#0095F6',
+  primaryDark: '#0074CC',
+  background: '#000000',
+  backgroundSecondary: '#121212',
+  text: '#FAFAFA',
+  textSecondary: '#A8A8A8',
+  textLight: '#FFFFFF',
+  border: '#363636',
+  like: '#ED4956',
+  success: '#58C322',
+  warning: '#FFBB00',
+  error: '#ED4956',
+  link: '#E0F1FF',
+  notificationUnread: 'rgba(0, 149, 246, 0.15)',
+  storyGradient: ['#F58529', '#DD2A7B', '#8134AF', '#515BD4'],
+  overlay: 'rgba(0, 0, 0, 0.7)',
+};
+
+// Backwards-compatible export — points to light colors plus legacy keys
+export const colors = {
+  ...lightColors,
+  // Legacy keys still used across the codebase
+  backgroundDark: '#000000',
+  backgroundDarkSecondary: '#121212',
+  borderDark: '#363636',
 } as const;
 
 export const spacing = {

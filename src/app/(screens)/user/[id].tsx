@@ -45,7 +45,7 @@ export default function UserProfileRoute() {
       .eq('is_archived', false)
       .order('created_at', { ascending: false });
 
-    setPosts((data as GridPost[]) || []);
+    setPosts((data as unknown as GridPost[]) || []);
     setPostsLoading(false);
   }
 

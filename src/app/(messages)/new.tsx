@@ -82,6 +82,17 @@ export default function NewMessageRoute() {
     <View style={styles.container}>
       <Stack.Screen options={{ title: 'New Message' }} />
 
+      <TouchableOpacity
+        style={styles.groupButton}
+        onPress={() => router.push('/(messages)/new-group')}
+      >
+        <View style={styles.groupIconContainer}>
+          <Ionicons name="people" size={22} color={colors.primary} />
+        </View>
+        <Text style={styles.groupButtonText}>Create a Group</Text>
+        <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+      </TouchableOpacity>
+
       <View style={styles.searchBar}>
         <Text style={styles.toLabel}>To:</Text>
         <TextInput
@@ -171,5 +182,29 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontSize: fontSize.md,
     marginTop: spacing.xxxl,
+  },
+  groupButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  groupIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.backgroundSecondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  groupButtonText: {
+    flex: 1,
+    fontSize: fontSize.md,
+    fontFamily: typography.semiBold,
+    fontWeight: '600',
+    color: colors.text,
+    marginLeft: spacing.md,
   },
 });

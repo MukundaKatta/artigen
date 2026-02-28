@@ -21,6 +21,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { ActionSheet } from '@/components/ui/ActionSheet';
 import { Avatar } from '@/components/ui/Avatar';
+import { RichText } from '@/components/shared/RichText';
 import { SCREEN_WIDTH } from '@/lib/constants';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
 import { timeAgo } from '@/utils/format-date';
@@ -36,6 +37,11 @@ type PostCardProps = {
   onUserPress: (userId: string) => void;
   onPostPress: (postId: string) => void;
   onDelete?: (postId: string) => void;
+  onShare?: (postId: string) => void;
+  onPin?: (postId: string) => void;
+  onUnpin?: (postId: string) => void;
+  onReport?: (postId: string) => void;
+  onBlock?: (userId: string) => void;
 };
 
 export function PostCard({
@@ -47,6 +53,11 @@ export function PostCard({
   onUserPress,
   onPostPress,
   onDelete,
+  onShare,
+  onPin,
+  onUnpin,
+  onReport,
+  onBlock,
 }: PostCardProps) {
   const [captionExpanded, setCaptionExpanded] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -113,10 +124,8 @@ export function PostCard({
   }, [post.id, onSave, saveScale]);
 
   const handleMore = useCallback(() => {
-    if (post.user_id === currentUserId && onDelete) {
-      setShowActionSheet(true);
-    }
-  }, [post.user_id, currentUserId, onDelete]);
+    setShowActionSheet(true);
+  }, []);
 
   const sortedMedia = [...(post.media || [])].sort(
     (a, b) => a.sort_order - b.sort_order
@@ -237,7 +246,7 @@ export function PostCard({
               color={colors.text}
             />
           </TouchableOpacity>
-          <TouchableOpacity hitSlop={8} style={styles.actionButton}>
+          <TouchableOpacity hitSlop={8} style={styles.actionButton} onPress={() => onShare?.(post.id)}>
             <Ionicons
               name="paper-plane-outline"
               size={24}
@@ -269,14 +278,13 @@ export function PostCard({
           onPress={() => setCaptionExpanded(!captionExpanded)}
           activeOpacity={0.8}
         >
-          <Text
+          <RichText
             style={styles.captionText}
             numberOfLines={captionExpanded ? undefined : 2}
+            username={post.user.username}
           >
-            <Text style={styles.captionUsername}>{post.user.username}</Text>
-            {'  '}
             {post.caption}
-          </Text>
+          </RichText>
         </TouchableOpacity>
       ) : null}
 
@@ -350,16 +358,33 @@ export function PostCard({
       {/* Timestamp */}
       <Text style={styles.timestamp}>{timeAgo(post.created_at)}</Text>
 
-      {/* Delete action sheet */}
+      {/* Action sheet */}
       <ActionSheet
         visible={showActionSheet}
         onClose={() => setShowActionSheet(false)}
         items={[
-          {
-            label: 'Delete Post',
-            destructive: true,
-            onPress: () => onDelete?.(post.id),
-          },
+          // Owner actions
+          ...(post.user_id === currentUserId
+            ? [
+                ...(onPin && !(post as any).is_pinned
+                  ? [{ label: 'Pin to Profile', onPress: () => onPin(post.id) }]
+                  : []),
+                ...(onUnpin && (post as any).is_pinned
+                  ? [{ label: 'Unpin from Profile', onPress: () => onUnpin(post.id) }]
+                  : []),
+                ...(onDelete
+                  ? [{ label: 'Delete Post', destructive: true, onPress: () => onDelete(post.id) }]
+                  : []),
+              ]
+            : [
+                // Other user actions
+                ...(onReport
+                  ? [{ label: 'Report Post', onPress: () => onReport(post.id) }]
+                  : []),
+                ...(onBlock
+                  ? [{ label: `Block @${post.user.username}`, destructive: true, onPress: () => onBlock(post.user_id) }]
+                  : []),
+              ]),
         ]}
       />
     </View>

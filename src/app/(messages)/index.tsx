@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/providers/AuthProvider';
 import { useConversations } from '@/hooks/useConversations';
 import { Avatar } from '@/components/ui/Avatar';
+import { GroupAvatar } from '@/components/messages/GroupAvatar';
 import { timeAgo } from '@/utils/format-date';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
 import { UserRowSkeleton } from '@/components/ui/Skeleton';
@@ -27,17 +28,32 @@ export default function MessagesIndexRoute() {
   }
 
   function renderItem({ item }: { item: ConversationPreview }) {
+    const isGroup = item.is_group;
     const other = getOtherParticipant(item);
-    if (!other) return null;
+
+    if (!isGroup && !other) return null;
+
+    const displayName = isGroup
+      ? item.group_name || 'Group'
+      : other!.username;
+
+    const avatarSection = isGroup ? (
+      <GroupAvatar
+        avatarUrls={item.participants.map((p) => p.avatar_url)}
+        size={48}
+      />
+    ) : (
+      <Avatar uri={other!.avatar_url} size="lg" />
+    );
 
     return (
       <TouchableOpacity
         style={styles.row}
         onPress={() => router.push(`/(messages)/${item.id}`)}
       >
-        <Avatar uri={other.avatar_url} size="lg" />
+        {avatarSection}
         <View style={styles.info}>
-          <Text style={styles.username}>{other.username}</Text>
+          <Text style={styles.username}>{displayName}</Text>
           <Text style={styles.lastMessage} numberOfLines={1}>
             {item.lastMessage?.content || 'No messages yet'}
             {item.lastMessage ? ` · ${timeAgo(item.lastMessage.created_at)}` : ''}

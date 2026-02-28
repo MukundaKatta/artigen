@@ -15,6 +15,7 @@ export type Database = {
           website: string;
           is_private: boolean;
           is_verified: boolean;
+          theme_preference: 'system' | 'light' | 'dark';
           followers_count: number;
           following_count: number;
           posts_count: number;
@@ -31,6 +32,7 @@ export type Database = {
           website?: string;
           is_private?: boolean;
           is_verified?: boolean;
+          theme_preference?: 'system' | 'light' | 'dark';
           followers_count?: number;
           following_count?: number;
           posts_count?: number;
@@ -45,6 +47,7 @@ export type Database = {
           bio?: string;
           website?: string;
           is_private?: boolean;
+          theme_preference?: 'system' | 'light' | 'dark';
           push_token?: string | null;
           updated_at?: string;
         };
@@ -55,15 +58,19 @@ export type Database = {
           id: string;
           follower_id: string;
           following_id: string;
+          status: 'accepted' | 'pending';
           created_at: string;
         };
         Insert: {
           id?: string;
           follower_id: string;
           following_id: string;
+          status?: 'accepted' | 'pending';
           created_at?: string;
         };
-        Update: Record<string, never>;
+        Update: {
+          status?: 'accepted' | 'pending';
+        };
         Relationships: [];
       };
       posts: {
@@ -75,6 +82,8 @@ export type Database = {
           location: string | null;
           is_archived: boolean;
           is_comments_disabled: boolean;
+          is_pinned: boolean;
+          pinned_at: string | null;
           likes_count: number;
           comments_count: number;
           created_at: string;
@@ -88,6 +97,8 @@ export type Database = {
           location?: string | null;
           is_archived?: boolean;
           is_comments_disabled?: boolean;
+          is_pinned?: boolean;
+          pinned_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -96,6 +107,8 @@ export type Database = {
           location?: string | null;
           is_archived?: boolean;
           is_comments_disabled?: boolean;
+          is_pinned?: boolean;
+          pinned_at?: string | null;
           updated_at?: string;
         };
         Relationships: [];
@@ -153,6 +166,7 @@ export type Database = {
           post_id: string;
           parent_comment_id: string | null;
           content: string;
+          likes_count: number;
           created_at: string;
           updated_at: string;
         };
@@ -345,6 +359,110 @@ export type Database = {
         };
         Relationships: [];
       };
+      user_blocks: {
+        Row: {
+          id: string;
+          blocker_id: string;
+          blocked_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          blocker_id: string;
+          blocked_id: string;
+          created_at?: string;
+        };
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      reports: {
+        Row: {
+          id: string;
+          reporter_id: string;
+          reported_user_id: string | null;
+          reported_post_id: string | null;
+          reason: string;
+          details: string | null;
+          status: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          reporter_id: string;
+          reported_user_id?: string | null;
+          reported_post_id?: string | null;
+          reason: string;
+          details?: string | null;
+          status?: string;
+          created_at?: string;
+        };
+        Update: {
+          status?: string;
+        };
+        Relationships: [];
+      };
+      story_highlights: {
+        Row: {
+          id: string;
+          user_id: string;
+          title: string;
+          cover_url: string | null;
+          sort_order: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          title: string;
+          cover_url?: string | null;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Update: {
+          title?: string;
+          cover_url?: string | null;
+          sort_order?: number;
+        };
+        Relationships: [];
+      };
+      story_highlight_items: {
+        Row: {
+          id: string;
+          highlight_id: string;
+          story_id: string;
+          sort_order: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          highlight_id: string;
+          story_id: string;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Update: {
+          sort_order?: number;
+        };
+        Relationships: [];
+      };
+      message_reactions: {
+        Row: {
+          id: string;
+          message_id: string;
+          user_id: string;
+          emoji: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          message_id: string;
+          user_id: string;
+          emoji: string;
+          created_at?: string;
+        };
+        Update: Record<string, never>;
+        Relationships: [];
+      };
       ai_metadata: {
         Row: {
           id: string;
@@ -412,7 +530,22 @@ export type Database = {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      get_suggested_users: {
+        Args: {
+          current_user_id: string;
+          result_limit: number;
+        };
+        Returns: {
+          id: string;
+          username: string;
+          full_name: string;
+          avatar_url: string | null;
+          is_verified: boolean;
+          mutual_count: number;
+        }[];
+      };
+    };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };
@@ -438,6 +571,10 @@ export type PostWithUser = Post & {
 
 export type CommentWithUser = Comment & {
   user: Profile;
+  likes_count: number;
+  isLiked?: boolean;
+  replies_count?: number;
+  replies?: CommentWithUser[];
 };
 
 export type StoryWithUser = Story & {

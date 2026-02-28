@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,8 @@ import {
   Pressable,
   ActivityIndicator,
   Dimensions,
+  TextInput,
+  Keyboard,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
@@ -14,10 +16,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Avatar } from '@/components/ui/Avatar';
 import { getUserStories } from '@/services/story.service';
+import { sendStoryReply } from '@/services/message.service';
 import { useStoryViewer } from '@/hooks/useStoryViewer';
 import { useAuth } from '@/providers/AuthProvider';
 import { timeAgo } from '@/utils/format-date';
-import { colors, fontSize, spacing, typography } from '@/lib/theme';
+import { colors, fontSize, spacing, typography, borderRadius } from '@/lib/theme';
 import type { StoryWithUser } from '@/types/database';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -29,6 +32,11 @@ export default function StoryViewerRoute() {
   const { user } = useAuth();
   const [stories, setStories] = useState<StoryWithUser[]>([]);
   const [loading, setLoading] = useState(true);
+  const [replyText, setReplyText] = useState('');
+  const [sendingReply, setSendingReply] = useState(false);
+  const [isInputFocused, setIsInputFocused] = useState(false);
+  const inputRef = useRef<TextInput>(null);
+  const isOwnStory = userId === user?.id;
 
   const {
     currentStory,
@@ -56,15 +64,37 @@ export default function StoryViewerRoute() {
   }
 
   function handleTapLeft() {
+    if (isInputFocused) return;
     prev();
   }
 
   function handleTapRight() {
+    if (isInputFocused) return;
     if (hasNext) {
       next();
     } else {
       handleClose();
     }
+  }
+
+  async function handleSendReply() {
+    if (!replyText.trim() || !user?.id || !userId || sendingReply) return;
+    setSendingReply(true);
+    await sendStoryReply(user.id, userId, replyText.trim());
+    setReplyText('');
+    setSendingReply(false);
+    Keyboard.dismiss();
+    resume();
+  }
+
+  function handleInputFocus() {
+    setIsInputFocused(true);
+    pause();
+  }
+
+  function handleInputBlur() {
+    setIsInputFocused(false);
+    resume();
   }
 
   if (loading) {
@@ -151,6 +181,29 @@ export default function StoryViewerRoute() {
           onPressOut={resume}
         />
       </View>
+
+      {/* Story reply input (only for other users' stories) */}
+      {!isOwnStory && (
+        <View style={[styles.replyBar, { paddingBottom: Math.max(insets.bottom, spacing.sm) }]}>
+          <TextInput
+            ref={inputRef}
+            style={styles.replyInput}
+            placeholder={`Reply to ${currentStory.user.username}...`}
+            placeholderTextColor="rgba(255,255,255,0.5)"
+            value={replyText}
+            onChangeText={setReplyText}
+            onFocus={handleInputFocus}
+            onBlur={handleInputBlur}
+            returnKeyType="send"
+            onSubmitEditing={handleSendReply}
+          />
+          {replyText.trim() ? (
+            <TouchableOpacity onPress={handleSendReply} disabled={sendingReply} hitSlop={8}>
+              <Ionicons name="send" size={24} color="#fff" />
+            </TouchableOpacity>
+          ) : null}
+        </View>
+      )}
     </View>
   );
 }
@@ -237,5 +290,27 @@ const styles = StyleSheet.create({
   closeEmpty: {
     position: 'absolute',
     right: spacing.lg,
+  },
+  replyBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.sm,
+    zIndex: 20,
+  },
+  replyInput: {
+    flex: 1,
+    height: 40,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.4)',
+    borderRadius: borderRadius.xl,
+    paddingHorizontal: spacing.md,
+    fontSize: fontSize.md,
+    color: '#fff',
+    marginRight: spacing.sm,
   },
 });
