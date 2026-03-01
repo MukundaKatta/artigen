@@ -1,0 +1,18 @@
+{
+  "name": "Artigen — AI Art Community",
+  "short_name": "Artigen",
+  "description": "Create, share, and discover AI-generated art",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#0095F6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    }
+  ],
+  "categories": ["social", "art", "entertainment"]
+}

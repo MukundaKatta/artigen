@@ -1,4 +1,4 @@
-import { Dimensions } from 'react-native';
+import { Dimensions, Platform } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
 
@@ -10,9 +10,9 @@ export const POST_GRID_GAP = 2;
 export const POST_GRID_COLUMNS = 3;
 export const POST_GRID_SIZE = (SCREEN_WIDTH - POST_GRID_GAP * (POST_GRID_COLUMNS - 1)) / POST_GRID_COLUMNS;
 
-// Pagination
-export const FEED_PAGE_SIZE = 10;
-export const EXPLORE_PAGE_SIZE = 30;
+// Pagination (larger on web for desktop screens)
+export const FEED_PAGE_SIZE = Platform.OS === 'web' ? 20 : 10;
+export const EXPLORE_PAGE_SIZE = Platform.OS === 'web' ? 50 : 30;
 export const COMMENTS_PAGE_SIZE = 20;
 export const MESSAGES_PAGE_SIZE = 30;
 export const NOTIFICATIONS_PAGE_SIZE = 20;
@@ -65,3 +65,19 @@ export const PALETTE_OPTIONS: string[] = [
 
 export const MARKETPLACE_PAGE_SIZE = 20;
 export const TRANSACTIONS_PAGE_SIZE = 20;
+
+// Responsive breakpoints
+export const BREAKPOINTS = {
+  mobile: 0,
+  tablet: 768,
+  desktop: 1024,
+} as const;
+
+// Desktop layout dimensions
+export const DESKTOP_CONTENT_WIDTH = 630;
+export const SIDEBAR_WIDTH = 244;
+export const SIDEBAR_COLLAPSED_WIDTH = 72;
+
+// Larger page sizes for web (more screen real estate)
+export const WEB_FEED_PAGE_SIZE = 20;
+export const WEB_EXPLORE_PAGE_SIZE = 50;

@@ -59,7 +59,7 @@ type PostCardProps = {
   onPromptRemix?: (postId: string) => void;
 };
 
-export function PostCard({
+export const PostCard = React.memo(function PostCard({
   post,
   currentUserId,
   onLike,
@@ -506,7 +506,7 @@ export function PostCard({
       />
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {

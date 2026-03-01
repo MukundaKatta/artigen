@@ -1,8 +1,9 @@
 import React, { useCallback, useMemo, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Platform, Modal, Pressable } from 'react-native';
 import BottomSheet, { BottomSheetBackdrop } from '@gorhom/bottom-sheet';
 import * as Haptics from 'expo-haptics';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
+import { useResponsive } from '@/hooks/useResponsive';
 
 export type ActionSheetItem = {
   label: string;
@@ -18,7 +19,99 @@ type Props = {
   title?: string;
 };
 
+function DesktopActionSheet({ visible, onClose, items, title }: Props) {
+  if (!visible) return null;
+
+  return (
+    <Modal transparent visible={visible} onRequestClose={onClose} animationType="fade">
+      <Pressable style={desktopStyles.overlay} onPress={onClose}>
+        <Pressable style={desktopStyles.dialog} onPress={(e) => e.stopPropagation()}>
+          {title && <Text style={desktopStyles.title}>{title}</Text>}
+          {items.map((item, index) => (
+            <TouchableOpacity
+              key={index}
+              style={[desktopStyles.item, index < items.length - 1 && desktopStyles.itemBorder]}
+              onPress={() => { onClose(); setTimeout(() => item.onPress(), 100); }}
+              activeOpacity={0.7}
+            >
+              <Text style={[desktopStyles.itemText, item.destructive && desktopStyles.destructiveText]}>
+                {item.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+          <View style={desktopStyles.separator} />
+          <TouchableOpacity style={desktopStyles.item} onPress={onClose} activeOpacity={0.7}>
+            <Text style={desktopStyles.cancelText}>Cancel</Text>
+          </TouchableOpacity>
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
+}
+
+const desktopStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dialog: {
+    backgroundColor: colors.background,
+    borderRadius: borderRadius.xl,
+    width: 400,
+    maxWidth: '90%' as any,
+    paddingVertical: spacing.sm,
+    ...Platform.select({
+      web: { boxShadow: '0 20px 60px rgba(0,0,0,0.3)' },
+      default: {},
+    }) as any,
+  },
+  title: {
+    fontSize: fontSize.sm,
+    fontFamily: typography.semiBold,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    paddingVertical: spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
+  },
+  item: {
+    paddingVertical: spacing.lg,
+    alignItems: 'center',
+  },
+  itemBorder: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
+  },
+  itemText: {
+    fontSize: fontSize.md,
+    fontFamily: typography.regular,
+    color: colors.text,
+  },
+  destructiveText: {
+    color: colors.error,
+    fontFamily: typography.semiBold,
+  },
+  separator: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: colors.border,
+  },
+  cancelText: {
+    fontSize: fontSize.md,
+    fontFamily: typography.semiBold,
+    color: colors.text,
+  },
+});
+
 export function ActionSheet({ visible, onClose, items, title }: Props) {
+  const { isMobile } = useResponsive();
+
+  // Use centered dialog on desktop web
+  if (Platform.OS === 'web' && !isMobile) {
+    return <DesktopActionSheet visible={visible} onClose={onClose} items={items} title={title} />;
+  }
+
   const bottomSheetRef = useRef<BottomSheet>(null);
   const snapPoints = useMemo(() => {
     const itemHeight = 56;

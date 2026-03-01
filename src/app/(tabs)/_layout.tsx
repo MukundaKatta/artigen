@@ -1,12 +1,14 @@
 import React from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
-import { Tabs } from 'expo-router';
+import { Tabs, Slot } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import Animated, { useAnimatedStyle, withSpring, useSharedValue, withTiming } from 'react-native-reanimated';
 import { colors, shadows, typography } from '@/lib/theme';
 import { LogoText } from '@/components/ui/LogoText';
+import { DesktopLayout } from '@/components/layout/DesktopLayout';
+import { useResponsive } from '@/hooks/useResponsive';
 
 function TabBarIcon({ name, focusedName, focused, color }: {
   name: string;
@@ -65,6 +67,17 @@ function TabBarBackground() {
 }
 
 export default function TabLayout() {
+  const { isMobile } = useResponsive();
+
+  // Desktop/tablet: use sidebar navigation instead of bottom tabs
+  if (Platform.OS === 'web' && !isMobile) {
+    return (
+      <DesktopLayout>
+        <Slot />
+      </DesktopLayout>
+    );
+  }
+
   return (
     <Tabs
       screenOptions={{

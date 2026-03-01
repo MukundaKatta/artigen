@@ -16,6 +16,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { AuthProvider, useAuth } from '@/providers/AuthProvider';
 import { ThemeProvider } from '@/providers/ThemeProvider';
 import { useActivityStatus } from '@/hooks/useActivityStatus';
+import { useWebNotifications } from '@/hooks/useWebNotifications';
 
 if (Platform.OS !== 'web') {
   SplashScreen.preventAutoHideAsync();
@@ -48,6 +49,13 @@ class ErrorBoundary extends React.Component<
 function AppContent() {
   const { user } = useAuth();
   useActivityStatus(user?.id);
+  const { requestPermission } = useWebNotifications();
+
+  useEffect(() => {
+    if (Platform.OS === 'web' && user) {
+      requestPermission();
+    }
+  }, [user, requestPermission]);
 
   return (
     <>

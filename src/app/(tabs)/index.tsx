@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { FlatList, View, Text, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/providers/AuthProvider';
@@ -8,6 +8,8 @@ import { ChallengeCard } from '@/components/feed/ChallengeCard';
 import { StoryBar } from '@/components/feed/StoryBar';
 import { StoryBarSkeleton, PostCardSkeleton } from '@/components/ui/Skeleton';
 import { useChallenge } from '@/hooks/useChallenge';
+import { ResponsiveContainer } from '@/components/layout/ResponsiveContainer';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
 import type { FeedPost } from '@/types';
 
@@ -47,9 +49,15 @@ export default function HomeRoute() {
   } = useFeed(user?.id);
   const { todayChallenge } = useChallenge(user?.id);
 
+  const shortcuts = useMemo(() => ({
+    '/': () => router.push('/(tabs)/search'),
+  }), [router]);
+  useKeyboardShortcuts(shortcuts);
+
   if (loading) return <FeedSkeleton />;
 
   return (
+    <ResponsiveContainer>
     <FlatList<FeedPost>
       data={posts}
       keyExtractor={(item) => item.id}
@@ -94,6 +102,7 @@ export default function HomeRoute() {
       style={styles.container}
       contentContainerStyle={{ paddingBottom: 80 }}
     />
+    </ResponsiveContainer>
   );
 }
 
