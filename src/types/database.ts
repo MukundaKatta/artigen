@@ -26,6 +26,9 @@ export type Database = {
           interest_tags: string[];
           subscriber_count: number;
           is_creator: boolean;
+          portfolio_enabled: boolean;
+          portfolio_bio: string | null;
+          portfolio_contact_email: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -49,6 +52,9 @@ export type Database = {
           interest_tags?: string[];
           subscriber_count?: number;
           is_creator?: boolean;
+          portfolio_enabled?: boolean;
+          portfolio_bio?: string | null;
+          portfolio_contact_email?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -67,6 +73,9 @@ export type Database = {
           interest_tags?: string[];
           subscriber_count?: number;
           is_creator?: boolean;
+          portfolio_enabled?: boolean;
+          portfolio_bio?: string | null;
+          portfolio_contact_email?: string | null;
           updated_at?: string;
         };
         Relationships: [];
@@ -115,6 +124,9 @@ export type Database = {
           has_listing: boolean;
           has_provenance: boolean;
           subscription_tier_id: string | null;
+          music_url: string | null;
+          music_title: string | null;
+          is_critique_enabled: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -138,6 +150,9 @@ export type Database = {
           has_listing?: boolean;
           has_provenance?: boolean;
           subscription_tier_id?: string | null;
+          music_url?: string | null;
+          music_title?: string | null;
+          is_critique_enabled?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -157,6 +172,9 @@ export type Database = {
           has_listing?: boolean;
           has_provenance?: boolean;
           subscription_tier_id?: string | null;
+          music_url?: string | null;
+          music_title?: string | null;
+          is_critique_enabled?: boolean;
           updated_at?: string;
         };
         Relationships: [];
@@ -1901,6 +1919,1122 @@ export type Database = {
         };
         Relationships: [];
       };
+
+      // === BATCH 1: AI Creation Tools ===
+      inpainting_jobs: {
+        Row: {
+          id: string;
+          user_id: string;
+          source_post_id: string | null;
+          source_image_url: string;
+          mask_image_url: string;
+          prompt: string;
+          negative_prompt: string | null;
+          model_id: string;
+          settings: Record<string, unknown>;
+          result_image_url: string | null;
+          status: 'pending' | 'processing' | 'completed' | 'failed';
+          result_post_id: string | null;
+          error_message: string | null;
+          created_at: string;
+          completed_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          source_post_id?: string | null;
+          source_image_url: string;
+          mask_image_url: string;
+          prompt: string;
+          negative_prompt?: string | null;
+          model_id?: string;
+          settings?: Record<string, unknown>;
+          status?: string;
+        };
+        Update: {
+          status?: string;
+          result_image_url?: string | null;
+          result_post_id?: string | null;
+          error_message?: string | null;
+          completed_at?: string | null;
+        };
+        Relationships: [];
+      };
+      outpainting_jobs: {
+        Row: {
+          id: string;
+          user_id: string;
+          source_post_id: string | null;
+          source_image_url: string;
+          direction: 'left' | 'right' | 'up' | 'down' | 'all';
+          expand_pixels: number;
+          prompt: string | null;
+          model_id: string;
+          settings: Record<string, unknown>;
+          result_image_url: string | null;
+          status: 'pending' | 'processing' | 'completed' | 'failed';
+          result_post_id: string | null;
+          error_message: string | null;
+          created_at: string;
+          completed_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          source_post_id?: string | null;
+          source_image_url: string;
+          direction: 'left' | 'right' | 'up' | 'down' | 'all';
+          expand_pixels?: number;
+          prompt?: string | null;
+          model_id?: string;
+          settings?: Record<string, unknown>;
+          status?: string;
+        };
+        Update: {
+          status?: string;
+          result_image_url?: string | null;
+          result_post_id?: string | null;
+          error_message?: string | null;
+          completed_at?: string | null;
+        };
+        Relationships: [];
+      };
+      upscaling_jobs: {
+        Row: {
+          id: string;
+          user_id: string;
+          source_post_id: string | null;
+          source_image_url: string;
+          scale_factor: 2 | 4;
+          model_id: string;
+          original_width: number | null;
+          original_height: number | null;
+          result_width: number | null;
+          result_height: number | null;
+          result_image_url: string | null;
+          status: 'pending' | 'processing' | 'completed' | 'failed';
+          result_post_id: string | null;
+          error_message: string | null;
+          created_at: string;
+          completed_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          source_post_id?: string | null;
+          source_image_url: string;
+          scale_factor?: number;
+          model_id?: string;
+          original_width?: number | null;
+          original_height?: number | null;
+          status?: string;
+        };
+        Update: {
+          status?: string;
+          result_image_url?: string | null;
+          result_width?: number | null;
+          result_height?: number | null;
+          result_post_id?: string | null;
+          error_message?: string | null;
+          completed_at?: string | null;
+        };
+        Relationships: [];
+      };
+      controlnet_jobs: {
+        Row: {
+          id: string;
+          user_id: string;
+          source_post_id: string | null;
+          control_image_url: string;
+          control_type: 'canny' | 'depth' | 'pose' | 'scribble' | 'normal' | 'mlsd' | 'seg';
+          prompt: string;
+          negative_prompt: string | null;
+          model_id: string;
+          control_strength: number;
+          settings: Record<string, unknown>;
+          result_image_url: string | null;
+          status: 'pending' | 'processing' | 'completed' | 'failed';
+          result_post_id: string | null;
+          error_message: string | null;
+          created_at: string;
+          completed_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          source_post_id?: string | null;
+          control_image_url: string;
+          control_type: string;
+          prompt: string;
+          negative_prompt?: string | null;
+          model_id?: string;
+          control_strength?: number;
+          settings?: Record<string, unknown>;
+          status?: string;
+        };
+        Update: {
+          status?: string;
+          result_image_url?: string | null;
+          result_post_id?: string | null;
+          error_message?: string | null;
+          completed_at?: string | null;
+        };
+        Relationships: [];
+      };
+      controlnet_presets: {
+        Row: {
+          id: string;
+          name: string;
+          description: string;
+          control_type: string;
+          preview_url: string | null;
+          default_strength: number;
+          sort_order: number;
+          is_active: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          description?: string;
+          control_type: string;
+          preview_url?: string | null;
+          default_strength?: number;
+          sort_order?: number;
+          is_active?: boolean;
+        };
+        Update: {
+          name?: string;
+          description?: string;
+          preview_url?: string | null;
+          default_strength?: number;
+          sort_order?: number;
+          is_active?: boolean;
+        };
+        Relationships: [];
+      };
+
+      // === BATCH 2: Art Battles ===
+      art_battles: {
+        Row: {
+          id: string;
+          title: string;
+          theme: string;
+          description: string | null;
+          status: 'waiting' | 'active' | 'voting' | 'completed';
+          creator_id: string;
+          opponent_id: string | null;
+          winner_id: string | null;
+          time_limit_minutes: number;
+          voting_ends_at: string | null;
+          created_at: string;
+          started_at: string | null;
+          completed_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          theme: string;
+          description?: string | null;
+          status?: string;
+          creator_id: string;
+          opponent_id?: string | null;
+          time_limit_minutes?: number;
+        };
+        Update: {
+          status?: string;
+          opponent_id?: string | null;
+          winner_id?: string | null;
+          voting_ends_at?: string | null;
+          started_at?: string | null;
+          completed_at?: string | null;
+        };
+        Relationships: [];
+      };
+      battle_entries: {
+        Row: {
+          id: string;
+          battle_id: string;
+          user_id: string;
+          post_id: string | null;
+          image_url: string | null;
+          prompt_used: string | null;
+          vote_count: number;
+          submitted_at: string;
+        };
+        Insert: {
+          id?: string;
+          battle_id: string;
+          user_id: string;
+          post_id?: string | null;
+          image_url?: string | null;
+          prompt_used?: string | null;
+        };
+        Update: {
+          post_id?: string | null;
+          image_url?: string | null;
+          prompt_used?: string | null;
+          vote_count?: number;
+        };
+        Relationships: [];
+      };
+      battle_votes: {
+        Row: {
+          id: string;
+          battle_id: string;
+          entry_id: string;
+          user_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          battle_id: string;
+          entry_id: string;
+          user_id: string;
+        };
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+
+      // === BATCH 3: Prompt Chains/Workflows ===
+      workflow_templates: {
+        Row: {
+          id: string;
+          user_id: string;
+          name: string;
+          description: string | null;
+          steps: Record<string, unknown>[];
+          is_public: boolean;
+          use_count: number;
+          save_count: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          name: string;
+          description?: string | null;
+          steps: Record<string, unknown>[];
+          is_public?: boolean;
+        };
+        Update: {
+          name?: string;
+          description?: string | null;
+          steps?: Record<string, unknown>[];
+          is_public?: boolean;
+          use_count?: number;
+          save_count?: number;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      workflow_runs: {
+        Row: {
+          id: string;
+          user_id: string;
+          template_id: string | null;
+          name: string;
+          steps: Record<string, unknown>[];
+          current_step: number;
+          status: 'pending' | 'running' | 'paused' | 'completed' | 'failed';
+          results: Record<string, unknown>[];
+          error_message: string | null;
+          created_at: string;
+          completed_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          template_id?: string | null;
+          name: string;
+          steps: Record<string, unknown>[];
+          current_step?: number;
+          status?: string;
+        };
+        Update: {
+          current_step?: number;
+          status?: string;
+          results?: Record<string, unknown>[];
+          error_message?: string | null;
+          completed_at?: string | null;
+        };
+        Relationships: [];
+      };
+      workflow_saves: {
+        Row: {
+          id: string;
+          user_id: string;
+          template_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          template_id: string;
+        };
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+
+      // === BATCH 4: Learning System ===
+      tutorials: {
+        Row: {
+          id: string;
+          title: string;
+          description: string | null;
+          category: 'basics' | 'prompting' | 'styles' | 'advanced' | 'models' | 'composition';
+          difficulty: 'beginner' | 'intermediate' | 'advanced';
+          cover_image_url: string | null;
+          estimated_minutes: number;
+          xp_reward: number;
+          sort_order: number;
+          is_published: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          description?: string | null;
+          category: string;
+          difficulty?: string;
+          cover_image_url?: string | null;
+          estimated_minutes?: number;
+          xp_reward?: number;
+          sort_order?: number;
+          is_published?: boolean;
+        };
+        Update: {
+          title?: string;
+          description?: string | null;
+          cover_image_url?: string | null;
+          estimated_minutes?: number;
+          xp_reward?: number;
+          sort_order?: number;
+          is_published?: boolean;
+        };
+        Relationships: [];
+      };
+      tutorial_lessons: {
+        Row: {
+          id: string;
+          tutorial_id: string;
+          title: string;
+          content_type: 'text' | 'interactive' | 'quiz' | 'practice';
+          content: Record<string, unknown>;
+          sort_order: number;
+          xp_reward: number;
+        };
+        Insert: {
+          id?: string;
+          tutorial_id: string;
+          title: string;
+          content_type: string;
+          content: Record<string, unknown>;
+          sort_order?: number;
+          xp_reward?: number;
+        };
+        Update: {
+          title?: string;
+          content_type?: string;
+          content?: Record<string, unknown>;
+          sort_order?: number;
+          xp_reward?: number;
+        };
+        Relationships: [];
+      };
+      user_tutorial_progress: {
+        Row: {
+          id: string;
+          user_id: string;
+          tutorial_id: string;
+          current_lesson: number;
+          completed_lessons: number[];
+          is_completed: boolean;
+          started_at: string;
+          completed_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          tutorial_id: string;
+          current_lesson?: number;
+          completed_lessons?: number[];
+        };
+        Update: {
+          current_lesson?: number;
+          completed_lessons?: number[];
+          is_completed?: boolean;
+          completed_at?: string | null;
+        };
+        Relationships: [];
+      };
+      user_xp: {
+        Row: {
+          id: string;
+          user_id: string;
+          total_xp: number;
+          level: number;
+          xp_to_next_level: number;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          total_xp?: number;
+          level?: number;
+          xp_to_next_level?: number;
+        };
+        Update: {
+          total_xp?: number;
+          level?: number;
+          xp_to_next_level?: number;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      xp_transactions: {
+        Row: {
+          id: string;
+          user_id: string;
+          amount: number;
+          source: 'tutorial' | 'lesson' | 'challenge' | 'battle' | 'daily_post' | 'streak' | 'badge';
+          source_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          amount: number;
+          source: string;
+          source_id?: string | null;
+        };
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      mentorships: {
+        Row: {
+          id: string;
+          mentor_id: string;
+          mentee_id: string;
+          status: 'pending' | 'active' | 'completed' | 'cancelled';
+          focus_areas: string[];
+          message: string | null;
+          created_at: string;
+          accepted_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          mentor_id: string;
+          mentee_id: string;
+          status?: string;
+          focus_areas?: string[];
+          message?: string | null;
+        };
+        Update: {
+          status?: string;
+          accepted_at?: string | null;
+        };
+        Relationships: [];
+      };
+      mentorship_sessions: {
+        Row: {
+          id: string;
+          mentorship_id: string;
+          post_id: string | null;
+          feedback: string;
+          rating: number | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          mentorship_id: string;
+          post_id?: string | null;
+          feedback: string;
+          rating?: number | null;
+        };
+        Update: {
+          feedback?: string;
+          rating?: number | null;
+        };
+        Relationships: [];
+      };
+
+      // === BATCH 5: Events & Exhibitions ===
+      exhibitions: {
+        Row: {
+          id: string;
+          title: string;
+          description: string | null;
+          theme: string | null;
+          cover_image_url: string | null;
+          curator_id: string;
+          status: 'accepting' | 'curating' | 'live' | 'archived';
+          max_submissions: number;
+          submission_count: number;
+          view_count: number;
+          starts_at: string | null;
+          ends_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          description?: string | null;
+          theme?: string | null;
+          cover_image_url?: string | null;
+          curator_id: string;
+          status?: string;
+          max_submissions?: number;
+          starts_at?: string | null;
+          ends_at?: string | null;
+        };
+        Update: {
+          title?: string;
+          description?: string | null;
+          theme?: string | null;
+          cover_image_url?: string | null;
+          status?: string;
+          max_submissions?: number;
+          submission_count?: number;
+          view_count?: number;
+          starts_at?: string | null;
+          ends_at?: string | null;
+        };
+        Relationships: [];
+      };
+      exhibition_submissions: {
+        Row: {
+          id: string;
+          exhibition_id: string;
+          user_id: string;
+          post_id: string;
+          status: 'pending' | 'accepted' | 'rejected' | 'featured';
+          curator_note: string | null;
+          position: number | null;
+          submitted_at: string;
+        };
+        Insert: {
+          id?: string;
+          exhibition_id: string;
+          user_id: string;
+          post_id: string;
+          status?: string;
+        };
+        Update: {
+          status?: string;
+          curator_note?: string | null;
+          position?: number | null;
+        };
+        Relationships: [];
+      };
+      exhibition_visits: {
+        Row: {
+          id: string;
+          exhibition_id: string;
+          user_id: string;
+          visited_at: string;
+        };
+        Insert: {
+          id?: string;
+          exhibition_id: string;
+          user_id: string;
+        };
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      events: {
+        Row: {
+          id: string;
+          title: string;
+          description: string | null;
+          event_type: 'workshop' | 'ama' | 'livestream' | 'challenge_event' | 'meetup';
+          host_id: string;
+          community_id: string | null;
+          cover_image_url: string | null;
+          status: 'upcoming' | 'live' | 'completed' | 'cancelled';
+          max_attendees: number | null;
+          attendee_count: number;
+          starts_at: string;
+          ends_at: string | null;
+          meeting_url: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          description?: string | null;
+          event_type: string;
+          host_id: string;
+          community_id?: string | null;
+          cover_image_url?: string | null;
+          status?: string;
+          max_attendees?: number | null;
+          starts_at: string;
+          ends_at?: string | null;
+          meeting_url?: string | null;
+        };
+        Update: {
+          title?: string;
+          description?: string | null;
+          cover_image_url?: string | null;
+          status?: string;
+          attendee_count?: number;
+          meeting_url?: string | null;
+        };
+        Relationships: [];
+      };
+      event_attendees: {
+        Row: {
+          id: string;
+          event_id: string;
+          user_id: string;
+          rsvp_status: 'going' | 'interested' | 'not_going';
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          event_id: string;
+          user_id: string;
+          rsvp_status?: string;
+        };
+        Update: {
+          rsvp_status?: string;
+        };
+        Relationships: [];
+      };
+      weekly_events: {
+        Row: {
+          id: string;
+          title: string;
+          description: string | null;
+          theme: string;
+          hashtag: string;
+          cover_image_url: string | null;
+          reward_badge_id: string | null;
+          starts_at: string;
+          ends_at: string;
+          is_active: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          description?: string | null;
+          theme: string;
+          hashtag: string;
+          cover_image_url?: string | null;
+          reward_badge_id?: string | null;
+          starts_at: string;
+          ends_at: string;
+          is_active?: boolean;
+        };
+        Update: {
+          title?: string;
+          description?: string | null;
+          theme?: string;
+          cover_image_url?: string | null;
+          is_active?: boolean;
+        };
+        Relationships: [];
+      };
+      weekly_event_entries: {
+        Row: {
+          id: string;
+          event_id: string;
+          user_id: string;
+          post_id: string;
+          vote_count: number;
+          submitted_at: string;
+        };
+        Insert: {
+          id?: string;
+          event_id: string;
+          user_id: string;
+          post_id: string;
+        };
+        Update: {
+          vote_count?: number;
+        };
+        Relationships: [];
+      };
+      weekly_event_votes: {
+        Row: {
+          id: string;
+          entry_id: string;
+          user_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          entry_id: string;
+          user_id: string;
+        };
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+
+      // === BATCH 6: Art Critique + AI Avatars ===
+      post_critiques: {
+        Row: {
+          id: string;
+          post_id: string;
+          user_id: string;
+          composition_rating: number | null;
+          color_rating: number | null;
+          technique_rating: number | null;
+          prompt_craft_rating: number | null;
+          originality_rating: number | null;
+          overall_rating: number | null;
+          feedback_text: string;
+          helpful_count: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          post_id: string;
+          user_id: string;
+          composition_rating?: number | null;
+          color_rating?: number | null;
+          technique_rating?: number | null;
+          prompt_craft_rating?: number | null;
+          originality_rating?: number | null;
+          overall_rating?: number | null;
+          feedback_text: string;
+        };
+        Update: {
+          composition_rating?: number | null;
+          color_rating?: number | null;
+          technique_rating?: number | null;
+          prompt_craft_rating?: number | null;
+          originality_rating?: number | null;
+          overall_rating?: number | null;
+          feedback_text?: string;
+          helpful_count?: number;
+        };
+        Relationships: [];
+      };
+      critique_helpful_votes: {
+        Row: {
+          id: string;
+          critique_id: string;
+          user_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          critique_id: string;
+          user_id: string;
+        };
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      avatar_generation_jobs: {
+        Row: {
+          id: string;
+          user_id: string;
+          source_image_urls: string[];
+          style: 'anime' | 'cartoon' | '3d' | 'pixel' | 'watercolor' | 'oil_painting' | 'cyberpunk' | 'fantasy' | 'minimalist' | 'pop_art';
+          prompt_modifier: string | null;
+          result_urls: string[];
+          status: 'pending' | 'processing' | 'completed' | 'failed';
+          error_message: string | null;
+          created_at: string;
+          completed_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          source_image_urls: string[];
+          style: string;
+          prompt_modifier?: string | null;
+          status?: string;
+        };
+        Update: {
+          status?: string;
+          result_urls?: string[];
+          error_message?: string | null;
+          completed_at?: string | null;
+        };
+        Relationships: [];
+      };
+      user_avatars: {
+        Row: {
+          id: string;
+          user_id: string;
+          image_url: string;
+          style: string;
+          is_active: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          image_url: string;
+          style: string;
+          is_active?: boolean;
+        };
+        Update: {
+          is_active?: boolean;
+        };
+        Relationships: [];
+      };
+
+      // === BATCH 7: AI Music, Stickers, Text-to-3D ===
+      music_generation_jobs: {
+        Row: {
+          id: string;
+          user_id: string;
+          post_id: string | null;
+          prompt: string | null;
+          mood: 'calm' | 'energetic' | 'dramatic' | 'mysterious' | 'happy' | 'sad' | 'epic' | 'ambient' | 'playful' | 'dark' | null;
+          duration_seconds: number;
+          genre: string | null;
+          result_audio_url: string | null;
+          status: 'pending' | 'processing' | 'completed' | 'failed';
+          error_message: string | null;
+          created_at: string;
+          completed_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          post_id?: string | null;
+          prompt?: string | null;
+          mood?: string | null;
+          duration_seconds?: number;
+          genre?: string | null;
+          status?: string;
+        };
+        Update: {
+          status?: string;
+          result_audio_url?: string | null;
+          error_message?: string | null;
+          completed_at?: string | null;
+        };
+        Relationships: [];
+      };
+      sticker_packs: {
+        Row: {
+          id: string;
+          creator_id: string;
+          name: string;
+          description: string | null;
+          cover_url: string | null;
+          is_public: boolean;
+          download_count: number;
+          sticker_count: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          creator_id: string;
+          name: string;
+          description?: string | null;
+          cover_url?: string | null;
+          is_public?: boolean;
+        };
+        Update: {
+          name?: string;
+          description?: string | null;
+          cover_url?: string | null;
+          is_public?: boolean;
+          download_count?: number;
+          sticker_count?: number;
+        };
+        Relationships: [];
+      };
+      stickers: {
+        Row: {
+          id: string;
+          pack_id: string;
+          image_url: string;
+          label: string | null;
+          sort_order: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          pack_id: string;
+          image_url: string;
+          label?: string | null;
+          sort_order?: number;
+        };
+        Update: {
+          label?: string | null;
+          sort_order?: number;
+        };
+        Relationships: [];
+      };
+      user_sticker_packs: {
+        Row: {
+          id: string;
+          user_id: string;
+          pack_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          pack_id: string;
+        };
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      text_to_3d_jobs: {
+        Row: {
+          id: string;
+          user_id: string;
+          prompt: string;
+          negative_prompt: string | null;
+          model_id: string;
+          settings: Record<string, unknown>;
+          result_model_url: string | null;
+          result_thumbnail_url: string | null;
+          status: 'pending' | 'processing' | 'completed' | 'failed';
+          error_message: string | null;
+          created_at: string;
+          completed_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          prompt: string;
+          negative_prompt?: string | null;
+          model_id?: string;
+          settings?: Record<string, unknown>;
+          status?: string;
+        };
+        Update: {
+          status?: string;
+          result_model_url?: string | null;
+          result_thumbnail_url?: string | null;
+          error_message?: string | null;
+          completed_at?: string | null;
+        };
+        Relationships: [];
+      };
+
+      // === BATCH 8: Portfolio, Cross-Posting, AR Preview ===
+      portfolio_sections: {
+        Row: {
+          id: string;
+          user_id: string;
+          title: string;
+          description: string | null;
+          sort_order: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          title: string;
+          description?: string | null;
+          sort_order?: number;
+        };
+        Update: {
+          title?: string;
+          description?: string | null;
+          sort_order?: number;
+        };
+        Relationships: [];
+      };
+      portfolio_items: {
+        Row: {
+          id: string;
+          section_id: string;
+          post_id: string;
+          caption_override: string | null;
+          sort_order: number;
+        };
+        Insert: {
+          id?: string;
+          section_id: string;
+          post_id: string;
+          caption_override?: string | null;
+          sort_order?: number;
+        };
+        Update: {
+          caption_override?: string | null;
+          sort_order?: number;
+        };
+        Relationships: [];
+      };
+      cross_post_accounts: {
+        Row: {
+          id: string;
+          user_id: string;
+          platform: 'instagram' | 'twitter' | 'tiktok' | 'facebook' | 'pinterest' | 'threads';
+          platform_username: string | null;
+          is_connected: boolean;
+          access_token_encrypted: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          platform: string;
+          platform_username?: string | null;
+          is_connected?: boolean;
+          access_token_encrypted?: string | null;
+        };
+        Update: {
+          platform_username?: string | null;
+          is_connected?: boolean;
+          access_token_encrypted?: string | null;
+        };
+        Relationships: [];
+      };
+      cross_posts: {
+        Row: {
+          id: string;
+          post_id: string;
+          user_id: string;
+          platform: string;
+          platform_post_id: string | null;
+          status: 'pending' | 'posting' | 'posted' | 'failed';
+          error_message: string | null;
+          posted_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          post_id: string;
+          user_id: string;
+          platform: string;
+          status?: string;
+        };
+        Update: {
+          status?: string;
+          platform_post_id?: string | null;
+          error_message?: string | null;
+          posted_at?: string | null;
+        };
+        Relationships: [];
+      };
+      ar_previews: {
+        Row: {
+          id: string;
+          post_id: string;
+          frame_style: 'none' | 'thin_black' | 'thin_white' | 'gallery' | 'modern' | 'ornate';
+          default_width_cm: number;
+          default_height_cm: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          post_id: string;
+          frame_style?: string;
+          default_width_cm?: number;
+          default_height_cm?: number;
+        };
+        Update: {
+          frame_style?: string;
+          default_width_cm?: number;
+          default_height_cm?: number;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -2028,6 +3162,62 @@ export type ContentLabel = Database['public']['Tables']['content_labels']['Row']
 export type ContentRating = Database['public']['Tables']['content_ratings']['Row'];
 export type SafetyPreference = Database['public']['Tables']['safety_preferences']['Row'];
 export type CommunityPost = Database['public']['Tables']['community_posts']['Row'];
+
+// Batch 1: AI Creation Tools
+export type InpaintingJob = Database['public']['Tables']['inpainting_jobs']['Row'];
+export type OutpaintingJob = Database['public']['Tables']['outpainting_jobs']['Row'];
+export type UpscalingJob = Database['public']['Tables']['upscaling_jobs']['Row'];
+export type ControlNetJob = Database['public']['Tables']['controlnet_jobs']['Row'];
+export type ControlNetPreset = Database['public']['Tables']['controlnet_presets']['Row'];
+
+// Batch 2: Art Battles
+export type ArtBattle = Database['public']['Tables']['art_battles']['Row'];
+export type BattleEntry = Database['public']['Tables']['battle_entries']['Row'];
+export type BattleVote = Database['public']['Tables']['battle_votes']['Row'];
+
+// Batch 3: Prompt Chains/Workflows
+export type WorkflowTemplate = Database['public']['Tables']['workflow_templates']['Row'];
+export type WorkflowRun = Database['public']['Tables']['workflow_runs']['Row'];
+export type WorkflowSave = Database['public']['Tables']['workflow_saves']['Row'];
+
+// Batch 4: Learning System
+export type Tutorial = Database['public']['Tables']['tutorials']['Row'];
+export type TutorialLesson = Database['public']['Tables']['tutorial_lessons']['Row'];
+export type UserTutorialProgress = Database['public']['Tables']['user_tutorial_progress']['Row'];
+export type UserXp = Database['public']['Tables']['user_xp']['Row'];
+export type XpTransaction = Database['public']['Tables']['xp_transactions']['Row'];
+export type Mentorship = Database['public']['Tables']['mentorships']['Row'];
+export type MentorshipSession = Database['public']['Tables']['mentorship_sessions']['Row'];
+
+// Batch 5: Events & Exhibitions
+export type Exhibition = Database['public']['Tables']['exhibitions']['Row'];
+export type ExhibitionSubmission = Database['public']['Tables']['exhibition_submissions']['Row'];
+export type ExhibitionVisit = Database['public']['Tables']['exhibition_visits']['Row'];
+export type Event = Database['public']['Tables']['events']['Row'];
+export type EventAttendee = Database['public']['Tables']['event_attendees']['Row'];
+export type WeeklyEvent = Database['public']['Tables']['weekly_events']['Row'];
+export type WeeklyEventEntry = Database['public']['Tables']['weekly_event_entries']['Row'];
+export type WeeklyEventVote = Database['public']['Tables']['weekly_event_votes']['Row'];
+
+// Batch 6: Art Critique + AI Avatars
+export type PostCritique = Database['public']['Tables']['post_critiques']['Row'];
+export type CritiqueHelpfulVote = Database['public']['Tables']['critique_helpful_votes']['Row'];
+export type AvatarGenerationJob = Database['public']['Tables']['avatar_generation_jobs']['Row'];
+export type UserAvatar = Database['public']['Tables']['user_avatars']['Row'];
+
+// Batch 7: AI Music, Stickers, Text-to-3D
+export type MusicGenerationJob = Database['public']['Tables']['music_generation_jobs']['Row'];
+export type StickerPack = Database['public']['Tables']['sticker_packs']['Row'];
+export type Sticker = Database['public']['Tables']['stickers']['Row'];
+export type UserStickerPack = Database['public']['Tables']['user_sticker_packs']['Row'];
+export type Text3DJob = Database['public']['Tables']['text_to_3d_jobs']['Row'];
+
+// Batch 8: Portfolio, Cross-Posting, AR Preview
+export type PortfolioSection = Database['public']['Tables']['portfolio_sections']['Row'];
+export type PortfolioItem = Database['public']['Tables']['portfolio_items']['Row'];
+export type CrossPostAccount = Database['public']['Tables']['cross_post_accounts']['Row'];
+export type CrossPost = Database['public']['Tables']['cross_posts']['Row'];
+export type ArPreview = Database['public']['Tables']['ar_previews']['Row'];
 
 // Extended types with relationships (what you get from joins)
 export type PostWithUser = Post & {

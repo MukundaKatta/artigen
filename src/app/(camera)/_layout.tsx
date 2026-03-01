@@ -18,6 +18,10 @@ export default function CameraLayout() {
       <Stack.Screen name="restyle" options={{ title: 'Restyle' }} />
       <Stack.Screen name="animate" options={{ title: 'Animate' }} />
       <Stack.Screen name="remix/[postId]" options={{ title: 'Remix Prompt' }} />
+      <Stack.Screen name="inpaint" options={{ title: 'Inpaint' }} />
+      <Stack.Screen name="outpaint" options={{ title: 'Outpaint' }} />
+      <Stack.Screen name="upscale" options={{ title: 'Upscale' }} />
+      <Stack.Screen name="controlnet" options={{ title: 'ControlNet' }} />
     </Stack>
   );
 }

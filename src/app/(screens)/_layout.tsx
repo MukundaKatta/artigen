@@ -55,6 +55,39 @@ export default function ScreensLayout() {
       <Stack.Screen name="customize-profile" options={{ title: 'Customize Profile' }} />
       <Stack.Screen name="blocked-users" options={{ title: 'Blocked Users' }} />
       <Stack.Screen name="explore-map" options={{ title: 'Explore Map' }} />
+      <Stack.Screen name="music-generator" options={{ title: 'AI Music' }} />
+      <Stack.Screen name="sticker-packs" options={{ title: 'Sticker Packs' }} />
+      <Stack.Screen name="sticker-pack/[id]" options={{ title: 'Sticker Pack' }} />
+      <Stack.Screen name="sticker-pack/create" options={{ title: 'Create Pack' }} />
+      <Stack.Screen name="text-to-3d" options={{ title: 'Text to 3D' }} />
+      <Stack.Screen name="portfolio/index" options={{ title: 'Portfolio' }} />
+      <Stack.Screen name="portfolio/edit" options={{ title: 'Edit Portfolio' }} />
+      <Stack.Screen name="cross-post-settings" options={{ title: 'Cross-Post Settings' }} />
+      <Stack.Screen name="cross-post/[postId]" options={{ title: 'Cross-Post' }} />
+      <Stack.Screen name="ar-preview/[postId]" options={{ title: 'AR Preview' }} />
+      <Stack.Screen name="critiques/[postId]" options={{ title: 'Art Critiques' }} />
+      <Stack.Screen name="critique/create/[postId]" options={{ title: 'Write Critique' }} />
+      <Stack.Screen name="avatar-generator" options={{ title: 'AI Avatars' }} />
+      <Stack.Screen name="battles" options={{ title: 'Art Battles' }} />
+      <Stack.Screen name="battle/[id]" options={{ title: 'Battle' }} />
+      <Stack.Screen name="battle/create" options={{ title: 'Create Battle' }} />
+      <Stack.Screen name="workflows" options={{ title: 'Workflows' }} />
+      <Stack.Screen name="workflow/[id]" options={{ title: 'Workflow' }} />
+      <Stack.Screen name="workflow/create" options={{ title: 'Create Workflow' }} />
+      <Stack.Screen name="workflow/run/[id]" options={{ title: 'Workflow Run' }} />
+      <Stack.Screen name="tutorials" options={{ title: 'Learn' }} />
+      <Stack.Screen name="tutorial/[id]" options={{ title: 'Tutorial' }} />
+      <Stack.Screen name="tutorial/lesson/[lessonId]" options={{ title: 'Lesson' }} />
+      <Stack.Screen name="mentorship" options={{ title: 'Mentorship' }} />
+      <Stack.Screen name="mentorship/find" options={{ title: 'Find a Mentor' }} />
+      <Stack.Screen name="mentorship/[id]" options={{ title: 'Mentorship' }} />
+      <Stack.Screen name="exhibitions" options={{ title: 'Exhibitions' }} />
+      <Stack.Screen name="exhibition/[id]" options={{ title: 'Exhibition' }} />
+      <Stack.Screen name="exhibition/create" options={{ title: 'Create Exhibition' }} />
+      <Stack.Screen name="events" options={{ title: 'Events' }} />
+      <Stack.Screen name="event/[id]" options={{ title: 'Event' }} />
+      <Stack.Screen name="event/create" options={{ title: 'Create Event' }} />
+      <Stack.Screen name="weekly-event" options={{ title: 'Weekly Event' }} />
     </Stack>
   );
 }
