@@ -1,0 +1,25 @@
+diff --git a/node_modules/expo-modules-core/src/registerWebModule.ts b/node_modules/expo-modules-core/src/registerWebModule.ts
+index eaee38e..b02e459 100644
+--- a/node_modules/expo-modules-core/src/registerWebModule.ts
++++ b/node_modules/expo-modules-core/src/registerWebModule.ts
+@@ -10,10 +10,10 @@ import type { NativeModule } from './ts-declarations/NativeModule';
+ export function registerWebModule<
+   EventsMap extends Record<never, never>,
+   ModuleType extends typeof NativeModule<EventsMap>,
+->(moduleImplementation: ModuleType): ModuleType {
++>(moduleImplementation: ModuleType, name?: string): ModuleType {
+   ensureNativeModulesAreInstalled();
+ 
+-  const moduleName = moduleImplementation.name;
++  const moduleName = name || moduleImplementation.name;
+   if (!moduleName) {
+     throw new Error('Module implementation must be a class');
+   }
+@@ -23,6 +23,6 @@ export function registerWebModule<
+   if (globalThis.expo.modules[moduleName]) {
+     return globalThis.expo.modules[moduleName];
+   }
+-  globalThis.expo.modules[moduleName] = new moduleImplementation();
++  globalThis.expo.modules[moduleName] = new (moduleImplementation as any)();
+   return globalThis.expo.modules[moduleName];
+ }
