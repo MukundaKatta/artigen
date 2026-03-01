@@ -32,18 +32,38 @@ function LogoLabel({ fontSize, color }: { fontSize: number; color?: string }) {
   );
 }
 
+function WebGradientLogo({ fontSize }: { fontSize: number }) {
+  const capSize = Math.round(fontSize * 1.35);
+  return (
+    <View style={styles.container}>
+      <Text
+        style={[
+          styles.text,
+          {
+            fontSize,
+            // @ts-ignore — web-only CSS properties for gradient text
+            backgroundImage: 'linear-gradient(90deg, #833AB4, #C13584, #E1306C, #FD1D1D, #F77737)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+          },
+        ]}
+      >
+        <Text style={{ fontSize: capSize }}>A</Text>
+        rtigen
+      </Text>
+    </View>
+  );
+}
+
 export function LogoText({ size = 'md' }: Props) {
   const fontSize = SIZES[size];
 
-  const textElement = <LogoLabel fontSize={fontSize} />;
-
   if (Platform.OS === 'web') {
-    return (
-      <View style={styles.container}>
-        <LogoLabel fontSize={fontSize} color="#C13584" />
-      </View>
-    );
+    return <WebGradientLogo fontSize={fontSize} />;
   }
+
+  const textElement = <LogoLabel fontSize={fontSize} />;
 
   return (
     <View style={styles.container}>

@@ -11,6 +11,7 @@ import {
   Inter_700Bold,
 } from '@expo-google-fonts/inter';
 import { Pacifico_400Regular } from '@expo-google-fonts/pacifico';
+import { Ionicons } from '@expo/vector-icons';
 import * as SplashScreen from 'expo-splash-screen';
 import { AuthProvider, useAuth } from '@/providers/AuthProvider';
 import { ThemeProvider } from '@/providers/ThemeProvider';
@@ -90,6 +91,7 @@ export default function RootLayout() {
     Inter_600SemiBold,
     Inter_700Bold,
     Pacifico_400Regular,
+    ...Ionicons.font,
   });
 
   useEffect(() => {
