@@ -11,8 +11,11 @@ import { useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/providers/AuthProvider';
 import { useConversations } from '@/hooks/useConversations';
+import { useNotes } from '@/hooks/useNotes';
 import { Avatar } from '@/components/ui/Avatar';
 import { GroupAvatar } from '@/components/messages/GroupAvatar';
+import { NotesRow } from '@/components/messages/NotesRow';
+import { OnlineIndicator } from '@/components/ui/OnlineIndicator';
 import { timeAgo } from '@/utils/format-date';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
 import { UserRowSkeleton } from '@/components/ui/Skeleton';
@@ -20,8 +23,9 @@ import type { ConversationPreview } from '@/types';
 
 export default function MessagesIndexRoute() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { conversations, loading, refresh } = useConversations(user?.id);
+  const { notes, myNote, shareNote, removeNote } = useNotes(user?.id);
 
   function getOtherParticipant(conv: ConversationPreview) {
     return conv.participants.find((p) => p.id !== user?.id) || conv.participants[0];
@@ -54,10 +58,17 @@ export default function MessagesIndexRoute() {
         {avatarSection}
         <View style={styles.info}>
           <Text style={styles.username}>{displayName}</Text>
-          <Text style={styles.lastMessage} numberOfLines={1}>
-            {item.lastMessage?.content || 'No messages yet'}
-            {item.lastMessage ? ` · ${timeAgo(item.lastMessage.created_at)}` : ''}
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
+            {!isGroup && other?.show_activity_status && (
+              <OnlineIndicator lastActiveAt={other?.last_active_at} showText />
+            )}
+            {!(!isGroup && other?.show_activity_status && other?.last_active_at) && (
+              <Text style={styles.lastMessage} numberOfLines={1}>
+                {item.lastMessage?.content || 'No messages yet'}
+                {item.lastMessage ? ` · ${timeAgo(item.lastMessage.created_at)}` : ''}
+              </Text>
+            )}
+          </View>
         </View>
         {item.unreadCount > 0 && (
           <View style={styles.badge}>
@@ -95,6 +106,21 @@ export default function MessagesIndexRoute() {
           renderItem={renderItem}
           refreshing={false}
           onRefresh={refresh}
+          ListHeaderComponent={
+            profile ? (
+              <NotesRow
+                myNote={myNote}
+                notes={notes}
+                currentUser={{
+                  id: profile.id,
+                  username: profile.username,
+                  avatar_url: profile.avatar_url,
+                }}
+                onShareNote={shareNote}
+                onDeleteNote={removeNote}
+              />
+            ) : null
+          }
           ListEmptyComponent={
             <View style={styles.empty}>
               <Ionicons name="chatbubbles-outline" size={48} color={colors.border} />

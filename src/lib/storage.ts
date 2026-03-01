@@ -1,3 +1,3 @@
-import 'expo-sqlite/localStorage/install';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export const storage = localStorage;
+export const storage = AsyncStorage;

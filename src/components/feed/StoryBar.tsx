@@ -8,6 +8,7 @@ import { useAuth } from '@/providers/AuthProvider';
 import { useStories } from '@/hooks/useStories';
 import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { StoryBarSkeleton } from '@/components/ui/Skeleton';
+import { CloseFriendsRing } from '@/components/stories/CloseFriendsRing';
 import { colors, fontSize, spacing, typography, gradients, shadows } from '@/lib/theme';
 import { AVATAR_SIZES } from '@/lib/constants';
 
@@ -77,40 +78,52 @@ export function StoryBar() {
         </AnimatedPressable>
 
         {/* Other users' stories */}
-        {otherStories.map((userStory) => (
-          <AnimatedPressable
-            key={userStory.userId}
-            scaleValue={0.95}
-            onPress={() => handleStoryPress(userStory.userId)}
-            style={styles.storyItem}
-          >
-            <View>
-              <Image
-                source={userStory.avatarUrl ? { uri: userStory.avatarUrl } : require('../../../assets/images/default-avatar.png')}
-                style={styles.avatar}
-                contentFit="cover"
-                transition={200}
-              />
-              {userStory.hasUnviewed ? (
-                <LinearGradient
-                  colors={gradients.storyRing}
-                  start={{ x: 0, y: 1 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.storyRingGradient}
-                >
-                  <View style={styles.storyRingInner} />
-                </LinearGradient>
-              ) : (
-                <View style={styles.storyRingViewed}>
-                  <View style={styles.storyRingInner} />
-                </View>
-              )}
-            </View>
-            <Text style={styles.label} numberOfLines={1}>
-              {userStory.username}
-            </Text>
-          </AnimatedPressable>
-        ))}
+        {otherStories.map((userStory) => {
+          const hasCloseFriendsStory = userStory.stories.some(
+            (s: any) => s.audience === 'close_friends'
+          );
+
+          return (
+            <AnimatedPressable
+              key={userStory.userId}
+              scaleValue={0.95}
+              onPress={() => handleStoryPress(userStory.userId)}
+              style={styles.storyItem}
+            >
+              <View>
+                <Image
+                  source={userStory.avatarUrl ? { uri: userStory.avatarUrl } : require('../../../assets/images/default-avatar.png')}
+                  style={styles.avatar}
+                  contentFit="cover"
+                  transition={200}
+                />
+                {userStory.hasUnviewed ? (
+                  hasCloseFriendsStory ? (
+                    <CloseFriendsRing>
+                      <View style={styles.storyRingInner} />
+                    </CloseFriendsRing>
+                  ) : (
+                    <LinearGradient
+                      colors={gradients.storyRing}
+                      start={{ x: 0, y: 1 }}
+                      end={{ x: 1, y: 0 }}
+                      style={styles.storyRingGradient}
+                    >
+                      <View style={styles.storyRingInner} />
+                    </LinearGradient>
+                  )
+                ) : (
+                  <View style={styles.storyRingViewed}>
+                    <View style={styles.storyRingInner} />
+                  </View>
+                )}
+              </View>
+              <Text style={styles.label} numberOfLines={1}>
+                {userStory.username}
+              </Text>
+            </AnimatedPressable>
+          );
+        })}
       </ScrollView>
     </View>
   );

@@ -4,8 +4,10 @@ import { useRouter } from 'expo-router';
 import { useAuth } from '@/providers/AuthProvider';
 import { useFeed } from '@/hooks/useFeed';
 import { PostCard } from '@/components/feed/PostCard';
+import { ChallengeCard } from '@/components/feed/ChallengeCard';
 import { StoryBar } from '@/components/feed/StoryBar';
 import { StoryBarSkeleton, PostCardSkeleton } from '@/components/ui/Skeleton';
+import { useChallenge } from '@/hooks/useChallenge';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
 import type { FeedPost } from '@/types';
 
@@ -41,7 +43,9 @@ export default function HomeRoute() {
     loadMore,
     toggleLike,
     toggleSave,
+    toggleReaction,
   } = useFeed(user?.id);
+  const { todayChallenge } = useChallenge(user?.id);
 
   if (loading) return <FeedSkeleton />;
 
@@ -55,6 +59,7 @@ export default function HomeRoute() {
           currentUserId={user?.id || ''}
           onLike={toggleLike}
           onSave={toggleSave}
+          onReaction={toggleReaction}
           onComment={(postId) =>
             router.push(`/(screens)/comments/${postId}`)
           }
@@ -66,7 +71,12 @@ export default function HomeRoute() {
           }
         />
       )}
-      ListHeaderComponent={<StoryBar />}
+      ListHeaderComponent={
+        <>
+          <StoryBar />
+          {todayChallenge && <ChallengeCard challenge={todayChallenge} />}
+        </>
+      }
       ListFooterComponent={loadingMore ? <LoadingDots /> : null}
       ListEmptyComponent={
         <View style={styles.empty}>

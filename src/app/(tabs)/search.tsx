@@ -12,7 +12,12 @@ import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Avatar } from '@/components/ui/Avatar';
+import { MasonryGrid } from '@/components/explore/MasonryGrid';
+import { VisualSearchButton } from '@/components/search/VisualSearchButton';
+import { TrendingPromptsSection } from '@/components/search/TrendingPromptsSection';
+import { TrendingStyleChips } from '@/components/search/TrendingStyleChips';
 import { useExplore } from '@/hooks/useExplore';
+import { useTrending } from '@/hooks/useTrending';
 import { POST_GRID_SIZE, POST_GRID_GAP } from '@/lib/constants';
 import { colors, spacing, fontSize, borderRadius, typography } from '@/lib/theme';
 import { formatNumber } from '@/utils/format-number';
@@ -39,6 +44,7 @@ export default function SearchRoute() {
     loadMore,
     toggleAiOnly,
   } = useExplore();
+  const { prompts: trendingPrompts, styles: trendingStyles } = useTrending();
   const [activeTab, setActiveTab] = useState<SearchTab>('users');
 
   function handlePostPress(postId: string) {
@@ -213,6 +219,7 @@ export default function SearchRoute() {
             <Ionicons name="close-circle" size={18} color={colors.textSecondary} />
           </TouchableOpacity>
         )}
+        <VisualSearchButton onPress={() => router.push('/(screens)/visual-search')} />
       </View>
 
       {isSearching ? (
@@ -280,15 +287,8 @@ export default function SearchRoute() {
       ) : loading ? (
         <ActivityIndicator style={styles.loader} color={colors.textSecondary} />
       ) : (
-        <FlatList
-          data={explorePosts}
-          keyExtractor={(item) => item.id}
-          renderItem={renderExploreItem}
-          numColumns={3}
-          columnWrapperStyle={styles.gridRow}
-          onEndReached={loadMore}
-          onEndReachedThreshold={0.5}
-          ListHeaderComponent={
+        <View style={{ flex: 1 }}>
+          <View>
             <View style={styles.filterRow}>
               <TouchableOpacity
                 style={[styles.filterChip, aiOnly && styles.filterChipActive]}
@@ -303,20 +303,39 @@ export default function SearchRoute() {
                   AI Only
                 </Text>
               </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.filterChip}
+                onPress={() => router.push('/(screens)/trending')}
+              >
+                <Ionicons name="trending-up" size={14} color={colors.primary} />
+                <Text style={styles.filterChipText}>Trending</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.filterChip}
+                onPress={() => router.push('/(screens)/communities')}
+              >
+                <Ionicons name="people" size={14} color={colors.primary} />
+                <Text style={styles.filterChipText}>Communities</Text>
+              </TouchableOpacity>
             </View>
-          }
-          ListFooterComponent={
-            loadingMore ? (
-              <ActivityIndicator
-                style={styles.footerLoader}
-                color={colors.textSecondary}
-              />
-            ) : null
-          }
-          ListEmptyComponent={
+            {trendingStyles.length > 0 && (
+              <TrendingStyleChips styles_data={trendingStyles} onSelect={(s: string) => search(s)} />
+            )}
+            {trendingPrompts.length > 0 && (
+              <TrendingPromptsSection prompts={trendingPrompts.slice(0, 3)} onGenerate={(prompt: string) => router.push({ pathname: '/(camera)/generate', params: { prefillPrompt: prompt } })} />
+            )}
+          </View>
+          {explorePosts.length === 0 ? (
             <Text style={styles.emptyText}>No posts to explore yet</Text>
-          }
-        />
+          ) : (
+            <MasonryGrid
+              posts={explorePosts}
+              onPostPress={handlePostPress}
+              onEndReached={loadMore}
+              loading={loadingMore}
+            />
+          )}
+        </View>
       )}
     </View>
   );

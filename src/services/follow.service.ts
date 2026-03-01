@@ -41,6 +41,7 @@ export async function getFollowers(userId: string, page = 0, pageSize = 20) {
     .from('follows')
     .select('follower_id, profiles:profiles!follower_id(id, username, full_name, avatar_url, is_verified)')
     .eq('following_id', userId)
+    .eq('status', 'accepted')
     .order('created_at', { ascending: false })
     .range(from, to);
 
@@ -55,6 +56,7 @@ export async function getFollowing(userId: string, page = 0, pageSize = 20) {
     .from('follows')
     .select('following_id, profiles:profiles!following_id(id, username, full_name, avatar_url, is_verified)')
     .eq('follower_id', userId)
+    .eq('status', 'accepted')
     .order('created_at', { ascending: false })
     .range(from, to);
 

@@ -96,6 +96,12 @@ export function useExplore() {
     fetchExplore();
   }, [fetchExplore]);
 
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
+
   return {
     query,
     isSearching,

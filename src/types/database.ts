@@ -20,6 +20,12 @@ export type Database = {
           following_count: number;
           posts_count: number;
           push_token: string | null;
+          show_activity_status: boolean;
+          last_active_at: string;
+          profile_theme: Record<string, unknown>;
+          interest_tags: string[];
+          subscriber_count: number;
+          is_creator: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -37,6 +43,12 @@ export type Database = {
           following_count?: number;
           posts_count?: number;
           push_token?: string | null;
+          show_activity_status?: boolean;
+          last_active_at?: string;
+          profile_theme?: Record<string, unknown>;
+          interest_tags?: string[];
+          subscriber_count?: number;
+          is_creator?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -49,6 +61,12 @@ export type Database = {
           is_private?: boolean;
           theme_preference?: 'system' | 'light' | 'dark';
           push_token?: string | null;
+          show_activity_status?: boolean;
+          last_active_at?: string;
+          profile_theme?: Record<string, unknown>;
+          interest_tags?: string[];
+          subscriber_count?: number;
+          is_creator?: boolean;
           updated_at?: string;
         };
         Relationships: [];
@@ -80,12 +98,23 @@ export type Database = {
           caption: string;
           post_type: 'image' | 'video' | 'carousel' | 'reel';
           location: string | null;
+          location_id: string | null;
           is_archived: boolean;
           is_comments_disabled: boolean;
           is_pinned: boolean;
           pinned_at: string | null;
           likes_count: number;
           comments_count: number;
+          views_count: number;
+          repost_count: number;
+          audience: 'everyone' | 'close_friends';
+          scheduled_at: string | null;
+          is_draft: boolean;
+          remix_of_post_id: string | null;
+          community_id: string | null;
+          has_listing: boolean;
+          has_provenance: boolean;
+          subscription_tier_id: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -95,20 +124,39 @@ export type Database = {
           caption?: string;
           post_type?: 'image' | 'video' | 'carousel' | 'reel';
           location?: string | null;
+          location_id?: string | null;
           is_archived?: boolean;
           is_comments_disabled?: boolean;
           is_pinned?: boolean;
           pinned_at?: string | null;
+          repost_count?: number;
+          audience?: 'everyone' | 'close_friends';
+          scheduled_at?: string | null;
+          is_draft?: boolean;
+          remix_of_post_id?: string | null;
+          community_id?: string | null;
+          has_listing?: boolean;
+          has_provenance?: boolean;
+          subscription_tier_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
         Update: {
           caption?: string;
           location?: string | null;
+          location_id?: string | null;
           is_archived?: boolean;
           is_comments_disabled?: boolean;
           is_pinned?: boolean;
           pinned_at?: string | null;
+          audience?: 'everyone' | 'close_friends';
+          scheduled_at?: string | null;
+          is_draft?: boolean;
+          remix_of_post_id?: string | null;
+          community_id?: string | null;
+          has_listing?: boolean;
+          has_provenance?: boolean;
+          subscription_tier_id?: string | null;
           updated_at?: string;
         };
         Relationships: [];
@@ -157,6 +205,26 @@ export type Database = {
           created_at?: string;
         };
         Update: Record<string, never>;
+        Relationships: [];
+      };
+      post_reactions: {
+        Row: {
+          id: string;
+          user_id: string;
+          post_id: string;
+          reaction_type: 'like' | 'love' | 'haha' | 'wow' | 'sad' | 'fire' | 'clap';
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          post_id: string;
+          reaction_type: 'like' | 'love' | 'haha' | 'wow' | 'sad' | 'fire' | 'clap';
+          created_at?: string;
+        };
+        Update: {
+          reaction_type?: 'like' | 'love' | 'haha' | 'wow' | 'sad' | 'fire' | 'clap';
+        };
         Relationships: [];
       };
       comments: {
@@ -208,6 +276,7 @@ export type Database = {
           media_url: string;
           media_type: string;
           duration_seconds: number;
+          audience: 'everyone' | 'close_friends';
           created_at: string;
           expires_at: string;
         };
@@ -217,6 +286,7 @@ export type Database = {
           media_url: string;
           media_type?: string;
           duration_seconds?: number;
+          audience?: 'everyone' | 'close_friends';
           created_at?: string;
           expires_at?: string;
         };
@@ -237,6 +307,52 @@ export type Database = {
           viewed_at?: string;
         };
         Update: Record<string, never>;
+        Relationships: [];
+      };
+      story_stickers: {
+        Row: {
+          id: string;
+          story_id: string;
+          sticker_type: 'poll' | 'quiz' | 'question' | 'emoji_slider' | 'countdown' | 'link';
+          config: Record<string, unknown>;
+          position_x: number;
+          position_y: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          story_id: string;
+          sticker_type: 'poll' | 'quiz' | 'question' | 'emoji_slider' | 'countdown' | 'link';
+          config?: Record<string, unknown>;
+          position_x?: number;
+          position_y?: number;
+          created_at?: string;
+        };
+        Update: {
+          config?: Record<string, unknown>;
+          position_x?: number;
+          position_y?: number;
+        };
+        Relationships: [];
+      };
+      story_sticker_responses: {
+        Row: {
+          id: string;
+          sticker_id: string;
+          user_id: string;
+          response: Record<string, unknown>;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          sticker_id: string;
+          user_id: string;
+          response?: Record<string, unknown>;
+          created_at?: string;
+        };
+        Update: {
+          response?: Record<string, unknown>;
+        };
         Relationships: [];
       };
       hashtags: {
@@ -276,12 +392,57 @@ export type Database = {
           id: string;
           user_id: string;
           post_id: string;
+          collection_id: string | null;
           created_at: string;
         };
         Insert: {
           id?: string;
           user_id: string;
           post_id: string;
+          collection_id?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          collection_id?: string | null;
+        };
+        Relationships: [];
+      };
+      collections: {
+        Row: {
+          id: string;
+          user_id: string;
+          name: string;
+          cover_url: string | null;
+          post_count: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          name: string;
+          cover_url?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          name?: string;
+          cover_url?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      close_friends: {
+        Row: {
+          id: string;
+          user_id: string;
+          friend_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          friend_id: string;
           created_at?: string;
         };
         Update: Record<string, never>;
@@ -293,6 +454,7 @@ export type Database = {
           is_group: boolean;
           group_name: string | null;
           group_avatar_url: string | null;
+          is_vanish_mode: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -301,12 +463,14 @@ export type Database = {
           is_group?: boolean;
           group_name?: string | null;
           group_avatar_url?: string | null;
+          is_vanish_mode?: boolean;
           created_at?: string;
           updated_at?: string;
         };
         Update: {
           group_name?: string | null;
           group_avatar_url?: string | null;
+          is_vanish_mode?: boolean;
           updated_at?: string;
         };
         Relationships: [];
@@ -337,10 +501,12 @@ export type Database = {
           conversation_id: string;
           sender_id: string;
           content: string | null;
-          message_type: 'text' | 'image' | 'video' | 'post_share' | 'story_reply';
+          message_type: 'text' | 'image' | 'video' | 'post_share' | 'story_reply' | 'voice';
           media_url: string | null;
           shared_post_id: string | null;
           is_deleted: boolean;
+          is_ephemeral: boolean;
+          seen_by: string[];
           created_at: string;
         };
         Insert: {
@@ -348,14 +514,18 @@ export type Database = {
           conversation_id: string;
           sender_id: string;
           content?: string | null;
-          message_type?: 'text' | 'image' | 'video' | 'post_share' | 'story_reply';
+          message_type?: 'text' | 'image' | 'video' | 'post_share' | 'story_reply' | 'voice';
           media_url?: string | null;
           shared_post_id?: string | null;
           is_deleted?: boolean;
+          is_ephemeral?: boolean;
+          seen_by?: string[];
           created_at?: string;
         };
         Update: {
           is_deleted?: boolean;
+          is_ephemeral?: boolean;
+          seen_by?: string[];
         };
         Relationships: [];
       };
@@ -507,7 +677,7 @@ export type Database = {
           id: string;
           recipient_id: string;
           sender_id: string;
-          notification_type: 'like' | 'comment' | 'follow' | 'follow_request' | 'mention' | 'story_reply' | 'comment_like';
+          notification_type: 'like' | 'comment' | 'follow' | 'follow_request' | 'mention' | 'story_reply' | 'comment_like' | 'collab_invite' | 'collab_accepted' | 'subscription' | 'tip' | 'community_invite' | 'community_post' | 'prompt_remix';
           post_id: string | null;
           comment_id: string | null;
           is_read: boolean;
@@ -517,7 +687,7 @@ export type Database = {
           id?: string;
           recipient_id: string;
           sender_id: string;
-          notification_type: 'like' | 'comment' | 'follow' | 'follow_request' | 'mention' | 'story_reply' | 'comment_like';
+          notification_type: 'like' | 'comment' | 'follow' | 'follow_request' | 'mention' | 'story_reply' | 'comment_like' | 'collab_invite' | 'collab_accepted' | 'subscription' | 'tip' | 'community_invite' | 'community_post' | 'prompt_remix';
           post_id?: string | null;
           comment_id?: string | null;
           is_read?: boolean;
@@ -525,6 +695,1209 @@ export type Database = {
         };
         Update: {
           is_read?: boolean;
+        };
+        Relationships: [];
+      };
+      post_collaborators: {
+        Row: {
+          id: string;
+          post_id: string;
+          user_id: string;
+          status: 'pending' | 'accepted' | 'declined';
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          post_id: string;
+          user_id: string;
+          status?: 'pending' | 'accepted' | 'declined';
+          created_at?: string;
+        };
+        Update: {
+          status?: 'pending' | 'accepted' | 'declined';
+        };
+        Relationships: [];
+      };
+      post_views: {
+        Row: {
+          id: string;
+          post_id: string;
+          viewer_id: string | null;
+          source: 'feed' | 'profile' | 'explore' | 'hashtag' | 'search' | 'share';
+          viewed_at: string;
+        };
+        Insert: {
+          id?: string;
+          post_id: string;
+          viewer_id?: string | null;
+          source?: 'feed' | 'profile' | 'explore' | 'hashtag' | 'search' | 'share';
+          viewed_at?: string;
+        };
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      locations: {
+        Row: {
+          id: string;
+          name: string;
+          address: string | null;
+          lat: number | null;
+          lng: number | null;
+          post_count: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          address?: string | null;
+          lat?: number | null;
+          lng?: number | null;
+          created_at?: string;
+        };
+        Update: {
+          name?: string;
+          address?: string | null;
+          lat?: number | null;
+          lng?: number | null;
+        };
+        Relationships: [];
+      };
+      profile_top_friends: {
+        Row: {
+          id: string;
+          user_id: string;
+          friend_id: string;
+          sort_order: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          friend_id: string;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Update: {
+          sort_order?: number;
+        };
+        Relationships: [];
+      };
+      prompt_library: {
+        Row: {
+          id: string;
+          user_id: string;
+          title: string;
+          prompt: string;
+          negative_prompt: string;
+          model_id: string | null;
+          model_name: string | null;
+          settings: Record<string, unknown>;
+          style_tags: string[];
+          use_count: number;
+          save_count: number;
+          is_public: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          title: string;
+          prompt: string;
+          negative_prompt?: string;
+          model_id?: string | null;
+          model_name?: string | null;
+          settings?: Record<string, unknown>;
+          style_tags?: string[];
+          is_public?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          title?: string;
+          prompt?: string;
+          negative_prompt?: string;
+          model_id?: string | null;
+          model_name?: string | null;
+          settings?: Record<string, unknown>;
+          style_tags?: string[];
+          is_public?: boolean;
+        };
+        Relationships: [];
+      };
+      prompt_saves: {
+        Row: {
+          id: string;
+          user_id: string;
+          prompt_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          prompt_id: string;
+          created_at?: string;
+        };
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      reposts: {
+        Row: {
+          id: string;
+          user_id: string;
+          post_id: string;
+          quote_text: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          post_id: string;
+          quote_text?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          quote_text?: string | null;
+        };
+        Relationships: [];
+      };
+      post_polls: {
+        Row: {
+          id: string;
+          post_id: string;
+          question: string;
+          ends_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          post_id: string;
+          question: string;
+          ends_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          question?: string;
+          ends_at?: string | null;
+        };
+        Relationships: [];
+      };
+      poll_options: {
+        Row: {
+          id: string;
+          poll_id: string;
+          text: string;
+          vote_count: number;
+          position: number;
+        };
+        Insert: {
+          id?: string;
+          poll_id: string;
+          text: string;
+          vote_count?: number;
+          position?: number;
+        };
+        Update: {
+          text?: string;
+          vote_count?: number;
+          position?: number;
+        };
+        Relationships: [];
+      };
+      poll_votes: {
+        Row: {
+          id: string;
+          poll_id: string;
+          option_id: string;
+          user_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          poll_id: string;
+          option_id: string;
+          user_id: string;
+          created_at?: string;
+        };
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      daily_challenges: {
+        Row: {
+          id: string;
+          prompt_theme: string;
+          description: string | null;
+          date: string;
+          style_suggestion: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          prompt_theme: string;
+          description?: string | null;
+          date: string;
+          style_suggestion?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          prompt_theme?: string;
+          description?: string | null;
+          date?: string;
+          style_suggestion?: string | null;
+        };
+        Relationships: [];
+      };
+      challenge_entries: {
+        Row: {
+          id: string;
+          challenge_id: string;
+          post_id: string;
+          user_id: string;
+          vote_count: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          challenge_id: string;
+          post_id: string;
+          user_id: string;
+          vote_count?: number;
+          created_at?: string;
+        };
+        Update: {
+          vote_count?: number;
+        };
+        Relationships: [];
+      };
+      challenge_votes: {
+        Row: {
+          id: string;
+          entry_id: string;
+          user_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          entry_id: string;
+          user_id: string;
+          created_at?: string;
+        };
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      challenges: {
+        Row: {
+          id: string;
+          title: string;
+          description: string;
+          prompt_hint: string;
+          cover_url: string | null;
+          challenge_type: 'daily' | 'weekly' | 'monthly' | 'special';
+          starts_at: string;
+          ends_at: string;
+          is_active: boolean;
+          entry_count: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          description?: string;
+          prompt_hint: string;
+          cover_url?: string | null;
+          challenge_type?: 'daily' | 'weekly' | 'monthly' | 'special';
+          starts_at: string;
+          ends_at: string;
+          is_active?: boolean;
+          entry_count?: number;
+          created_at?: string;
+        };
+        Update: {
+          title?: string;
+          description?: string;
+          prompt_hint?: string;
+          cover_url?: string | null;
+          challenge_type?: 'daily' | 'weekly' | 'monthly' | 'special';
+          starts_at?: string;
+          ends_at?: string;
+          is_active?: boolean;
+          entry_count?: number;
+        };
+        Relationships: [];
+      };
+      user_notes: {
+        Row: {
+          id: string;
+          user_id: string;
+          content: string;
+          emoji: string | null;
+          expires_at: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          content: string;
+          emoji?: string | null;
+          expires_at?: string;
+          created_at?: string;
+        };
+        Update: {
+          content?: string;
+          emoji?: string | null;
+          expires_at?: string;
+        };
+        Relationships: [];
+      };
+      badges: {
+        Row: {
+          id: string;
+          name: string;
+          description: string;
+          icon: string;
+          category: string;
+          threshold: number;
+        };
+        Insert: {
+          id: string;
+          name: string;
+          description: string;
+          icon: string;
+          category?: string;
+          threshold?: number;
+        };
+        Update: {
+          name?: string;
+          description?: string;
+          icon?: string;
+          category?: string;
+          threshold?: number;
+        };
+        Relationships: [];
+      };
+      user_badges: {
+        Row: {
+          id: string;
+          user_id: string;
+          badge_id: string;
+          earned_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          badge_id: string;
+          earned_at?: string;
+        };
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      user_streaks: {
+        Row: {
+          id: string;
+          user_id: string;
+          current_streak: number;
+          longest_streak: number;
+          last_post_date: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          current_streak?: number;
+          longest_streak?: number;
+          last_post_date?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          current_streak?: number;
+          longest_streak?: number;
+          last_post_date?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      creation_streaks: {
+        Row: {
+          id: string;
+          user_id: string;
+          current_streak: number;
+          longest_streak: number;
+          last_creation_date: string | null;
+          total_challenges_completed: number;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          current_streak?: number;
+          longest_streak?: number;
+          last_creation_date?: string | null;
+          total_challenges_completed?: number;
+          updated_at?: string;
+        };
+        Update: {
+          current_streak?: number;
+          longest_streak?: number;
+          last_creation_date?: string | null;
+          total_challenges_completed?: number;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      communities: {
+        Row: {
+          id: string;
+          name: string;
+          description: string | null;
+          avatar_url: string | null;
+          cover_url: string | null;
+          owner_id: string;
+          member_count: number;
+          is_private: boolean;
+          rules: string[];
+          tags: string[];
+          slug: string | null;
+          post_count: number;
+          custom_reactions: string[];
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          description?: string | null;
+          avatar_url?: string | null;
+          cover_url?: string | null;
+          owner_id: string;
+          member_count?: number;
+          is_private?: boolean;
+          rules?: string[];
+          tags?: string[];
+          slug?: string | null;
+          post_count?: number;
+          custom_reactions?: string[];
+          created_at?: string;
+        };
+        Update: {
+          name?: string;
+          description?: string | null;
+          avatar_url?: string | null;
+          cover_url?: string | null;
+          member_count?: number;
+          is_private?: boolean;
+          rules?: string[];
+          tags?: string[];
+          slug?: string | null;
+          post_count?: number;
+          custom_reactions?: string[];
+        };
+        Relationships: [];
+      };
+      community_members: {
+        Row: {
+          id: string;
+          community_id: string;
+          user_id: string;
+          role: 'owner' | 'moderator' | 'member';
+          joined_at: string;
+        };
+        Insert: {
+          id?: string;
+          community_id: string;
+          user_id: string;
+          role?: 'owner' | 'moderator' | 'member';
+          joined_at?: string;
+        };
+        Update: {
+          role?: 'owner' | 'moderator' | 'member';
+        };
+        Relationships: [];
+      };
+      award_types: {
+        Row: {
+          id: string;
+          name: string;
+          emoji: string;
+          description: string;
+          tier: 'bronze' | 'silver' | 'gold' | 'diamond';
+          sort_order: number;
+        };
+        Insert: {
+          id: string;
+          name: string;
+          emoji: string;
+          description: string;
+          tier?: 'bronze' | 'silver' | 'gold' | 'diamond';
+          sort_order?: number;
+        };
+        Update: {
+          name?: string;
+          emoji?: string;
+          description?: string;
+          tier?: 'bronze' | 'silver' | 'gold' | 'diamond';
+          sort_order?: number;
+        };
+        Relationships: [];
+      };
+      post_awards: {
+        Row: {
+          id: string;
+          post_id: string;
+          user_id: string;
+          award_type_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          post_id: string;
+          user_id: string;
+          award_type_id: string;
+          created_at?: string;
+        };
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      subscription_tiers: {
+        Row: {
+          id: string;
+          creator_id: string;
+          name: string;
+          description: string;
+          price_cents: number;
+          currency: string;
+          benefits: unknown;
+          badge_label: string | null;
+          badge_color: string;
+          is_active: boolean;
+          max_subscribers: number | null;
+          sort_order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          creator_id: string;
+          name: string;
+          description?: string;
+          price_cents: number;
+          currency?: string;
+          benefits?: unknown;
+          badge_label?: string | null;
+          badge_color?: string;
+          is_active?: boolean;
+          max_subscribers?: number | null;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          name?: string;
+          description?: string;
+          price_cents?: number;
+          currency?: string;
+          benefits?: unknown;
+          badge_label?: string | null;
+          badge_color?: string;
+          is_active?: boolean;
+          max_subscribers?: number | null;
+          sort_order?: number;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      subscriptions: {
+        Row: {
+          id: string;
+          subscriber_id: string;
+          creator_id: string;
+          tier_id: string | null;
+          status: 'active' | 'cancelled' | 'expired' | 'paused';
+          started_at: string;
+          expires_at: string | null;
+          cancelled_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          subscriber_id: string;
+          creator_id: string;
+          tier_id?: string | null;
+          status?: 'active' | 'cancelled' | 'expired' | 'paused';
+          started_at?: string;
+          expires_at?: string | null;
+          cancelled_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          status?: 'active' | 'cancelled' | 'expired' | 'paused';
+          tier_id?: string | null;
+          expires_at?: string | null;
+          cancelled_at?: string | null;
+        };
+        Relationships: [];
+      };
+      wallets: {
+        Row: {
+          id: string;
+          user_id: string;
+          balance_cents: number;
+          lifetime_earned_cents: number;
+          lifetime_spent_cents: number;
+          currency: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          balance_cents?: number;
+          lifetime_earned_cents?: number;
+          lifetime_spent_cents?: number;
+          currency?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          balance_cents?: number;
+          lifetime_earned_cents?: number;
+          lifetime_spent_cents?: number;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      wallet_transactions: {
+        Row: {
+          id: string;
+          wallet_id: string;
+          type: 'deposit' | 'withdrawal' | 'tip_sent' | 'tip_received' | 'purchase' | 'sale' | 'subscription_payment' | 'subscription_earning';
+          amount_cents: number;
+          fee_cents: number;
+          counterparty_id: string | null;
+          post_id: string | null;
+          description: string;
+          status: 'pending' | 'completed' | 'failed' | 'refunded';
+          external_ref: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          wallet_id: string;
+          type: 'deposit' | 'withdrawal' | 'tip_sent' | 'tip_received' | 'purchase' | 'sale' | 'subscription_payment' | 'subscription_earning';
+          amount_cents: number;
+          fee_cents?: number;
+          counterparty_id?: string | null;
+          post_id?: string | null;
+          description?: string;
+          status?: 'pending' | 'completed' | 'failed' | 'refunded';
+          external_ref?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          status?: 'pending' | 'completed' | 'failed' | 'refunded';
+          description?: string;
+        };
+        Relationships: [];
+      };
+      tips: {
+        Row: {
+          id: string;
+          sender_id: string;
+          recipient_id: string;
+          post_id: string | null;
+          amount_cents: number;
+          message: string;
+          transaction_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          sender_id: string;
+          recipient_id: string;
+          post_id?: string | null;
+          amount_cents: number;
+          message?: string;
+          transaction_id?: string | null;
+          created_at?: string;
+        };
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      marketplace_listings: {
+        Row: {
+          id: string;
+          post_id: string;
+          seller_id: string;
+          listing_type: 'digital_download' | 'print_on_demand';
+          title: string;
+          description: string;
+          price_cents: number;
+          currency: string;
+          digital_file_url: string | null;
+          digital_file_size_bytes: number | null;
+          print_options: unknown;
+          is_active: boolean;
+          sales_count: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          post_id: string;
+          seller_id: string;
+          listing_type: 'digital_download' | 'print_on_demand';
+          title: string;
+          description?: string;
+          price_cents: number;
+          currency?: string;
+          digital_file_url?: string | null;
+          digital_file_size_bytes?: number | null;
+          print_options?: unknown;
+          is_active?: boolean;
+          sales_count?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          title?: string;
+          description?: string;
+          price_cents?: number;
+          digital_file_url?: string | null;
+          print_options?: unknown;
+          is_active?: boolean;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      orders: {
+        Row: {
+          id: string;
+          buyer_id: string;
+          seller_id: string;
+          listing_id: string;
+          order_type: 'digital_download' | 'print_on_demand';
+          status: 'pending' | 'paid' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded';
+          amount_cents: number;
+          fee_cents: number;
+          print_config: unknown;
+          shipping_address: unknown;
+          tracking_number: string | null;
+          download_url: string | null;
+          download_expires_at: string | null;
+          transaction_id: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          buyer_id: string;
+          seller_id: string;
+          listing_id: string;
+          order_type: 'digital_download' | 'print_on_demand';
+          status?: 'pending' | 'paid' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded';
+          amount_cents: number;
+          fee_cents?: number;
+          print_config?: unknown;
+          shipping_address?: unknown;
+          tracking_number?: string | null;
+          download_url?: string | null;
+          download_expires_at?: string | null;
+          transaction_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          status?: 'pending' | 'paid' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded';
+          tracking_number?: string | null;
+          download_url?: string | null;
+          download_expires_at?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      post_embeddings: {
+        Row: {
+          id: string;
+          post_id: string;
+          embedding: unknown;
+          model_version: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          post_id: string;
+          embedding: unknown;
+          model_version?: string;
+          created_at?: string;
+        };
+        Update: {
+          embedding?: unknown;
+          model_version?: string;
+        };
+        Relationships: [];
+      };
+      taste_profiles: {
+        Row: {
+          id: string;
+          user_id: string;
+          preferred_styles: string[];
+          preferred_models: string[];
+          preferred_themes: string[];
+          preferred_palettes: string[];
+          disliked_styles: string[];
+          disliked_themes: string[];
+          engagement_weights: unknown;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          preferred_styles?: string[];
+          preferred_models?: string[];
+          preferred_themes?: string[];
+          preferred_palettes?: string[];
+          disliked_styles?: string[];
+          disliked_themes?: string[];
+          engagement_weights?: unknown;
+          updated_at?: string;
+        };
+        Update: {
+          preferred_styles?: string[];
+          preferred_models?: string[];
+          preferred_themes?: string[];
+          preferred_palettes?: string[];
+          disliked_styles?: string[];
+          disliked_themes?: string[];
+          engagement_weights?: unknown;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      engagement_signals: {
+        Row: {
+          id: string;
+          user_id: string;
+          post_id: string;
+          signal_type: 'view' | 'like' | 'save' | 'comment' | 'share' | 'long_view' | 'skip';
+          weight: number;
+          style_tags: string[];
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          post_id: string;
+          signal_type: 'view' | 'like' | 'save' | 'comment' | 'share' | 'long_view' | 'skip';
+          weight?: number;
+          style_tags?: string[];
+          created_at?: string;
+        };
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      blend_feeds: {
+        Row: {
+          id: string;
+          user_a_id: string;
+          user_b_id: string;
+          conversation_id: string | null;
+          is_active: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_a_id: string;
+          user_b_id: string;
+          conversation_id?: string | null;
+          is_active?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          is_active?: boolean;
+          conversation_id?: string | null;
+        };
+        Relationships: [];
+      };
+      style_presets: {
+        Row: {
+          id: string;
+          name: string;
+          description: string;
+          preview_url: string | null;
+          prompt_modifier: string;
+          model_id: string;
+          settings: unknown;
+          category: string;
+          sort_order: number;
+          is_active: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          description?: string;
+          preview_url?: string | null;
+          prompt_modifier: string;
+          model_id: string;
+          settings?: unknown;
+          category?: string;
+          sort_order?: number;
+          is_active?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          name?: string;
+          description?: string;
+          preview_url?: string | null;
+          prompt_modifier?: string;
+          model_id?: string;
+          settings?: unknown;
+          category?: string;
+          sort_order?: number;
+          is_active?: boolean;
+        };
+        Relationships: [];
+      };
+      restyle_jobs: {
+        Row: {
+          id: string;
+          user_id: string;
+          source_post_id: string | null;
+          source_image_url: string;
+          style_preset_id: string | null;
+          custom_style_prompt: string | null;
+          result_image_url: string | null;
+          status: 'pending' | 'processing' | 'completed' | 'failed';
+          result_post_id: string | null;
+          error_message: string | null;
+          created_at: string;
+          completed_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          source_post_id?: string | null;
+          source_image_url: string;
+          style_preset_id?: string | null;
+          custom_style_prompt?: string | null;
+          result_image_url?: string | null;
+          status?: 'pending' | 'processing' | 'completed' | 'failed';
+          result_post_id?: string | null;
+          error_message?: string | null;
+          created_at?: string;
+          completed_at?: string | null;
+        };
+        Update: {
+          result_image_url?: string | null;
+          status?: 'pending' | 'processing' | 'completed' | 'failed';
+          result_post_id?: string | null;
+          error_message?: string | null;
+          completed_at?: string | null;
+        };
+        Relationships: [];
+      };
+      animation_jobs: {
+        Row: {
+          id: string;
+          user_id: string;
+          source_post_id: string | null;
+          source_image_url: string;
+          animation_type: 'motion' | 'camera_pan' | 'parallax' | 'zoom' | 'morph';
+          settings: unknown;
+          result_video_url: string | null;
+          thumbnail_url: string | null;
+          status: 'pending' | 'processing' | 'completed' | 'failed';
+          result_post_id: string | null;
+          error_message: string | null;
+          duration_seconds: number;
+          created_at: string;
+          completed_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          source_post_id?: string | null;
+          source_image_url: string;
+          animation_type: 'motion' | 'camera_pan' | 'parallax' | 'zoom' | 'morph';
+          settings?: unknown;
+          result_video_url?: string | null;
+          thumbnail_url?: string | null;
+          status?: 'pending' | 'processing' | 'completed' | 'failed';
+          result_post_id?: string | null;
+          error_message?: string | null;
+          duration_seconds?: number;
+          created_at?: string;
+          completed_at?: string | null;
+        };
+        Update: {
+          result_video_url?: string | null;
+          thumbnail_url?: string | null;
+          status?: 'pending' | 'processing' | 'completed' | 'failed';
+          result_post_id?: string | null;
+          error_message?: string | null;
+          completed_at?: string | null;
+        };
+        Relationships: [];
+      };
+      prompt_remixes: {
+        Row: {
+          id: string;
+          original_post_id: string;
+          remixed_post_id: string;
+          original_prompt: string;
+          modified_prompt: string;
+          original_author_id: string | null;
+          remixer_id: string;
+          changes_description: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          original_post_id: string;
+          remixed_post_id: string;
+          original_prompt: string;
+          modified_prompt: string;
+          original_author_id?: string | null;
+          remixer_id: string;
+          changes_description?: string;
+          created_at?: string;
+        };
+        Update: {
+          changes_description?: string;
+        };
+        Relationships: [];
+      };
+      art_provenance: {
+        Row: {
+          id: string;
+          post_id: string;
+          author_id: string;
+          content_hash: string;
+          prompt_hash: string | null;
+          model_id: string | null;
+          model_name: string | null;
+          generation_date: string;
+          signature: string;
+          c2pa_manifest: unknown;
+          verification_status: 'verified' | 'unverified' | 'tampered';
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          post_id: string;
+          author_id: string;
+          content_hash: string;
+          prompt_hash?: string | null;
+          model_id?: string | null;
+          model_name?: string | null;
+          generation_date: string;
+          signature: string;
+          c2pa_manifest?: unknown;
+          verification_status?: 'verified' | 'unverified' | 'tampered';
+          created_at?: string;
+        };
+        Update: {
+          verification_status?: 'verified' | 'unverified' | 'tampered';
+          c2pa_manifest?: unknown;
+        };
+        Relationships: [];
+      };
+      content_labels: {
+        Row: {
+          id: string;
+          post_id: string;
+          label_type: 'safe' | 'sensitive' | 'mature' | 'nsfw';
+          ai_confidence: number | null;
+          ai_categories: unknown;
+          is_ai_labeled: boolean;
+          is_overridden: boolean;
+          override_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          post_id: string;
+          label_type: 'safe' | 'sensitive' | 'mature' | 'nsfw';
+          ai_confidence?: number | null;
+          ai_categories?: unknown;
+          is_ai_labeled?: boolean;
+          is_overridden?: boolean;
+          override_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          label_type?: 'safe' | 'sensitive' | 'mature' | 'nsfw';
+          ai_confidence?: number | null;
+          ai_categories?: unknown;
+          is_overridden?: boolean;
+          override_by?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      content_ratings: {
+        Row: {
+          id: string;
+          post_id: string;
+          user_id: string;
+          rating: 'safe' | 'sensitive' | 'mature' | 'nsfw';
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          post_id: string;
+          user_id: string;
+          rating: 'safe' | 'sensitive' | 'mature' | 'nsfw';
+          created_at?: string;
+        };
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      safety_preferences: {
+        Row: {
+          id: string;
+          user_id: string;
+          show_sensitive: boolean;
+          show_mature: boolean;
+          blur_nsfw: boolean;
+          age_verified: boolean;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          show_sensitive?: boolean;
+          show_mature?: boolean;
+          blur_nsfw?: boolean;
+          age_verified?: boolean;
+          updated_at?: string;
+        };
+        Update: {
+          show_sensitive?: boolean;
+          show_mature?: boolean;
+          blur_nsfw?: boolean;
+          age_verified?: boolean;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      community_posts: {
+        Row: {
+          id: string;
+          community_id: string;
+          post_id: string;
+          posted_by: string;
+          is_pinned: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          community_id: string;
+          post_id: string;
+          posted_by: string;
+          is_pinned?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          is_pinned?: boolean;
         };
         Relationships: [];
       };
@@ -545,6 +1918,50 @@ export type Database = {
           mutual_count: number;
         }[];
       };
+      get_post_insights: {
+        Args: {
+          target_post_id: string;
+        };
+        Returns: Record<string, unknown>;
+      };
+      search_similar_posts: {
+        Args: {
+          query_embedding: unknown;
+          match_threshold?: number;
+          match_count?: number;
+          exclude_post_id?: string;
+        };
+        Returns: {
+          post_id: string;
+          similarity: number;
+        }[];
+      };
+      get_personalized_feed: {
+        Args: {
+          target_user_id: string;
+          page_offset?: number;
+          page_limit?: number;
+        };
+        Returns: {
+          post_id: string;
+          relevance_score: number;
+        }[];
+      };
+      get_blend_feed: {
+        Args: {
+          blend_id: string;
+          page_offset?: number;
+          page_limit?: number;
+        };
+        Returns: {
+          post_id: string;
+          relevance_score: number;
+        }[];
+      };
+      refresh_trending: {
+        Args: Record<string, never>;
+        Returns: undefined;
+      };
     };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
@@ -562,6 +1979,55 @@ export type Notification = Database['public']['Tables']['notifications']['Row'];
 export type Conversation = Database['public']['Tables']['conversations']['Row'];
 export type AiMetadata = Database['public']['Tables']['ai_metadata']['Row'];
 export type AiMetadataInsert = Database['public']['Tables']['ai_metadata']['Insert'];
+export type PostReaction = Database['public']['Tables']['post_reactions']['Row'];
+export type Collection = Database['public']['Tables']['collections']['Row'];
+export type CloseFriend = Database['public']['Tables']['close_friends']['Row'];
+export type StorySticker = Database['public']['Tables']['story_stickers']['Row'];
+export type StickerResponse = Database['public']['Tables']['story_sticker_responses']['Row'];
+export type PostCollaborator = Database['public']['Tables']['post_collaborators']['Row'];
+export type PostView = Database['public']['Tables']['post_views']['Row'];
+export type Location = Database['public']['Tables']['locations']['Row'];
+export type ProfileTopFriend = Database['public']['Tables']['profile_top_friends']['Row'];
+export type PromptLibraryItem = Database['public']['Tables']['prompt_library']['Row'];
+export type PromptLibraryInsert = Database['public']['Tables']['prompt_library']['Insert'];
+export type PromptSave = Database['public']['Tables']['prompt_saves']['Row'];
+export type Repost = Database['public']['Tables']['reposts']['Row'];
+export type PostPoll = Database['public']['Tables']['post_polls']['Row'];
+export type PollOption = Database['public']['Tables']['poll_options']['Row'];
+export type PollVote = Database['public']['Tables']['poll_votes']['Row'];
+export type DailyChallenge = Database['public']['Tables']['daily_challenges']['Row'];
+export type ChallengeEntry = Database['public']['Tables']['challenge_entries']['Row'];
+export type ChallengeVote = Database['public']['Tables']['challenge_votes']['Row'];
+export type Challenge = Database['public']['Tables']['challenges']['Row'];
+export type UserNote = Database['public']['Tables']['user_notes']['Row'];
+export type Badge = Database['public']['Tables']['badges']['Row'];
+export type UserBadge = Database['public']['Tables']['user_badges']['Row'];
+export type UserStreak = Database['public']['Tables']['user_streaks']['Row'];
+export type CreationStreak = Database['public']['Tables']['creation_streaks']['Row'];
+export type Community = Database['public']['Tables']['communities']['Row'];
+export type CommunityMember = Database['public']['Tables']['community_members']['Row'];
+export type AwardType = Database['public']['Tables']['award_types']['Row'];
+export type PostAward = Database['public']['Tables']['post_awards']['Row'];
+export type SubscriptionTier = Database['public']['Tables']['subscription_tiers']['Row'];
+export type Subscription = Database['public']['Tables']['subscriptions']['Row'];
+export type Wallet = Database['public']['Tables']['wallets']['Row'];
+export type WalletTransaction = Database['public']['Tables']['wallet_transactions']['Row'];
+export type Tip = Database['public']['Tables']['tips']['Row'];
+export type MarketplaceListing = Database['public']['Tables']['marketplace_listings']['Row'];
+export type Order = Database['public']['Tables']['orders']['Row'];
+export type PostEmbedding = Database['public']['Tables']['post_embeddings']['Row'];
+export type TasteProfile = Database['public']['Tables']['taste_profiles']['Row'];
+export type EngagementSignal = Database['public']['Tables']['engagement_signals']['Row'];
+export type BlendFeed = Database['public']['Tables']['blend_feeds']['Row'];
+export type StylePreset = Database['public']['Tables']['style_presets']['Row'];
+export type RestyleJob = Database['public']['Tables']['restyle_jobs']['Row'];
+export type AnimationJob = Database['public']['Tables']['animation_jobs']['Row'];
+export type PromptRemix = Database['public']['Tables']['prompt_remixes']['Row'];
+export type ArtProvenance = Database['public']['Tables']['art_provenance']['Row'];
+export type ContentLabel = Database['public']['Tables']['content_labels']['Row'];
+export type ContentRating = Database['public']['Tables']['content_ratings']['Row'];
+export type SafetyPreference = Database['public']['Tables']['safety_preferences']['Row'];
+export type CommunityPost = Database['public']['Tables']['community_posts']['Row'];
 
 // Extended types with relationships (what you get from joins)
 export type PostWithUser = Post & {
@@ -588,4 +2054,20 @@ export type MessageWithSender = Message & {
 
 export type NotificationWithSender = Notification & {
   sender: Profile;
+};
+
+export type ReactionType = PostReaction['reaction_type'];
+
+export type ReactionSummary = {
+  type: ReactionType;
+  count: number;
+};
+
+export type PostInsights = {
+  total_views: number;
+  unique_viewers: number;
+  likes: number;
+  comments: number;
+  saves: number;
+  source_breakdown: Record<string, number>;
 };

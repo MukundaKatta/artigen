@@ -15,6 +15,9 @@ export default function CameraLayout() {
       <Stack.Screen name="new-story" options={{ title: 'New Story' }} />
       <Stack.Screen name="new-reel" options={{ title: 'New Reel' }} />
       <Stack.Screen name="generate" options={{ title: 'Generate with AI' }} />
+      <Stack.Screen name="restyle" options={{ title: 'Restyle' }} />
+      <Stack.Screen name="animate" options={{ title: 'Animate' }} />
+      <Stack.Screen name="remix/[postId]" options={{ title: 'Remix Prompt' }} />
     </Stack>
   );
 }

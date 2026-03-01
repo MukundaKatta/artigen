@@ -3,6 +3,7 @@ import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import type { Profile } from '@/types/database';
 import { getProfile, ensureProfile } from '@/services/profile.service';
+import { updateLastActive } from '@/services/activity.service';
 
 type AuthContextType = {
   session: Session | null;
@@ -63,6 +64,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (data) {
       setProfile(data as Profile);
       setLoading(false);
+      // Update last active on login
+      updateLastActive(userId);
       return;
     }
 

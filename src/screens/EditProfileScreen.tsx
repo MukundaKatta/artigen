@@ -17,8 +17,9 @@ import { showAlert } from '@/utils/alert';
 import { useImagePicker } from '@/hooks/useImagePicker';
 import { updateProfile } from '@/services/profile.service';
 import { uploadFile } from '@/services/upload.service';
+import { Ionicons } from '@expo/vector-icons';
 import { editProfileSchema, EditProfileFormData } from '@/utils/validation';
-import { colors, fontSize, spacing, typography } from '@/lib/theme';
+import { colors, fontSize, spacing, typography, borderRadius } from '@/lib/theme';
 
 export function EditProfileScreen() {
   const { profile, user, refreshProfile } = useAuth();
@@ -162,6 +163,16 @@ export function EditProfileScreen() {
         )}
       />
 
+      {/* Customize Profile Link */}
+      <TouchableOpacity
+        style={styles.customizeRow}
+        onPress={() => router.push('/(screens)/customize-profile')}
+      >
+        <Ionicons name="color-palette-outline" size={20} color={colors.primary} />
+        <Text style={styles.customizeText}>Customize Profile</Text>
+        <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
+      </TouchableOpacity>
+
       <Button
         title="Save"
         onPress={handleSubmit(onSubmit)}
@@ -190,6 +201,21 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontWeight: '600',
     marginTop: spacing.sm,
+  },
+  customizeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    marginTop: spacing.lg,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border,
+  },
+  customizeText: {
+    flex: 1,
+    fontSize: fontSize.md,
+    fontFamily: typography.medium,
+    color: colors.primary,
+    marginLeft: spacing.sm,
   },
   saveButton: {
     marginTop: spacing.lg,

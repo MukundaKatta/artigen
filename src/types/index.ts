@@ -15,6 +15,36 @@ export type {
   NotificationWithSender,
   AiMetadata,
   AiMetadataInsert,
+  PostReaction,
+  ReactionType,
+  ReactionSummary,
+  Collection,
+  CloseFriend,
+  StorySticker,
+  StickerResponse,
+  PostCollaborator,
+  PostView,
+  PostInsights,
+  Location,
+  ProfileTopFriend,
+  PromptLibraryItem,
+  PromptLibraryInsert,
+  PromptSave,
+  Repost,
+  PostPoll,
+  PollOption,
+  PollVote,
+  DailyChallenge,
+  ChallengeEntry,
+  ChallengeVote,
+  UserNote,
+  Badge,
+  UserBadge,
+  UserStreak,
+  Community,
+  CommunityMember,
+  AwardType,
+  PostAward,
 } from './database';
 
 // Grouped stories by user (for the story bar)
@@ -31,6 +61,19 @@ export type FeedPost = import('./database').PostWithUser & {
   isLiked: boolean;
   isSaved: boolean;
   ai_metadata?: import('./database').AiMetadata | null;
+  userReaction?: import('./database').ReactionType | null;
+  reactionSummary?: import('./database').ReactionSummary[];
+  collaborators?: import('./database').Profile[];
+  remixOf?: { id: string; user: Pick<import('./database').Profile, 'id' | 'username' | 'avatar_url'> } | null;
+  remixCount?: number;
+  isReposted?: boolean;
+  repostCount?: number;
+  poll?: {
+    question: string;
+    options: { id: string; text: string; vote_count: number }[];
+    userVoteOptionId?: string;
+    ends_at?: string;
+  } | null;
 };
 
 // Conversation with last message preview

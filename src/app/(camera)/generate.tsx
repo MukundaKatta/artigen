@@ -9,13 +9,14 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/providers/AuthProvider';
 import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useAiGeneration } from '@/hooks/useAiGeneration';
+import { AI_MODELS } from '@/services/ai.service';
 import { showAlert } from '@/utils/alert';
 import { colors, spacing, fontSize, typography, borderRadius, shadows } from '@/lib/theme';
 import type { AiModel } from '@/types';
@@ -48,6 +49,17 @@ function getAspectDimensions(ratio: AspectRatio, model: AiModel) {
 export default function GenerateRoute() {
   const router = useRouter();
   const { user } = useAuth();
+  const params = useLocalSearchParams<{
+    remixOfPostId?: string;
+    remixPrompt?: string;
+    remixNegativePrompt?: string;
+    remixModelId?: string;
+    remixSettings?: string;
+    challengeId?: string;
+    challengeTheme?: string;
+    prefillPrompt?: string;
+    prefill?: string;
+  }>();
   const {
     generating,
     result,
@@ -59,10 +71,14 @@ export default function GenerateRoute() {
     reset,
   } = useAiGeneration();
 
+  // Pre-fill from remix or challenge params
+  const initialPrompt = params.remixPrompt || params.prefillPrompt || params.prefill || params.challengeTheme || '';
+  const initialNegPrompt = params.remixNegativePrompt || '';
+
   const [phase, setPhase] = useState<Phase>('prompt');
   const [providerTab, setProviderTab] = useState<ProviderTab>('huggingface');
-  const [prompt, setPrompt] = useState('');
-  const [negativePrompt, setNegativePrompt] = useState('');
+  const [prompt, setPrompt] = useState(initialPrompt);
+  const [negativePrompt, setNegativePrompt] = useState(initialNegPrompt);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showModelPicker, setShowModelPicker] = useState(false);
   const [steps, setSteps] = useState(selectedModel.defaultSettings.steps);
@@ -141,6 +157,8 @@ export default function GenerateRoute() {
         imageUri: result.image_url,
         imageWidth: String(width),
         imageHeight: String(height),
+        ...(params.remixOfPostId ? { remixOfPostId: params.remixOfPostId } : {}),
+        ...(params.challengeId ? { challengeId: params.challengeId } : {}),
         aiMetadata: JSON.stringify({
           source: 'generated',
           provider: selectedModel.provider,

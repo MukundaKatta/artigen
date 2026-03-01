@@ -11,10 +11,50 @@ import {
 } from '@expo-google-fonts/inter';
 import { Pacifico_400Regular } from '@expo-google-fonts/pacifico';
 import * as SplashScreen from 'expo-splash-screen';
-import { AuthProvider } from '@/providers/AuthProvider';
+import { AuthProvider, useAuth } from '@/providers/AuthProvider';
 import { ThemeProvider } from '@/providers/ThemeProvider';
+import { useActivityStatus } from '@/hooks/useActivityStatus';
 
 SplashScreen.preventAutoHideAsync();
+
+function AppContent() {
+  const { user } = useAuth();
+  useActivityStatus(user?.id);
+
+  return (
+    <>
+      <StatusBar style="dark" />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen
+          name="(screens)"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="(camera)"
+          options={{
+            presentation: 'fullScreenModal',
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="(messages)"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="(stories)"
+          options={{
+            presentation: 'fullScreenModal',
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen name="notifications" />
+      </Stack>
+    </>
+  );
+}
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -37,35 +77,7 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider>
         <AuthProvider>
-          <StatusBar style="dark" />
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="index" />
-            <Stack.Screen name="(auth)" />
-            <Stack.Screen name="(tabs)" />
-            <Stack.Screen
-              name="(screens)"
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="(camera)"
-              options={{
-                presentation: 'fullScreenModal',
-                headerShown: false,
-              }}
-            />
-            <Stack.Screen
-              name="(messages)"
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="(stories)"
-              options={{
-                presentation: 'fullScreenModal',
-                headerShown: false,
-              }}
-            />
-            <Stack.Screen name="notifications" />
-          </Stack>
+          <AppContent />
         </AuthProvider>
       </ThemeProvider>
     </GestureHandlerRootView>

@@ -4,11 +4,12 @@ import type { StoryWithUser } from '@/types/database';
 import type { UserStories } from '@/types';
 
 export async function getFollowedStories(userId: string) {
-  // Get followed user IDs + self
+  // Get followed user IDs + self (only accepted follows)
   const { data: followData } = await supabase
     .from('follows')
     .select('following_id')
-    .eq('follower_id', userId);
+    .eq('follower_id', userId)
+    .eq('status', 'accepted');
 
   const followingIds = (followData || []).map((f) => f.following_id);
   const allIds = [...followingIds, userId];
@@ -75,7 +76,7 @@ export async function getUserStories(userId: string) {
   return { data: (data || []) as unknown as StoryWithUser[], error };
 }
 
-export async function createStory(userId: string, mediaUri: string, mediaType = 'image') {
+export async function createStory(userId: string, mediaUri: string, mediaType = 'image', audience?: 'everyone' | 'close_friends') {
   const fileName = `story_${Date.now()}.jpg`;
   const { url, error: uploadError } = await uploadFile('stories', userId, mediaUri, fileName);
 
@@ -93,6 +94,7 @@ export async function createStory(userId: string, mediaUri: string, mediaType = 
       media_type: mediaType,
       duration_seconds: 5,
       expires_at: expiresAt,
+      audience: audience || 'everyone',
     })
     .select()
     .single();

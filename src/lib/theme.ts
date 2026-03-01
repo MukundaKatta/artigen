@@ -65,6 +65,7 @@ export const colors = {
   backgroundDark: '#000000',
   backgroundDarkSecondary: '#121212',
   borderDark: '#363636',
+  surface: '#F5F5F5',
 } as const;
 
 export const spacing = {

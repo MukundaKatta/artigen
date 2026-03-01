@@ -19,14 +19,22 @@ import Animated, {
   withTiming,
   withSequence,
 } from 'react-native-reanimated';
+import { useRouter } from 'expo-router';
 import { ActionSheet } from '@/components/ui/ActionSheet';
 import { Avatar } from '@/components/ui/Avatar';
 import { RichText } from '@/components/shared/RichText';
+import { ReactionPicker } from '@/components/feed/ReactionPicker';
+import { ReactionSummary } from '@/components/feed/ReactionSummary';
+import { CollaboratorAvatars } from '@/components/feed/CollaboratorAvatars';
+import { PostInsightsButton } from '@/components/feed/PostInsights';
+import { LocationTag } from '@/components/feed/LocationTag';
+import { TipButton } from '@/components/feed/TipButton';
+import { ProvenanceBadge } from '@/components/feed/ProvenanceBadge';
 import { SCREEN_WIDTH } from '@/lib/constants';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
 import { timeAgo } from '@/utils/format-date';
 import { formatNumber } from '@/utils/format-number';
-import type { FeedPost, PostMedia } from '@/types';
+import type { FeedPost, PostMedia, ReactionType } from '@/types';
 
 type PostCardProps = {
   post: FeedPost;
@@ -42,6 +50,13 @@ type PostCardProps = {
   onUnpin?: (postId: string) => void;
   onReport?: (postId: string) => void;
   onBlock?: (userId: string) => void;
+  onReaction?: (postId: string, type: ReactionType) => void;
+  onSaveToCollection?: (postId: string) => void;
+  onRemix?: (postId: string) => void;
+  onTip?: (postId: string, recipientId: string) => void;
+  onRestyle?: (postId: string, imageUrl: string) => void;
+  onAnimate?: (postId: string, imageUrl: string) => void;
+  onPromptRemix?: (postId: string) => void;
 };
 
 export function PostCard({
@@ -58,11 +73,20 @@ export function PostCard({
   onUnpin,
   onReport,
   onBlock,
+  onReaction,
+  onSaveToCollection,
+  onRemix,
+  onTip,
+  onRestyle,
+  onAnimate,
+  onPromptRemix,
 }: PostCardProps) {
+  const router = useRouter();
   const [captionExpanded, setCaptionExpanded] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const [showActionSheet, setShowActionSheet] = useState(false);
   const [showAiDetails, setShowAiDetails] = useState(false);
+  const [showReactionPicker, setShowReactionPicker] = useState(false);
   const lastTapRef = useRef(0);
 
   // Double-tap heart animation
@@ -114,6 +138,24 @@ export function PostCard({
     onLike(post.id);
   }, [post.id, onLike, likeScale]);
 
+  const handleLongPressLike = useCallback(() => {
+    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setShowReactionPicker(true);
+  }, []);
+
+  const handleReaction = useCallback((type: ReactionType) => {
+    if (onReaction) {
+      onReaction(post.id, type);
+    }
+  }, [post.id, onReaction]);
+
+  const handleLongPressSave = useCallback(() => {
+    if (onSaveToCollection) {
+      if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      onSaveToCollection(post.id);
+    }
+  }, [post.id, onSaveToCollection]);
+
   const handleSave = useCallback(() => {
     saveScale.value = withSequence(
       withSpring(1.2, { damping: 4, stiffness: 300 }),
@@ -151,9 +193,7 @@ export function PostCard({
               )}
             </View>
             {post.location ? (
-              <Text style={styles.location} numberOfLines={1}>
-                {post.location}
-              </Text>
+              <LocationTag locationId={post.location_id} locationName={post.location} />
             ) : null}
           </View>
         </TouchableOpacity>
@@ -165,6 +205,19 @@ export function PostCard({
           />
         </TouchableOpacity>
       </View>
+
+      {/* Remix badge */}
+      {post.remixOf && (
+        <TouchableOpacity
+          style={styles.remixBadge}
+          onPress={() => onPostPress(post.remixOf!.id)}
+        >
+          <Ionicons name="git-branch-outline" size={12} color="#8B5CF6" />
+          <Text style={styles.remixBadgeText}>
+            Remixed from <Text style={styles.remixBadgeUsername}>@{post.remixOf.user.username}</Text>
+          </Text>
+        </TouchableOpacity>
+      )}
 
       {/* Image / Carousel */}
       <Pressable onPress={handleDoubleTap}>
@@ -219,11 +272,17 @@ export function PostCard({
         </View>
       )}
 
+      {/* Collaborators */}
+      {post.collaborators && post.collaborators.length > 0 && (
+        <CollaboratorAvatars collaborators={post.collaborators} />
+      )}
+
       {/* Actions */}
       <View style={styles.actions}>
         <View style={styles.actionsLeft}>
           <TouchableOpacity
             onPress={handleLike}
+            onLongPress={handleLongPressLike}
             hitSlop={8}
             style={styles.actionButton}
           >
@@ -253,8 +312,24 @@ export function PostCard({
               color={colors.text}
             />
           </TouchableOpacity>
+          {post.ai_metadata && onRemix && (
+            <TouchableOpacity hitSlop={8} style={styles.actionButton} onPress={() => onRemix(post.id)}>
+              <Ionicons
+                name="git-branch-outline"
+                size={24}
+                color="#8B5CF6"
+              />
+            </TouchableOpacity>
+          )}
+          {onTip && post.user_id !== currentUserId && (
+            <TipButton onPress={() => onTip(post.id, post.user_id)} />
+          )}
         </View>
-        <TouchableOpacity onPress={handleSave} hitSlop={8}>
+        <View style={styles.actionsRight}>
+          {post.has_provenance && (
+            <ProvenanceBadge onPress={() => router.push(`/(screens)/provenance/${post.id}`)} />
+          )}
+          <TouchableOpacity onPress={handleSave} onLongPress={handleLongPressSave} hitSlop={8}>
           <Animated.View style={saveButtonStyle}>
             <Ionicons
               name={post.isSaved ? 'bookmark' : 'bookmark-outline'}
@@ -263,13 +338,37 @@ export function PostCard({
             />
           </Animated.View>
         </TouchableOpacity>
+        </View>
       </View>
 
-      {/* Likes */}
-      {post.likes_count > 0 && (
+      {/* Reaction Summary or Likes */}
+      {post.reactionSummary && post.reactionSummary.length > 0 ? (
+        <ReactionSummary summary={post.reactionSummary} totalCount={post.likes_count} />
+      ) : post.likes_count > 0 ? (
         <Text style={styles.likesText}>
           {formatNumber(post.likes_count)} {post.likes_count === 1 ? 'like' : 'likes'}
         </Text>
+      ) : null}
+
+      {/* Remix count */}
+      {post.remixCount != null && post.remixCount > 0 && (
+        <TouchableOpacity
+          onPress={() => router.push(`/(screens)/remixes/${post.id}`)}
+          style={styles.remixCountRow}
+        >
+          <Ionicons name="git-branch-outline" size={14} color="#8B5CF6" />
+          <Text style={styles.remixCountText}>
+            {post.remixCount} {post.remixCount === 1 ? 'remix' : 'remixes'}
+          </Text>
+        </TouchableOpacity>
+      )}
+
+      {/* Post Insights (own posts only) */}
+      {post.user_id === currentUserId && (
+        <PostInsightsButton
+          viewsCount={post.views_count || 0}
+          onPress={() => router.push(`/(screens)/insights/${post.id}`)}
+        />
       )}
 
       {/* Caption */}
@@ -358,6 +457,14 @@ export function PostCard({
       {/* Timestamp */}
       <Text style={styles.timestamp}>{timeAgo(post.created_at)}</Text>
 
+      {/* Reaction Picker */}
+      <ReactionPicker
+        visible={showReactionPicker}
+        onClose={() => setShowReactionPicker(false)}
+        onSelect={handleReaction}
+        currentReaction={post.userReaction}
+      />
+
       {/* Action sheet */}
       <ActionSheet
         visible={showActionSheet}
@@ -366,10 +473,10 @@ export function PostCard({
           // Owner actions
           ...(post.user_id === currentUserId
             ? [
-                ...(onPin && !(post as any).is_pinned
+                ...(onPin && !post.is_pinned
                   ? [{ label: 'Pin to Profile', onPress: () => onPin(post.id) }]
                   : []),
-                ...(onUnpin && (post as any).is_pinned
+                ...(onUnpin && post.is_pinned
                   ? [{ label: 'Unpin from Profile', onPress: () => onUnpin(post.id) }]
                   : []),
                 ...(onDelete
@@ -385,6 +492,16 @@ export function PostCard({
                   ? [{ label: `Block @${post.user.username}`, destructive: true, onPress: () => onBlock(post.user_id) }]
                   : []),
               ]),
+          // AI-powered actions (available to everyone)
+          ...(post.ai_metadata && onPromptRemix
+            ? [{ label: 'Remix Prompt', onPress: () => onPromptRemix(post.id) }]
+            : []),
+          ...(onRestyle && sortedMedia[0]?.media_url
+            ? [{ label: 'Restyle Image', onPress: () => onRestyle(post.id, sortedMedia[0].media_url) }]
+            : []),
+          ...(onAnimate && sortedMedia[0]?.media_url
+            ? [{ label: 'Animate Image', onPress: () => onAnimate(post.id, sortedMedia[0].media_url) }]
+            : []),
         ]}
       />
     </View>
@@ -468,6 +585,11 @@ const styles = StyleSheet.create({
   actionsLeft: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  actionsRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
   },
   actionButton: {
     marginRight: spacing.lg,
@@ -594,5 +716,34 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: 4,
     overflow: 'hidden',
+  },
+  // Remix styles
+  remixBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.xs,
+    gap: 4,
+  },
+  remixBadgeText: {
+    fontSize: fontSize.xs,
+    fontFamily: typography.regular,
+    color: colors.textSecondary,
+  },
+  remixBadgeUsername: {
+    fontFamily: typography.semiBold,
+    color: '#8B5CF6',
+  },
+  remixCountRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.xs,
+    gap: 4,
+  },
+  remixCountText: {
+    fontSize: fontSize.sm,
+    fontFamily: typography.medium,
+    color: '#8B5CF6',
   },
 });

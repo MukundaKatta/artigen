@@ -19,6 +19,8 @@ import { getUserStories } from '@/services/story.service';
 import { sendStoryReply } from '@/services/message.service';
 import { useStoryViewer } from '@/hooks/useStoryViewer';
 import { useAuth } from '@/providers/AuthProvider';
+import { StickerOverlay } from '@/components/stories/StickerOverlay';
+import { useStoryStickers } from '@/hooks/useStoryStickers';
 import { timeAgo } from '@/utils/format-date';
 import { colors, fontSize, spacing, typography, borderRadius } from '@/lib/theme';
 import type { StoryWithUser } from '@/types/database';
@@ -48,6 +50,12 @@ export default function StoryViewerRoute() {
     pause,
     resume,
   } = useStoryViewer(stories, user?.id || '');
+
+  const { stickers, fetchStickers, respond } = useStoryStickers(currentStory?.id);
+
+  useEffect(() => {
+    if (currentStory?.id) fetchStickers();
+  }, [currentStory?.id, fetchStickers]);
 
   useEffect(() => {
     async function load() {
@@ -165,6 +173,17 @@ export default function StoryViewerRoute() {
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* Story Stickers */}
+      {stickers.length > 0 && (
+        <StickerOverlay
+          stickers={stickers}
+          userId={user?.id || ''}
+          onRespond={(stickerId: string, response: Record<string, unknown>) =>
+            respond(stickerId, user?.id || '', response)
+          }
+        />
+      )}
 
       {/* Tap zones */}
       <View style={styles.tapZones}>

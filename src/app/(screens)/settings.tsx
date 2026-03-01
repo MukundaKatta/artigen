@@ -6,6 +6,7 @@ import { useAuth } from '@/providers/AuthProvider';
 import { useTheme } from '@/providers/ThemeProvider';
 import { ActionSheet } from '@/components/ui/ActionSheet';
 import { updateProfile } from '@/services/profile.service';
+import { toggleActivityStatus } from '@/services/activity.service';
 import { colors, fontSize, spacing, typography } from '@/lib/theme';
 
 type SettingRowProps = {
@@ -44,6 +45,7 @@ export default function SettingsRoute() {
   const [showLogout, setShowLogout] = useState(false);
   const [showTheme, setShowTheme] = useState(false);
   const [isPrivate, setIsPrivate] = useState(profile?.is_private || false);
+  const [showActivity, setShowActivity] = useState(profile?.show_activity_status !== false);
 
   const themeLabels = { system: 'System', light: 'Light', dark: 'Dark' };
 
@@ -51,6 +53,13 @@ export default function SettingsRoute() {
     setIsPrivate(value);
     if (user?.id) {
       await updateProfile(user.id, { is_private: value });
+    }
+  }
+
+  async function handleToggleActivity(value: boolean) {
+    setShowActivity(value);
+    if (user?.id) {
+      await toggleActivityStatus(user.id, value);
     }
   }
 
@@ -84,11 +93,73 @@ export default function SettingsRoute() {
         onPress={() => setShowTheme(true)}
       />
 
+      <SectionHeader title="Social" />
+      <SettingRow
+        icon="star-outline"
+        label="Close Friends"
+        onPress={() => router.push('/(screens)/close-friends')}
+      />
+      <SettingRow
+        icon="calendar-outline"
+        label="Scheduled Posts"
+        onPress={() => router.push('/(screens)/scheduled-posts')}
+      />
+      <SettingRow
+        icon="color-palette-outline"
+        label="Customize Profile"
+        onPress={() => router.push('/(screens)/customize-profile')}
+      />
+
+      <SectionHeader title="Creator" />
+      <SettingRow
+        icon="wallet-outline"
+        label="Wallet"
+        onPress={() => router.push('/(screens)/wallet')}
+      />
+      <SettingRow
+        icon="pricetag-outline"
+        label="Manage Subscription Tiers"
+        onPress={() => router.push('/(screens)/manage-tiers')}
+      />
+      <SettingRow
+        icon="storefront-outline"
+        label="Marketplace Orders"
+        onPress={() => router.push('/(screens)/marketplace/orders')}
+      />
+
+      <SectionHeader title="Discovery" />
+      <SettingRow
+        icon="pulse-outline"
+        label="Your Algorithm"
+        onPress={() => router.push('/(screens)/taste-profile')}
+      />
+      <SettingRow
+        icon="trending-up-outline"
+        label="Trending"
+        onPress={() => router.push('/(screens)/trending')}
+      />
+
       <SectionHeader title="Privacy & Safety" />
+      <SettingRow
+        icon="radio-button-on-outline"
+        label="Activity Status"
+        rightElement={
+          <Switch
+            value={showActivity}
+            onValueChange={handleToggleActivity}
+            trackColor={{ true: colors.primary }}
+          />
+        }
+      />
       <SettingRow
         icon="ban-outline"
         label="Blocked Users"
         onPress={() => router.push('/(screens)/blocked-users')}
+      />
+      <SettingRow
+        icon="shield-checkmark-outline"
+        label="Content & Safety"
+        onPress={() => router.push('/(screens)/safety-settings')}
       />
 
       <SectionHeader title="About" />

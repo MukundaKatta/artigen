@@ -41,3 +41,27 @@ export const STORAGE_BUCKETS = {
   stories: 'stories',
   messages: 'messages',
 } as const;
+
+// Tip presets (in cents)
+export const TIP_PRESETS = [100, 200, 500, 1000, 2000] as const;
+
+// Taste profile options
+export const STYLE_OPTIONS: string[] = [
+  'Photorealistic', 'Anime', 'Oil Painting', 'Watercolor', 'Digital Art',
+  'Pixel Art', 'Abstract', 'Minimalist', 'Surreal', 'Pop Art',
+  'Sketch', 'Comic Book', '3D Render', 'Cinematic', 'Impressionist',
+];
+
+export const THEME_OPTIONS: string[] = [
+  'Nature', 'Sci-Fi', 'Fantasy', 'Urban', 'Portraits',
+  'Animals', 'Architecture', 'Food', 'Space', 'Underwater',
+  'Steampunk', 'Cyberpunk', 'Historical', 'Horror', 'Whimsical',
+];
+
+export const PALETTE_OPTIONS: string[] = [
+  'Warm', 'Cool', 'Pastel', 'Neon', 'Monochrome',
+  'Earth Tones', 'Vibrant', 'Dark', 'Light', 'Muted',
+];
+
+export const MARKETPLACE_PAGE_SIZE = 20;
+export const TRANSACTIONS_PAGE_SIZE = 20;

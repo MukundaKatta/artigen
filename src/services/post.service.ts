@@ -3,6 +3,8 @@ import { FEED_PAGE_SIZE, EXPLORE_PAGE_SIZE } from '@/lib/constants';
 import { uploadFile } from '@/services/upload.service';
 import { extractHashtags } from '@/utils/extract-hashtags';
 import { createNotification } from '@/services/notification.service';
+import { updateStreak } from '@/services/streak.service';
+import { checkAndAwardPostBadges } from './badge.service';
 import type { FeedPost, PostWithUser, Post, AiMetadataInsert } from '@/types';
 import type { Database } from '@/types/database';
 
@@ -14,21 +16,25 @@ export async function getFeed(userId: string, page = 0) {
   const from = page * FEED_PAGE_SIZE;
   const to = from + FEED_PAGE_SIZE - 1;
 
-  // Step 1: Get IDs of users we follow
+  // Step 1: Get IDs of users we follow (only accepted follows)
   const { data: followData } = await supabase
     .from('follows')
     .select('following_id')
-    .eq('follower_id', userId);
+    .eq('follower_id', userId)
+    .eq('status', 'accepted');
 
   const followingIds = (followData || []).map((f) => f.following_id);
   const feedUserIds = [...followingIds, userId];
 
-  // Step 2: Fetch posts with user + media
+  // Step 2: Fetch posts with user + media (exclude drafts, scheduled, and non-public posts)
   const { data: posts, error } = await supabase
     .from('posts')
     .select('*, user:profiles!user_id(*), media:post_media(*), ai_metadata(*)')
     .in('user_id', feedUserIds)
     .eq('is_archived', false)
+    .eq('is_draft', false)
+    .is('scheduled_at', null)
+    .in('audience', ['everyone', 'close_friends'])
     .order('created_at', { ascending: false })
     .range(from, to);
 
@@ -106,6 +112,8 @@ type CreatePostParams = {
   userId: string;
   caption: string;
   location?: string;
+  remixOfPostId?: string;
+  audience?: 'everyone' | 'close_friends';
   mediaFiles: {
     uri: string;
     fileName: string;
@@ -120,6 +128,8 @@ export async function createPost({
   userId,
   caption,
   location,
+  remixOfPostId,
+  audience,
   mediaFiles,
   aiMetadata,
 }: CreatePostParams) {
@@ -138,6 +148,8 @@ export async function createPost({
       caption,
       post_type: postType as Post['post_type'],
       location: location || null,
+      remix_of_post_id: remixOfPostId || null,
+      audience: audience || 'everyone',
     })
     .select('*')
     .single();
@@ -187,6 +199,10 @@ export async function createPost({
       ...aiMetadata,
     });
   }
+
+  // Update user streak (fire-and-forget)
+  updateStreak(userId).catch(() => {});
+  checkAndAwardPostBadges(userId).catch(() => {});
 
   return { data: post, error: null };
 }

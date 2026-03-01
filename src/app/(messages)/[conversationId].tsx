@@ -23,8 +23,14 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useAuth } from '@/providers/AuthProvider';
 import { useChat } from '@/hooks/useChat';
+import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
 import { Avatar } from '@/components/ui/Avatar';
+import { VoiceRecordButton } from '@/components/messages/VoiceRecordButton';
+import { VoiceMessageBubble } from '@/components/messages/VoiceMessageBubble';
+import { VanishModeToggle, VanishModeBanner } from '@/components/messages/VanishModeToggle';
 import { getSharedPost } from '@/services/message.service';
+import { sendVoiceMessage } from '@/services/voice.service';
+import { supabase } from '@/lib/supabase';
 import { colors, spacing, fontSize, borderRadius, typography, shadows } from '@/lib/theme';
 import type { MessageWithSender } from '@/types';
 
@@ -118,6 +124,26 @@ export default function ChatRoute() {
     onTyping,
   } = useChat(conversationId, user?.id);
   const [text, setText] = useState('');
+  const [isVanishMode, setIsVanishMode] = useState(false);
+  const voiceRecorder = useVoiceRecorder();
+
+  async function handleToggleVanish() {
+    if (!conversationId) return;
+    const newMode = !isVanishMode;
+    setIsVanishMode(newMode);
+    await supabase
+      .from('conversations')
+      .update({ is_vanish_mode: newMode })
+      .eq('id', conversationId);
+  }
+
+  async function handleVoiceStop() {
+    if (!conversationId || !user?.id) return;
+    const { uri, durationMs, error } = await voiceRecorder.stopRecording();
+    if (uri && !error) {
+      await sendVoiceMessage(conversationId, user.id, uri, durationMs);
+    }
+  }
 
   function handleSend() {
     if (!text.trim()) return;
@@ -145,13 +171,16 @@ export default function ChatRoute() {
     const isMine = item.sender_id === user?.id;
     const isPostShare = item.message_type === 'post_share' && item.shared_post_id;
     const isStoryReply = item.message_type === 'story_reply';
+    const isVoice = item.message_type === 'voice';
     const showSeen = item.id === lastSeenMessageId;
 
     return (
       <View>
         <View style={[styles.messageRow, isMine && styles.messageRowMine]}>
           {!isMine && <Avatar uri={item.sender?.avatar_url} size="sm" />}
-          {isPostShare && item.shared_post_id ? (
+          {isVoice && item.media_url ? (
+            <VoiceMessageBubble mediaUrl={item.media_url} content={item.content} isMine={isMine} />
+          ) : isPostShare && item.shared_post_id ? (
             <SharedPostBubble postId={item.shared_post_id} isMine={isMine} />
           ) : (
             <View
@@ -219,29 +248,53 @@ export default function ChatRoute() {
         />
       )}
 
+      {/* Vanish mode banner */}
+      {isVanishMode && <VanishModeBanner />}
+
       {/* Input bar */}
       <View style={[styles.inputBar, { paddingBottom: Math.max(insets.bottom, spacing.sm) }]}>
-        <TextInput
-          style={styles.input}
-          placeholder="Message..."
-          placeholderTextColor={colors.textSecondary}
-          value={text}
-          onChangeText={handleTextChange}
-          multiline
-          maxLength={2000}
-        />
-        <TouchableOpacity
-          onPress={handleSend}
-          disabled={!text.trim() || sending}
-          hitSlop={8}
-        >
-          <Ionicons
-            name="send"
-            size={24}
-            color={text.trim() ? colors.primary : colors.border}
+        {voiceRecorder.recording ? (
+          <VoiceRecordButton
+            recording={voiceRecorder.recording}
+            duration={voiceRecorder.duration}
+            onStart={voiceRecorder.startRecording}
+            onStop={handleVoiceStop}
+            onCancel={voiceRecorder.cancelRecording}
           />
-        </TouchableOpacity>
+        ) : (
+          <>
+            <TextInput
+              style={styles.input}
+              placeholder="Message..."
+              placeholderTextColor={colors.textSecondary}
+              value={text}
+              onChangeText={handleTextChange}
+              multiline
+              maxLength={2000}
+            />
+            {text.trim() ? (
+              <TouchableOpacity
+                onPress={handleSend}
+                disabled={sending}
+                hitSlop={8}
+              >
+                <Ionicons name="send" size={24} color={colors.primary} />
+              </TouchableOpacity>
+            ) : (
+              <VoiceRecordButton
+                recording={false}
+                duration={0}
+                onStart={voiceRecorder.startRecording}
+                onStop={handleVoiceStop}
+                onCancel={voiceRecorder.cancelRecording}
+              />
+            )}
+          </>
+        )}
       </View>
+
+      {/* Vanish mode toggle */}
+      <VanishModeToggle isVanishMode={isVanishMode} onToggle={handleToggleVanish} />
     </KeyboardAvoidingView>
   );
 }

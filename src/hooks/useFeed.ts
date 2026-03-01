@@ -7,7 +7,10 @@ import {
   savePost,
   unsavePost,
 } from '@/services/post.service';
-import type { FeedPost } from '@/types';
+import { setReaction, removeReaction } from '@/services/post-reaction.service';
+import { trackView } from '@/services/insights.service';
+import { recordEngagement } from '@/services/taste-profile.service';
+import type { FeedPost, ReactionType } from '@/types';
 
 export function useFeed(userId: string | undefined) {
   const [posts, setPosts] = useState<FeedPost[]>([]);
@@ -93,6 +96,9 @@ export function useFeed(userId: string | undefined) {
             };
           })
         );
+      } else if (!wasLiked) {
+        // Fire-and-forget engagement tracking for new likes
+        recordEngagement(userId, postId, 'like', post.ai_metadata?.style_tags || []).catch(() => {});
       }
     },
     [userId, posts]
@@ -125,9 +131,78 @@ export function useFeed(userId: string | undefined) {
             return { ...p, isSaved: wasSaved };
           })
         );
+      } else if (!wasSaved) {
+        // Fire-and-forget engagement tracking for new saves
+        recordEngagement(userId, postId, 'save', post.ai_metadata?.style_tags || []).catch(() => {});
       }
     },
     [userId, posts]
+  );
+
+  const toggleReaction = useCallback(
+    async (postId: string, reactionType: ReactionType) => {
+      if (!userId) return;
+
+      const post = posts.find((p) => p.id === postId);
+      if (!post) return;
+
+      const hadReaction = post.userReaction;
+      const isSameReaction = hadReaction === reactionType;
+
+      // Optimistic update
+      setPosts((prev) =>
+        prev.map((p) => {
+          if (p.id !== postId) return p;
+          return {
+            ...p,
+            isLiked: !isSameReaction,
+            userReaction: isSameReaction ? null : reactionType,
+            likes_count: isSameReaction
+              ? p.likes_count - 1
+              : hadReaction
+                ? p.likes_count
+                : p.likes_count + 1,
+          };
+        })
+      );
+
+      const { error } = isSameReaction
+        ? await removeReaction(userId, postId)
+        : await setReaction(userId, postId, reactionType);
+
+      if (error) {
+        // Revert optimistic update
+        setPosts((prev) =>
+          prev.map((p) => {
+            if (p.id !== postId) return p;
+            return {
+              ...p,
+              isLiked: !!hadReaction,
+              userReaction: hadReaction,
+              likes_count: isSameReaction
+                ? p.likes_count + 1
+                : hadReaction
+                  ? p.likes_count
+                  : p.likes_count - 1,
+            };
+          })
+        );
+      }
+    },
+    [userId, posts]
+  );
+
+  // Track post views
+  const onViewableItemsChanged = useCallback(
+    ({ viewableItems }: { viewableItems: any[] }) => {
+      if (!userId) return;
+      for (const item of viewableItems) {
+        if (item.isViewable && item.item?.id) {
+          trackView(item.item.id, userId, 'feed');
+        }
+      }
+    },
+    [userId]
   );
 
   useEffect(() => {
@@ -145,5 +220,7 @@ export function useFeed(userId: string | undefined) {
     loadMore,
     toggleLike,
     toggleSave,
+    toggleReaction,
+    onViewableItemsChanged,
   };
 }

@@ -5,9 +5,16 @@ import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
 import { HighlightCircle } from '@/components/profile/HighlightCircle';
 import { ActionSheet } from '@/components/ui/ActionSheet';
+import { InterestTags } from '@/components/profile/InterestTags';
+import { TopFriendsRow } from '@/components/profile/TopFriendsRow';
+import { ProfileMusic } from '@/components/profile/ProfileMusic';
 import { getHighlights } from '@/services/highlight.service';
+import { getTopFriends } from '@/services/profile-customization.service';
 import type { HighlightWithStories } from '@/services/highlight.service';
 import { colors, fontSize, spacing, typography } from '@/lib/theme';
+import { SubscriberBadge } from '@/components/profile/SubscriberBadge';
+import { StreakBadge } from '@/components/profile/StreakBadge';
+import { useStreak } from '@/hooks/useStreak';
 import { formatNumber } from '@/utils/format-number';
 import type { Profile } from '@/types/database';
 
@@ -39,14 +46,24 @@ export function ProfileHeader({
   onHighlightPress,
 }: Props) {
   const [highlights, setHighlights] = useState<HighlightWithStories[]>([]);
+  const [topFriends, setTopFriends] = useState<{ id: string; username: string; avatar_url: string | null }[]>([]);
   const [showMoreSheet, setShowMoreSheet] = useState(false);
+
+  const { streak } = useStreak(profile.id);
+
+  const profileTheme = profile.profile_theme as { accent_color?: string; music_title?: string; music_artist?: string } | null;
+  const interestTags = profile.interest_tags;
+  const accentColor = profileTheme?.accent_color;
 
   useEffect(() => {
     getHighlights(profile.id).then(({ data }) => setHighlights(data as HighlightWithStories[]));
+    getTopFriends(profile.id).then(({ data }) => {
+      if (data) setTopFriends(data || []);
+    });
   }, [profile.id]);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, accentColor && { borderBottomWidth: 2, borderBottomColor: accentColor }]}>
       {/* Top row: Avatar + Stats */}
       <View style={styles.topRow}>
         <Avatar uri={profile.avatar_url} size="xl" />
@@ -54,6 +71,9 @@ export function ProfileHeader({
           <StatItem label="Posts" value={profile.posts_count} />
           <StatItem label="Followers" value={profile.followers_count} onPress={onFollowersPress} />
           <StatItem label="Following" value={profile.following_count} onPress={onFollowingPress} />
+          {profile.subscriber_count > 0 && (
+            <StatItem label="Subscribers" value={profile.subscriber_count} />
+          )}
         </View>
       </View>
 
@@ -67,12 +87,33 @@ export function ProfileHeader({
           {profile.is_verified && (
             <Ionicons name="checkmark-circle" size={14} color={colors.primary} style={{ marginLeft: 4 }} />
           )}
+          {streak && streak.current_streak > 0 && (
+            <View style={{ marginLeft: spacing.xs }}>
+              <StreakBadge currentStreak={streak.current_streak} />
+            </View>
+          )}
         </View>
+        {profile.is_creator && <SubscriberBadge label="Creator" />}
         {profile.bio ? <Text style={styles.bio}>{profile.bio}</Text> : null}
         {profile.website ? (
           <Text style={styles.website}>{profile.website}</Text>
         ) : null}
       </View>
+
+      {/* Interest Tags */}
+      {interestTags && interestTags.length > 0 && (
+        <InterestTags tags={interestTags} accentColor={accentColor} />
+      )}
+
+      {/* Profile Music */}
+      {profileTheme?.music_title && (
+        <ProfileMusic title={profileTheme.music_title} artist={profileTheme.music_artist} />
+      )}
+
+      {/* Top Friends */}
+      {topFriends.length > 0 && (
+        <TopFriendsRow friends={topFriends} />
+      )}
 
       {/* Action Button */}
       <View style={styles.actionRow}>

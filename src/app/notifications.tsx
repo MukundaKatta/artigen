@@ -33,6 +33,10 @@ function getNotificationText(n: NotificationWithSender): string {
       return 'replied to your story.';
     case 'comment_like':
       return 'liked your comment.';
+    case 'collab_invite':
+      return 'invited you to collaborate on a post.';
+    case 'collab_accepted':
+      return 'accepted your collaboration invite.';
     default:
       return 'interacted with you.';
   }
@@ -55,6 +59,10 @@ export default function NotificationsRoute() {
   function handlePress(n: NotificationWithSender) {
     if (!n.is_read) markRead(n.id);
 
+    if (n.notification_type === 'collab_invite') {
+      router.push('/(screens)/collab-invite');
+      return;
+    }
     if (n.notification_type === 'follow' || n.notification_type === 'follow_request') {
       router.push(`/(screens)/user/${n.sender_id}`);
     } else if (n.post_id) {

@@ -1,0 +1,96 @@
+import { useState, useRef, useCallback, useEffect } from 'react';
+import { Audio } from 'expo-av';
+
+export function useVoiceRecorder() {
+  const [recording, setRecording] = useState(false);
+  const [duration, setDuration] = useState(0);
+  const recordingRef = useRef<Audio.Recording | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval>>();
+
+  const startRecording = useCallback(async () => {
+    try {
+      const { granted } = await Audio.requestPermissionsAsync();
+      if (!granted) return { error: 'Permission denied' };
+
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      });
+
+      const { recording: rec } = await Audio.Recording.createAsync(
+        Audio.RecordingOptionsPresets.HIGH_QUALITY
+      );
+
+      recordingRef.current = rec;
+      setRecording(true);
+      setDuration(0);
+
+      intervalRef.current = setInterval(() => {
+        setDuration((d) => d + 100);
+      }, 100);
+
+      return { error: null };
+    } catch (e: any) {
+      return { error: e.message };
+    }
+  }, []);
+
+  const stopRecording = useCallback(async () => {
+    if (!recordingRef.current) return { uri: null, durationMs: 0, error: 'No recording' };
+
+    if (intervalRef.current) clearInterval(intervalRef.current);
+
+    try {
+      const uri = recordingRef.current.getURI();
+      const status = await recordingRef.current.getStatusAsync();
+      const durationMs = status.durationMillis || duration;
+
+      await recordingRef.current.stopAndUnloadAsync();
+      await Audio.setAudioModeAsync({ allowsRecordingIOS: false });
+
+      recordingRef.current = null;
+      setRecording(false);
+
+      return { uri, durationMs, error: null };
+    } catch (e: any) {
+      setRecording(false);
+      return { uri: null, durationMs: 0, error: e.message };
+    }
+  }, [duration]);
+
+  const cancelRecording = useCallback(async () => {
+    if (!recordingRef.current) return;
+    if (intervalRef.current) clearInterval(intervalRef.current);
+
+    try {
+      await recordingRef.current.stopAndUnloadAsync();
+      await Audio.setAudioModeAsync({ allowsRecordingIOS: false });
+    } catch {}
+
+    recordingRef.current = null;
+    setRecording(false);
+    setDuration(0);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+      if (recordingRef.current) {
+        recordingRef.current
+          .stopAndUnloadAsync()
+          .catch(() => {});
+        recordingRef.current = null;
+      }
+    };
+  }, []);
+
+  return {
+    recording,
+    duration,
+    startRecording,
+    stopRecording,
+    cancelRecording,
+  };
+}

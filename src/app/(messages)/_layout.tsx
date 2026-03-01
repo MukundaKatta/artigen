@@ -13,6 +13,7 @@ export default function MessagesLayout() {
       <Stack.Screen name="index" options={{ title: 'Messages' }} />
       <Stack.Screen name="[conversationId]" options={{ title: '' }} />
       <Stack.Screen name="new" options={{ title: 'New Message' }} />
+      <Stack.Screen name="new-group" options={{ title: 'New Group' }} />
     </Stack>
   );
 }
