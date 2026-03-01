@@ -38,6 +38,11 @@
       "@react-native-community/datetimepicker",
       "expo-sqlite"
     ],
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/images/logo.png"
+    },
     "experiments": {
       "typedRoutes": true
     }

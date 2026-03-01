@@ -6,7 +6,12 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "build:web": "expo export --platform web",
+    "deploy:web": "expo export --platform web && firebase deploy --only hosting",
+    "build:apk": "eas build --platform android --profile preview",
+    "build:ios": "eas build --platform ios --profile preview",
+    "build:prod": "eas build --platform all --profile production"
   },
   "dependencies": {
     "@expo-google-fonts/inter": "^0.4.2",
