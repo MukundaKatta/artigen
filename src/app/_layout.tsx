@@ -100,7 +100,7 @@ export default function RootLayout() {
     }
   }, [fontsLoaded]);
 
-  // On web, don't block on font loading — render immediately
+  // On web, render immediately — fonts load via CSS @font-face with font-display:auto
   if (!fontsLoaded && Platform.OS !== 'web') return null;
 
   return (

@@ -34,24 +34,20 @@ function LogoLabel({ fontSize, color }: { fontSize: number; color?: string }) {
 
 function WebGradientLogo({ fontSize }: { fontSize: number }) {
   const capSize = Math.round(fontSize * 1.35);
+  const gradientStyle = {
+    // @ts-ignore — web-only CSS properties for gradient text
+    backgroundImage: 'linear-gradient(90deg, #833AB4, #C13584, #E1306C, #FD1D1D, #F77737)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    backgroundClip: 'text',
+    color: 'transparent',
+  };
   return (
     <View style={styles.container}>
-      <Text
-        style={[
-          styles.text,
-          {
-            fontSize,
-            // @ts-ignore — web-only CSS properties for gradient text
-            backgroundImage: 'linear-gradient(90deg, #833AB4, #C13584, #E1306C, #FD1D1D, #F77737)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
-          },
-        ]}
-      >
-        <Text style={{ fontSize: capSize }}>A</Text>
-        rtigen
-      </Text>
+      <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+        <Text style={[styles.text, { fontSize: capSize }, gradientStyle]}>A</Text>
+        <Text style={[styles.text, { fontSize }, gradientStyle]}>rtigen</Text>
+      </View>
     </View>
   );
 }
