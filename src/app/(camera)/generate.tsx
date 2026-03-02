@@ -221,6 +221,38 @@ export default function GenerateRoute() {
     }
   }
 
+  // save prompt modal — defined here so it's available before early returns
+  function renderSaveModal() {
+    return (
+      <Modal
+        visible={showSaveModal}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setShowSaveModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Save Prompt</Text>
+            <TextInput
+              style={[styles.input, styles.modalInput]}
+              placeholder="Title (optional)"
+              value={saveTitle}
+              onChangeText={setSaveTitle}
+            />
+            <View style={styles.switchRow}>
+              <Text style={styles.modalLabel}>Public</Text>
+              <Switch value={savePublic} onValueChange={setSavePublic} />
+            </View>
+            <View style={styles.modalButtons}>
+              <Button title="Cancel" variant="outline" onPress={() => setShowSaveModal(false)} />
+              <Button title="Save" onPress={confirmSavePrompt} />
+            </View>
+          </View>
+        </View>
+      </Modal>
+    );
+  }
+
   // ── Generating Phase ─────────────────────────────────
   if (phase === 'generating') {
     return (
@@ -282,43 +314,11 @@ export default function GenerateRoute() {
             style={styles.resultButton}
           />
         </View>
-      </View>
-    );
+      </>
+      );
   }
 
   // ── Prompt Phase ─────────────────────────────────────
-
-  // save prompt modal
-  function renderSaveModal() {
-    return (
-      <Modal
-        visible={showSaveModal}
-        animationType="slide"
-        transparent
-        onRequestClose={() => setShowSaveModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Save Prompt</Text>
-            <TextInput
-              style={[styles.input, styles.modalInput]}
-              placeholder="Title (optional)"
-              value={saveTitle}
-              onChangeText={setSaveTitle}
-            />
-            <View style={styles.switchRow}>
-              <Text style={styles.modalLabel}>Public</Text>
-              <Switch value={savePublic} onValueChange={setSavePublic} />
-            </View>
-            <View style={styles.modalButtons}>
-              <Button title="Cancel" variant="outline" onPress={() => setShowSaveModal(false)} />
-              <Button title="Save" onPress={confirmSavePrompt} />
-            </View>
-          </View>
-        </View>
-      </Modal>
-    );
-  }
 
   return (
     <>
