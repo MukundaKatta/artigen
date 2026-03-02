@@ -104,6 +104,8 @@ export default function ScreensLayout() {
       <Stack.Screen name="art-coach/[postId]" options={{ title: 'AI Art Coach' }} />
       <Stack.Screen name="ambient-mode" options={{ headerShown: false }} />
       <Stack.Screen name="art-genetics" options={{ title: 'Art Genetics' }} />
+      <Stack.Screen name="buy-credits" options={{ title: 'Buy AI Credits' }} />
+      <Stack.Screen name="ai-assistant" options={{ title: 'AI Assistant' }} />
     </Stack>
   );
 }

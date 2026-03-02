@@ -41,6 +41,35 @@ export const AI_MODELS: AiModel[] = [
     defaultSettings: { steps: 25, cfg_scale: 7.5, width: 512, height: 512 },
     maxSteps: 50,
   },
+  // ── OpenAI DALL-E 3 (Premium) ────────────────────────
+  {
+    id: 'dall-e-3-standard',
+    name: 'DALL-E 3',
+    description: 'OpenAI — photorealistic, prompt-faithful — 40 credits',
+    category: 'image',
+    provider: 'openai',
+    defaultSettings: { steps: 1, cfg_scale: 0, width: 1024, height: 1024 },
+    maxSteps: 1,
+  },
+  {
+    id: 'dall-e-3-hd',
+    name: 'DALL-E 3 HD',
+    description: 'OpenAI — maximum detail, hyper-real — 80 credits',
+    category: 'image',
+    provider: 'openai',
+    defaultSettings: { steps: 1, cfg_scale: 0, width: 1024, height: 1024 },
+    maxSteps: 1,
+  },
+  // ── Google Imagen 3 (Premium) ─────────────────────────
+  {
+    id: 'imagen-3',
+    name: 'Imagen 3',
+    description: 'Google — vivid, natural compositions — 25 credits',
+    category: 'image',
+    provider: 'gemini',
+    defaultSettings: { steps: 1, cfg_scale: 0, width: 1024, height: 1024 },
+    maxSteps: 1,
+  },
   // ── Replicate (Paid) ─────────────────────────────────
   {
     id: 'black-forest-labs/flux-schnell',

@@ -117,6 +117,11 @@ export default function SettingsRoute() {
         onPress={() => router.push('/(screens)/wallet')}
       />
       <SettingRow
+        icon="sparkles-outline"
+        label="AI Credits"
+        onPress={() => router.push('/(screens)/buy-credits')}
+      />
+      <SettingRow
         icon="pricetag-outline"
         label="Manage Subscription Tiers"
         onPress={() => router.push('/(screens)/manage-tiers')}

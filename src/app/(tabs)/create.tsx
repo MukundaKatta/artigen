@@ -80,6 +80,15 @@ export default function CreateRoute() {
       iconColor: '#9b8fff',
       border: 'rgba(155,143,255,0.3)',
     },
+    {
+      icon: 'chatbubble-ellipses-outline' as const,
+      title: 'AI Assistant',
+      subtitle: 'Chat with Claude, GPT-4o or Gemini',
+      onPress: () => router.push('/(screens)/ai-assistant'),
+      iconBg: '#F77737',
+      iconColor: '#fff',
+      border: 'rgba(247,119,55,0.3)',
+    },
   ];
 
   return (

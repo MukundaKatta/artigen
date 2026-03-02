@@ -87,7 +87,7 @@ export type ConversationPreview = import('./database').Conversation & {
 
 export type GenerateImageRequest = {
   model_id: string;
-  provider: 'replicate' | 'huggingface';
+  provider: 'replicate' | 'huggingface' | 'openai' | 'gemini';
   prompt: string;
   negative_prompt?: string;
   width?: number;
@@ -112,7 +112,7 @@ export type AiModel = {
   name: string;
   description: string;
   category: 'image' | 'video';
-  provider: 'replicate' | 'huggingface';
+  provider: 'replicate' | 'huggingface' | 'openai' | 'gemini';
   defaultSettings: {
     steps: number;
     cfg_scale: number;

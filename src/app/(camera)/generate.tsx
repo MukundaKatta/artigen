@@ -24,9 +24,12 @@ import { colors, spacing, fontSize, typography, borderRadius, shadows } from '@/
 import type { AiModel } from '@/types';
 import Slider from '@react-native-community/slider';
 import { createPrompt } from '@/services/prompt-library.service';
+import { enhancePrompt, describeToPrompt } from '@/services/text-ai.service';
+import { MODEL_CREDITS } from '@/services/credits.service';
+import { useRouter as _useRouter } from 'expo-router';
 
 type Phase = 'prompt' | 'generating' | 'result';
-type ProviderTab = 'huggingface' | 'replicate';
+type ProviderTab = 'huggingface' | 'replicate' | 'openai' | 'gemini';
 
 type AspectRatio = { label: string; wRatio: number; hRatio: number };
 
@@ -93,6 +96,8 @@ export default function GenerateRoute() {
   const [cfgScale, setCfgScale] = useState(selectedModel.defaultSettings.cfg_scale);
   const [selectedAspect, setSelectedAspect] = useState(0);
   const [seed, setSeed] = useState('');
+  const [enhancing, setEnhancing] = useState(false);
+  const [describeMode, setDescribeMode] = useState(false);
 
   const filteredModels = models.filter(
     (m) => m.category === 'image' && m.provider === providerTab
@@ -143,7 +148,18 @@ export default function GenerateRoute() {
 
     if (genError) {
       setPhase('prompt');
-      showAlert('Generation Failed', genError);
+      if (genError === 'insufficient_credits') {
+        showAlert(
+          'Not Enough Credits',
+          `This model costs ${MODEL_CREDITS[selectedModel.id] ?? 10} credits. Buy more to continue.`,
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Buy Credits', onPress: () => router.push('/(screens)/buy-credits' as any) },
+          ]
+        );
+      } else {
+        showAlert('Generation Failed', genError);
+      }
     } else {
       setPhase('result');
     }
@@ -334,48 +350,23 @@ export default function GenerateRoute() {
       >
         {/* Provider Toggle */}
         <View style={styles.providerToggle}>
-          <Pressable
-            style={[
-              styles.providerTab,
-              providerTab === 'huggingface' && styles.providerTabActive,
-            ]}
-            onPress={() => handleProviderSwitch('huggingface')}
-          >
-            <Ionicons
-              name="gift-outline"
-              size={14}
-              color={providerTab === 'huggingface' ? '#fff' : '#10B981'}
-            />
-            <Text
-              style={[
-                styles.providerTabText,
-                providerTab === 'huggingface' && styles.providerTabTextActive,
-              ]}
+          {([
+            { key: 'huggingface', label: 'Free', icon: 'gift-outline', activeStyle: styles.providerTabActive, activeColor: '#fff', inactiveColor: '#10B981' },
+            { key: 'replicate',   label: 'Flux',  icon: 'flash-outline', activeStyle: styles.providerTabActivePaid, activeColor: '#fff', inactiveColor: '#8B5CF6' },
+            { key: 'openai',      label: 'DALL·E', icon: 'color-wand-outline', activeStyle: styles.providerTabActiveOpenAI, activeColor: '#fff', inactiveColor: '#10a37f' },
+            { key: 'gemini',      label: 'Imagen', icon: 'planet-outline', activeStyle: styles.providerTabActiveGemini, activeColor: '#fff', inactiveColor: '#4285F4' },
+          ] as const).map((tab) => (
+            <Pressable
+              key={tab.key}
+              style={[styles.providerTab, providerTab === tab.key && tab.activeStyle]}
+              onPress={() => handleProviderSwitch(tab.key as ProviderTab)}
             >
-              Free
-            </Text>
-          </Pressable>
-          <Pressable
-            style={[
-              styles.providerTab,
-              providerTab === 'replicate' && styles.providerTabActivePaid,
-            ]}
-            onPress={() => handleProviderSwitch('replicate')}
-          >
-            <Ionicons
-              name="flash-outline"
-              size={14}
-              color={providerTab === 'replicate' ? '#fff' : '#8B5CF6'}
-            />
-            <Text
-              style={[
-                styles.providerTabText,
-                providerTab === 'replicate' && styles.providerTabTextActive,
-              ]}
-            >
-              Premium
-            </Text>
-          </Pressable>
+              <Ionicons name={tab.icon as any} size={13} color={providerTab === tab.key ? tab.activeColor : tab.inactiveColor} />
+              <Text style={[styles.providerTabText, providerTab === tab.key && styles.providerTabTextActive]}>
+                {tab.label}
+              </Text>
+            </Pressable>
+          ))}
         </View>
 
         {/* Model Selector */}
@@ -397,32 +388,47 @@ export default function GenerateRoute() {
 
         {showModelPicker && (
           <View style={styles.modelList}>
-            {filteredModels.map((model) => (
-              <Pressable
-                key={model.id}
-                style={[
-                  styles.modelOption,
-                  model.id === selectedModel.id && styles.modelOptionActive,
-                ]}
-                onPress={() => handleModelSelect(model)}
-              >
-                <Text style={[
-                  styles.modelOptionName,
-                  model.id === selectedModel.id && styles.modelOptionNameActive,
-                ]}>
-                  {model.name}
-                </Text>
-                <Text style={styles.modelOptionDesc}>{model.description}</Text>
-              </Pressable>
-            ))}
+            {filteredModels.map((model) => {
+              const cost = MODEL_CREDITS[model.id];
+              return (
+                <Pressable
+                  key={model.id}
+                  style={[styles.modelOption, model.id === selectedModel.id && styles.modelOptionActive]}
+                  onPress={() => handleModelSelect(model)}
+                >
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.modelOptionName, model.id === selectedModel.id && styles.modelOptionNameActive]}>
+                      {model.name}
+                    </Text>
+                    <Text style={styles.modelOptionDesc}>{model.description}</Text>
+                  </View>
+                  {cost === 0 ? (
+                    <View style={styles.freeBadge}><Text style={styles.freeBadgeText}>FREE</Text></View>
+                  ) : (
+                    <View style={styles.creditBadge}><Text style={styles.creditBadgeText}>{cost} cr</Text></View>
+                  )}
+                </Pressable>
+              );
+            })}
           </View>
         )}
 
         {/* Prompt */}
-        <Text style={styles.label}>Prompt</Text>
+        <View style={styles.promptLabelRow}>
+          <Text style={styles.label}>Prompt</Text>
+          <Pressable
+            style={styles.describeModeToggle}
+            onPress={() => { setDescribeMode(!describeMode); setPrompt(''); }}
+          >
+            <Ionicons name={describeMode ? 'sparkles' : 'create-outline'} size={14} color={colors.primary} />
+            <Text style={styles.describeModeText}>{describeMode ? 'Prompt mode' : 'Describe mode'}</Text>
+          </Pressable>
+        </View>
         <TextInput
           style={styles.promptInput}
-          placeholder="Describe the image you want to create..."
+          placeholder={describeMode
+            ? 'Describe in plain English what you want (AI will write the prompt)...'
+            : 'Describe the image you want to create...'}
           placeholderTextColor={colors.textSecondary}
           value={prompt}
           onChangeText={setPrompt}
@@ -430,6 +436,40 @@ export default function GenerateRoute() {
           numberOfLines={4}
           textAlignVertical="top"
         />
+        {/* AI Prompt Enhancer row */}
+        <View style={styles.enhancerRow}>
+          <Pressable
+            style={[styles.enhancerBtn, enhancing && styles.enhancerBtnDisabled]}
+            onPress={async () => {
+              if (!prompt.trim()) { showAlert('Enter a prompt first', ''); return; }
+              setEnhancing(true);
+              const fn = describeMode ? describeToPrompt : enhancePrompt;
+              const { result, error } = await fn(prompt.trim());
+              setEnhancing(false);
+              if (error === 'insufficient_credits') {
+                showAlert('Need Credits', 'Prompt enhancement costs 5 credits.', [
+                  { text: 'Cancel', style: 'cancel' },
+                  { text: 'Buy Credits', onPress: () => router.push('/(screens)/buy-credits' as any) },
+                ]);
+              } else if (error) {
+                showAlert('Error', error);
+              } else if (result) {
+                setPrompt(result);
+                setDescribeMode(false);
+              }
+            }}
+            disabled={enhancing}
+          >
+            {enhancing ? (
+              <LoadingSpinner size="small" />
+            ) : (
+              <Ionicons name="sparkles" size={14} color={colors.primary} />
+            )}
+            <Text style={styles.enhancerBtnText}>
+              {describeMode ? 'Build Prompt with AI' : 'Enhance Prompt'} · 5 credits
+            </Text>
+          </Pressable>
+        </View>
 
         {/* Aspect Ratio */}
         <Text style={styles.label}>Aspect Ratio</Text>
@@ -576,6 +616,12 @@ const styles = StyleSheet.create({
   providerTabActivePaid: {
     backgroundColor: '#8B5CF6',
   },
+  providerTabActiveOpenAI: {
+    backgroundColor: '#10a37f',
+  },
+  providerTabActiveGemini: {
+    backgroundColor: '#4285F4',
+  },
   providerTabText: {
     fontSize: fontSize.sm,
     fontFamily: typography.semiBold,
@@ -621,6 +667,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   modelOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.border,
@@ -843,4 +891,37 @@ const styles = StyleSheet.create({
   resultButton: {
     flex: 1,
   },
+  // Model option badges
+  freeBadge: {
+    backgroundColor: 'rgba(88,195,34,0.12)',
+    borderRadius: borderRadius.sm,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+  },
+  freeBadgeText: { fontSize: fontSize.xs, fontFamily: typography.bold, color: '#58C322' },
+  creditBadge: {
+    backgroundColor: `${colors.primary}15`,
+    borderRadius: borderRadius.sm,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+  },
+  creditBadgeText: { fontSize: fontSize.xs, fontFamily: typography.bold, color: colors.primary },
+  promptLabelRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: spacing.md, marginBottom: spacing.sm },
+  describeModeToggle: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  describeModeText: { fontSize: fontSize.xs, fontFamily: typography.medium, color: colors.primary },
+  enhancerRow: { marginTop: spacing.sm, marginBottom: spacing.sm },
+  enhancerBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    alignSelf: 'flex-start',
+    backgroundColor: `${colors.primary}10`,
+    borderRadius: borderRadius.full,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderWidth: 1,
+    borderColor: `${colors.primary}30`,
+  },
+  enhancerBtnDisabled: { opacity: 0.5 },
+  enhancerBtnText: { fontSize: fontSize.sm, fontFamily: typography.medium, color: colors.primary },
 });
