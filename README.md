@@ -1,5 +1,7 @@
 # Artigen
 
+*Updated March 2, 2026*
+
 AI Art Community — Create, share, and discover AI-generated art.
 
 Artigen is a full-featured social media platform purpose-built for AI art creators. Generate images with multiple AI models, share your work, remix others' art, compete in daily challenges, earn badges, join communities, and more.
