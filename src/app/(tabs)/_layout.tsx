@@ -90,6 +90,9 @@ export default function TabLayout() {
           backgroundColor: 'transparent',
           borderTopWidth: 0,
           ...shadows.tabBar,
+          ...(Platform.OS === 'web' ? {
+            paddingBottom: 'env(safe-area-inset-bottom, 0px)' as any,
+          } : {}),
         },
         headerStyle: {
           backgroundColor: colors.background,

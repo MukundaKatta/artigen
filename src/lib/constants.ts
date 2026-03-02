@@ -1,6 +1,13 @@
 import { Dimensions, Platform } from 'react-native';
 
-const { width, height } = Dimensions.get('window');
+function getInitialDimensions() {
+  if (Platform.OS === 'web' && typeof window !== 'undefined') {
+    return { width: window.innerWidth, height: window.innerHeight };
+  }
+  return Dimensions.get('window');
+}
+
+const { width, height } = getInitialDimensions();
 
 export const SCREEN_WIDTH = width;
 export const SCREEN_HEIGHT = height;

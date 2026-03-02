@@ -31,18 +31,38 @@ function getInfo(width: number, height: number): ResponsiveInfo {
   };
 }
 
+function getWebDimensions(): { width: number; height: number } {
+  if (Platform.OS === 'web' && typeof window !== 'undefined') {
+    return { width: window.innerWidth, height: window.innerHeight };
+  }
+  return Dimensions.get('window');
+}
+
 export function useResponsive(): ResponsiveInfo {
-  const { width, height } = Dimensions.get('window');
-  const [info, setInfo] = useState<ResponsiveInfo>(() => getInfo(width, height));
+  const [info, setInfo] = useState<ResponsiveInfo>(() => {
+    const { width, height } = getWebDimensions();
+    return getInfo(width, height);
+  });
 
   useEffect(() => {
     if (Platform.OS !== 'web') return;
 
-    const subscription = Dimensions.addEventListener('change', ({ window }) => {
-      setInfo(getInfo(window.width, window.height));
+    const handleResize = () => {
+      setInfo(getInfo(window.innerWidth, window.innerHeight));
+    };
+
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', () => {
+      // Delay slightly to let the browser settle after rotation
+      setTimeout(handleResize, 100);
     });
 
-    return () => subscription.remove();
+    // Run once immediately in case dimensions changed before mount
+    handleResize();
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
   }, []);
 
   return info;

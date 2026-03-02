@@ -16,6 +16,48 @@ const publicDir = path.join(__dirname, '..', 'public');
 
 let html = fs.readFileSync(htmlPath, 'utf-8');
 
+// --- 0. Mobile CSS fixes ---
+const mobileCss = `
+<style>
+  /* Fix 100vh on mobile Safari — use fill-available / dvh */
+  html {
+    height: -webkit-fill-available;
+    height: 100%;
+  }
+  body {
+    height: 100%;
+    overflow: hidden;
+  }
+  #root {
+    height: 100%;
+    height: -webkit-fill-available;
+    height: 100dvh;
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+  }
+  /* Safe area CSS variables (notch / home indicator) */
+  :root {
+    --sai-top: env(safe-area-inset-top, 0px);
+    --sai-bottom: env(safe-area-inset-bottom, 0px);
+    --sai-left: env(safe-area-inset-left, 0px);
+    --sai-right: env(safe-area-inset-right, 0px);
+  }
+  /* Remove iOS tap highlight + 300ms delay */
+  * {
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    touch-action: manipulation;
+  }
+  /* Smooth momentum scroll inside scrollable RN views */
+  [style*="overflow"] {
+    -webkit-overflow-scrolling: touch;
+  }
+  /* Prevent pull-to-refresh on the root */
+  body {
+    overscroll-behavior-y: none;
+  }
+</style>`;
+
 // --- 1. Error handler script ---
 const errorScript = `
 <script>
@@ -64,6 +106,16 @@ const swScript = `
 </script>`;
 
 // Apply patches
+
+// Fix viewport: add viewport-fit=cover for iOS safe areas
+html = html.replace(
+  /(<meta[^>]*name="viewport"[^>]*>)/i,
+  '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">'
+);
+
+// Inject mobile CSS fixes right before </head>
+html = html.replace('</head>', mobileCss + '\n</head>');
+
 html = html.replace('<title>', seoMeta + pwaMeta + '\n  <title>');
 html = html.replace('<title>Artigen</title>', '<title>Artigen — AI Art Community</title>');
 html = html.replace('<body>', '<body>' + errorScript);
