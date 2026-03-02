@@ -8,6 +8,8 @@ import {
   Pressable,
   KeyboardAvoidingView,
   Platform,
+  Modal,
+  Switch,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Image } from 'expo-image';
@@ -22,7 +24,6 @@ import { colors, spacing, fontSize, typography, borderRadius, shadows } from '@/
 import type { AiModel } from '@/types';
 import Slider from '@react-native-community/slider';
 import { createPrompt } from '@/services/prompt-library.service';
-import { Modal, TextInput, Switch } from 'react-native';
 
 type Phase = 'prompt' | 'generating' | 'result';
 type ProviderTab = 'huggingface' | 'replicate';
