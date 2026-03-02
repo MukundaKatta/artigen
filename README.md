@@ -1,149 +1,140 @@
 # Artigen
 
-*Updated March 2, 2026*
+Updated: 2026-03-02
 
-AI Art Community — Create, share, and discover AI-generated art.
+AI Art Community app for creating, sharing, and discovering AI-generated art.
 
-Artigen is a full-featured social media platform purpose-built for AI art creators. Generate images with multiple AI models, share your work, remix others' art, compete in daily challenges, earn badges, join communities, and more.
+## Overview
+Artigen is a large Expo + Supabase codebase that combines:
+- AI creation tools (generate, restyle, inpaint/outpaint, controlnet, upscale, animation, text-to-3D, avatar/music generation)
+- Social platform features (feed, stories, DMs, communities, collaborations, reactions, reposts, critiques)
+- Creator economy features (subscriptions, wallet/tips, marketplace)
+- Discovery/personalization features (trending, visual search, taste profiles, blend feeds)
+- Learning and growth systems (tutorials, XP, mentorship, events, battles, exhibitions)
 
-## Tech Stack
+## Current Codebase Snapshot
 
-- **Frontend:** React Native 0.76 + Expo 52 + Expo Router 4
-- **Backend:** Supabase (PostgreSQL, Auth, Storage, Edge Functions, Realtime)
-- **AI:** Replicate (Flux, SDXL, SD3), Hugging Face (SD 2.1), CLIP embeddings
-- **Language:** TypeScript (strict, zero errors)
+| Metric | Count |
+|---|---:|
+| App route files (`src/app/**`) | 109 |
+| Screens in `(screens)` group | 63 |
+| Camera/creation routes | 13 |
+| Message routes | 5 |
+| Story routes | 2 |
+| Components | 155 |
+| Custom hooks | 77 |
+| Service modules | 75 |
+| SQL migrations | 42 |
+| Supabase edge functions | 17 |
 
-## Features
+## Core Feature Areas
 
-### AI Art Generation
-- Text-to-image with 5 models (Flux Schnell, Flux Dev, SDXL, SD 2.1, SD3)
-- Style transfer (restyle existing images)
-- Image animation (motion, zoom, pan, morph, parallax)
-- Prompt library (save, share, browse community prompts)
-- Art remixing with attribution chain
-- Visual similarity search via CLIP embeddings (pgvector)
-- Art provenance and cryptographic signing (C2PA)
+### AI Creation
+- Text-to-image generation with multiple model backends.
+- Restyle, remix, inpaint, outpaint, upscale, and ControlNet flows.
+- Image animation jobs.
+- Text-to-3D generation.
+- Avatar and music generation jobs.
+- Prompt library and prompt remix.
+- AI metadata and provenance signing/verification support.
 
 ### Social Platform
-- Feed with infinite scroll, reactions (7 types), comments, saves, reposts
-- Stories with interactive stickers (polls, quizzes, Q&A, sliders, countdowns)
-- Reels
-- Direct messages with voice messages, vanish mode, blend feeds
-- Notes (ephemeral 24h status messages)
-- Communities / art groups with roles and moderation
-- Close friends with exclusive content sharing
-- Collaborative posts
-- Polls attached to posts
+- Feed, post interactions, comments/replies, reactions, reposts, polls, awards.
+- Stories with interactive stickers.
+- DMs with voice messages, notes, vanish mode, blend feeds.
+- Following graph, close friends, blocking, reporting.
+- Communities and collaborative posts.
+- Critiques and helpful voting.
 
-### Gamification
-- Daily creative challenges with community voting
-- 15 achievement badges across 6 categories
-- Posting streaks with fire badge
-- Awards system (6 types, 4 tiers)
-- Creator leaderboard (weekly, monthly, all-time)
+### Discovery and Personalization
+- Search across users/posts/hashtags/communities/prompts.
+- Explore masonry surfaces and trending routes.
+- Visual similarity search via embeddings.
+- Taste profiles and engagement signal tracking.
+
+### Creator and Growth Systems
+- Post insights, scheduled posts, profile customization, portfolio tools.
+- Workflows and workflow runs.
+- Challenges, weekly events, art battles, exhibitions, events.
+- Learning system with tutorials, lessons, XP, and mentorship.
 
 ### Monetization
-- Creator subscription tiers
-- Wallet with deposit/withdrawal
-- Tip jar
-- Marketplace (digital downloads, print-on-demand)
+- Subscription tiers and subscriber-gated content.
+- Wallet and tipping flows.
+- Marketplace listings and order management.
 
-### Discovery
-- Pinterest-style masonry explore grid
-- Search users, hashtags, posts, communities
-- Taste profile for personalized recommendations
-- Trending prompts and styles
-- Location tagging with map view
+## Known Partial/Placeholder Areas
+- Wallet deposit and withdrawal rails are present in UI but payment/payout integrations are not fully wired.
+- Some edge functions currently contain placeholder external provider endpoints (for example: restyle, animate, embed-image, safety-check).
+- A few screens still contain mock auth TODO markers (notably critique/avatar flows).
+- AR preview is currently simulated UI and not full live camera ARKit/ARCore.
 
-### Safety
-- AI content classification (safe/sensitive/mature/NSFW)
-- User safety preferences
-- Community content ratings
-- Content warning overlays
+## Tech Stack
+- Frontend: React Native 0.76, Expo 52, Expo Router 4
+- Backend: Supabase (Postgres, Auth, Storage, Realtime, Edge Functions)
+- Language: TypeScript
+- Mobile/Web targets: iOS, Android, Web
 
-## Getting Started
+## Setup
 
 ### Prerequisites
 - Node.js 18+
-- Expo CLI (`npm install -g expo-cli`)
-- Supabase project ([supabase.com](https://supabase.com))
+- npm
+- Supabase project
+- EAS CLI (for mobile cloud builds)
 
-### Setup
-
+### Installation
 ```bash
-# Clone the repository
 git clone https://github.com/MukundaKatta/artigen.git
 cd artigen
-
-# Install dependencies
 npm install
-
-# Configure environment
-cp .env.example .env
-# Add your Supabase URL and anon key to .env
-
-# Run database migrations (in order, in Supabase SQL Editor)
-# See docs/DATABASE.md for migration order
-
-# Start development server
-npm start
 ```
 
-### Environment Variables
-
-```
-EXPO_PUBLIC_SUPABASE_URL=your_supabase_url
+### Environment
+Create `.env` with:
+```bash
+EXPO_PUBLIC_SUPABASE_URL=your_supabase_project_url
 EXPO_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
-## Project Structure
+### Run
+```bash
+npm start
+npm run android
+npm run ios
+npm run web
+```
 
+## Build and Deploy Scripts
+- `npm run build:web` - Export web bundle
+- `npm run deploy:web` - Export web bundle and deploy to Firebase Hosting
+- `npm run build:apk` - EAS Android preview build
+- `npm run build:ios` - EAS iOS preview build
+- `npm run build:prod` - EAS production build for all platforms
+
+## Database and Backend
+- SQL migrations live in `migrations/` and should be applied in filename order.
+- Edge functions live in `supabase/functions/`.
+- See [docs/DATABASE.md](docs/DATABASE.md) for migration inventory, tables, RPCs, and backend notes.
+
+## Project Structure
 ```
 src/
-  app/                  # Expo Router screens (67+ screens)
-    (tabs)/             # Tab navigator (Home, Search, Create, Reels, Profile)
-    (camera)/           # Camera & AI generation screens
-    (screens)/          # Stack screens (settings, communities, challenges, etc.)
-    (messages)/         # DM screens
-    (stories)/          # Story viewer
-  components/           # Reusable UI components (100+)
-    feed/               # PostCard, reactions, awards, polls, remix
-    profile/            # ProfileHeader, badges, streaks, collections
-    messages/           # Voice messages, notes, blend feed
-    community/          # Community cards, headers
-    challenges/         # Badge grid
-    explore/            # Masonry grid
-    leaderboard/        # Leaderboard rows
-    stories/            # Story stickers
-    ui/                 # Skeleton, modals, indicators
-  hooks/                # Custom React hooks (48)
-  services/             # Supabase service layer (55 files)
-  providers/            # Auth context provider
-  types/                # TypeScript types (database.ts, index.ts)
-  lib/                  # Theme, constants, storage, supabase client
-migrations/             # SQL migrations (34 files)
-supabase/functions/     # Edge functions (8)
-docs/                   # Documentation
+  app/                  # Expo Router routes (tabs, camera, screens, messages, stories)
+  components/           # UI and feature components
+  hooks/                # Feature hooks and state orchestration
+  services/             # Supabase and domain service layer
+  providers/            # Auth/theme providers
+  lib/                  # Shared client/config/constants/theme helpers
+  types/                # App and database TypeScript types
+migrations/             # Supabase SQL migration files
+supabase/functions/     # Deno edge functions
+docs/                   # Product and database documentation
 ```
 
 ## Documentation
-
-- [Features](docs/FEATURES.md) — Complete feature documentation
-- [Database](docs/DATABASE.md) — Schema reference, migrations, RPC functions
-
-## Codebase Stats
-
-| Metric | Count |
-|--------|-------|
-| Screens | 67+ |
-| Components | 100+ |
-| Custom Hooks | 48 |
-| Service Files | 55 |
-| SQL Migrations | 34 |
-| Edge Functions | 8 |
-| TypeScript Errors | 0 |
-| Bundled Modules | 2,080 |
+- [docs/FEATURES.md](docs/FEATURES.md) - Product feature map and implementation status
+- [docs/DATABASE.md](docs/DATABASE.md) - Migration inventory, schema domains, RPC/functions
 
 ## License
-
-This project is private.
+Private repository.

@@ -1,7 +1,7 @@
 # Artigen - Complete Feature Documentation
 
 This document describes the full product surface currently present in the Artigen codebase.
-Last updated: 2026-03-02.
+Updated: 2026-03-02.
 
 Status labels used in this doc:
 - `Implemented` - Feature is wired in app screens/hooks/services and has backend support.
