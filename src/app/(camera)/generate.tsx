@@ -314,8 +314,9 @@ export default function GenerateRoute() {
             style={styles.resultButton}
           />
         </View>
+        </View>
       </>
-      );
+    );
   }
 
   // ── Prompt Phase ─────────────────────────────────────
