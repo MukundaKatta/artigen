@@ -59,6 +59,10 @@ Status labels used in this doc:
 - AI caption generation (`Implemented`): assisted caption draft flow.
 - Avatar generation (`Implemented`, auth wiring `Partial`): selfie-based style avatar generation jobs.
 - AI music generation (`Implemented`): prompt-based music generation screen and service flow.
+- Art coach critique generation (`Implemented`, model quality `Partial`): AI-generated structured critique workflows.
+- Comic generation studio (`Implemented`): multi-panel comic composition helpers.
+- Art genetics / breeding (`Implemented`, experimental): combine parent artworks into generated offspring variants.
+- Ambient generation mode (`Implemented`, experimental): interval-driven automated generation sessions.
 
 ### AI Provenance and Integrity
 - Provenance record creation and storage (`Implemented`).
@@ -283,7 +287,7 @@ Status labels used in this doc:
 - Current account connection UX is username-based; full OAuth provider integration is `In Progress`.
 
 ### Sticker Packs (`Implemented`)
-- Sticker pack browse, saved, and \"my packs\" tabs.
+- Sticker pack browse, saved, and "my packs" tabs.
 - Sticker pack creation and per-pack sticker management.
 - Sticker picker integration for story composition and chat surfaces.
 
@@ -291,6 +295,14 @@ Status labels used in this doc:
 - Web-specific storage/upload support.
 - PWA manifest/service worker assets in `public/`.
 - Web notifications hook support.
+
+### Future Labs (`Implemented`, feature-flagged)
+- Future Labs hub route with staged rollout cards.
+- Transparency Center scaffold.
+- Localization Studio scaffold.
+- Spatial Gallery scaffold.
+- Director Mode scaffold.
+- Client-side feature flag and telemetry foundation for phased launches.
 
 ---
 
@@ -315,18 +327,20 @@ Status labels used in this doc:
 
 ## 14. Backend Capability Surface
 
-### Supabase Edge Functions (17)
+### Supabase Edge Functions (18)
 - `generate`, `restyle`, `inpaint`, `outpaint`, `upscale`, `controlnet`, `animate`
 - `text-to-3d`, `generate-avatar`, `generate-music`
 - `embed-image`, `safety-check`, `sign-provenance`
-- `process-tip`, `cross-post`, `daily-challenge`, `battle-finalize`
+- `process-tip`, `cross-post`, `daily-challenge`, `battle-finalize`, `art-coach`
 
 ### Service Layer Domains
 - Social graph and interactions: follow, comments, reactions, reposts, polls, awards.
 - Creator economy: subscription, wallet, tips, marketplace, orders.
 - AI stack: generation, restyle, in/outpaint, upscale, controlnet, animation, avatar, music, 3D.
+- Experimental AI creation: art coaching, comic generation, art genetics, ambient creation loops.
 - Discovery and personalization: explore, trending, similarity, taste profile, suggestions.
 - Collaboration and community: communities, mentorship, workflows, events, exhibitions, battles.
+- Future rollout foundation: feature flags, telemetry events, and future-labs service contracts.
 
 ---
 
@@ -338,6 +352,7 @@ These features are present in code but currently not fully production-complete e
 - AR preview is a simulated AR experience, not full live camera ARKit/ARCore (`Partial`).
 - Some AI edge functions include provider placeholders/fallback behavior (`Partial`).
 - Critique and avatar-related routes include remaining mock-auth user IDs in specific screens (`In Progress`).
+- Experimental routes (ambient/comic/art-genetics/future-labs) are early-stage and may change rapidly (`In Progress`).
 
 ---
 
@@ -348,6 +363,6 @@ Primary route groups and feature scope:
 - `src/app/(camera)` - all creation pipelines: generate, remix, restyle, inpaint, outpaint, upscale, animate, controlnet.
 - `src/app/(messages)` - inbox, conversations, new DM, new group.
 - `src/app/(stories)` - story viewing and story interaction.
-- `src/app/(screens)` - advanced social, creator tools, monetization, community, events, learning, marketplace, safety, and utility routes.
+- `src/app/(screens)` - advanced social, creator tools, monetization, community, events, learning, marketplace, safety, utility routes, and experimental/future labs surfaces.
 
 This file is intended to be the canonical product feature map for the current repository state.
