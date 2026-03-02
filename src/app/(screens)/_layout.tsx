@@ -26,6 +26,14 @@ export default function ScreensLayout() {
       <Stack.Screen name="hashtag/[name]" options={{ title: '' }} />
       <Stack.Screen name="remixes/[postId]" options={{ title: 'Remixes' }} />
       <Stack.Screen name="prompt-library" options={{ title: 'Prompt Library' }} />
+      <Stack.Screen
+        name="prompt-library/edit"
+        options={{ title: 'New Prompt' }}
+      />
+      <Stack.Screen
+        name="prompt-library/edit/[id]"
+        options={{ title: 'Edit Prompt' }}
+      />
       <Stack.Screen name="challenge" options={{ title: 'Daily Challenge' }} />
       <Stack.Screen name="leaderboard" options={{ title: 'Leaderboard' }} />
       <Stack.Screen name="community/[id]" options={{ title: '' }} />
@@ -88,6 +96,14 @@ export default function ScreensLayout() {
       <Stack.Screen name="event/[id]" options={{ title: 'Event' }} />
       <Stack.Screen name="event/create" options={{ title: 'Create Event' }} />
       <Stack.Screen name="weekly-event" options={{ title: 'Weekly Event' }} />
+      <Stack.Screen name="future-labs" options={{ title: 'Future Labs' }} />
+      <Stack.Screen name="transparency-center" options={{ title: 'Transparency Center' }} />
+      <Stack.Screen name="localization-studio" options={{ title: 'Localization Studio' }} />
+      <Stack.Screen name="spatial-gallery" options={{ title: 'Spatial Gallery' }} />
+      <Stack.Screen name="director-mode" options={{ title: 'Director Mode' }} />
+      <Stack.Screen name="art-coach/[postId]" options={{ title: 'AI Art Coach' }} />
+      <Stack.Screen name="ambient-mode" options={{ headerShown: false }} />
+      <Stack.Screen name="art-genetics" options={{ title: 'Art Genetics' }} />
     </Stack>
   );
 }

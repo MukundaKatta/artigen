@@ -123,3 +123,11 @@ export type AiModel = {
   maxSteps: number;
   supportedSchedulers?: string[];
 };
+
+export type {
+  LiveProvenanceSession,
+  LocalizationJob,
+  SpatialGalleryScene,
+  DirectorModePlan,
+  FutureLabsIntent,
+} from './future';

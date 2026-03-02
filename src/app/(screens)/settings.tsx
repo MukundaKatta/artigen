@@ -126,6 +126,11 @@ export default function SettingsRoute() {
         label="Marketplace Orders"
         onPress={() => router.push('/(screens)/marketplace/orders')}
       />
+      <SettingRow
+        icon="flask-outline"
+        label="Future Labs"
+        onPress={() => router.push('/(screens)/future-labs')}
+      />
 
       <SectionHeader title="Discovery" />
       <SettingRow

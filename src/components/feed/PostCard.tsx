@@ -502,6 +502,17 @@ export const PostCard = React.memo(function PostCard({
           ...(onAnimate && sortedMedia[0]?.media_url
             ? [{ label: 'Animate Image', onPress: () => onAnimate(post.id, sortedMedia[0].media_url) }]
             : []),
+          {
+            label: '🎓 AI Art Coach',
+            onPress: () => router.push({
+              pathname: '/(screens)/art-coach/[postId]',
+              params: {
+                postId: post.id,
+                imageUrl: sortedMedia[0]?.media_url ?? '',
+                prompt: post.ai_metadata?.prompt ?? '',
+              },
+            }),
+          },
         ]}
       />
     </View>

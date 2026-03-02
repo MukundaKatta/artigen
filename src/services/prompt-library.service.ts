@@ -117,6 +117,16 @@ export async function unsavePrompt(userId: string, promptId: string) {
   return { error };
 }
 
+export async function getPromptById(id: string) {
+  const { data, error } = await supabase
+    .from('prompt_library')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  return { data: data || null, error };
+}
+
 export async function getSavedPrompts(userId: string, page = 0) {
   const from = page * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;

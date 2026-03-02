@@ -22,6 +22,7 @@ export default function CameraLayout() {
       <Stack.Screen name="outpaint" options={{ title: 'Outpaint' }} />
       <Stack.Screen name="upscale" options={{ title: 'Upscale' }} />
       <Stack.Screen name="controlnet" options={{ title: 'ControlNet' }} />
+      <Stack.Screen name="comic" options={{ title: 'Comic Generator' }} />
     </Stack>
   );
 }

@@ -34,32 +34,75 @@ export default function CreateRoute() {
     router.push('/(camera)/generate');
   }
 
+  const TOOLS = [
+    {
+      icon: 'cloud-upload-outline' as const,
+      title: 'Upload Photo / Video',
+      subtitle: 'Share your own AI creations',
+      onPress: handleUpload,
+      iconBg: 'rgba(0,149,246,0.1)',
+      iconColor: colors.primary,
+      border: colors.border,
+    },
+    {
+      icon: 'sparkles' as const,
+      title: 'Generate with AI',
+      subtitle: 'Create images from text prompts',
+      onPress: handleGenerate,
+      iconBg: '#8B5CF6',
+      iconColor: '#fff',
+      border: 'rgba(139,92,246,0.3)',
+    },
+    {
+      icon: 'book-outline' as const,
+      title: 'Comic Generator',
+      subtitle: 'Turn your story into AI panels',
+      onPress: () => router.push('/(camera)/comic'),
+      iconBg: '#E1306C',
+      iconColor: '#fff',
+      border: 'rgba(225,48,108,0.3)',
+    },
+    {
+      icon: 'flask-outline' as const,
+      title: 'Art Genetics',
+      subtitle: 'Breed two artworks into a new one',
+      onPress: () => router.push('/(screens)/art-genetics'),
+      iconBg: '#515BD4',
+      iconColor: '#fff',
+      border: 'rgba(81,91,212,0.3)',
+    },
+    {
+      icon: 'moon-outline' as const,
+      title: 'Ambient Art Mode',
+      subtitle: 'Endless AI art based on your taste',
+      onPress: () => router.push('/(screens)/ambient-mode'),
+      iconBg: '#0a0a2e',
+      iconColor: '#9b8fff',
+      border: 'rgba(155,143,255,0.3)',
+    },
+  ];
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Create</Text>
       <Text style={styles.subtitle}>Share AI art with the world</Text>
 
-      <Pressable style={styles.card} onPress={handleUpload}>
-        <View style={styles.iconContainer}>
-          <Ionicons name="cloud-upload-outline" size={28} color={colors.primary} />
-        </View>
-        <View style={styles.cardContent}>
-          <Text style={styles.cardTitle}>Upload Photo / Video</Text>
-          <Text style={styles.cardSubtitle}>Share your own AI creations</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
-      </Pressable>
-
-      <Pressable style={[styles.card, styles.aiCard]} onPress={handleGenerate}>
-        <View style={[styles.iconContainer, styles.aiIconContainer]}>
-          <Ionicons name="sparkles" size={28} color="#fff" />
-        </View>
-        <View style={styles.cardContent}>
-          <Text style={styles.cardTitle}>Generate with AI</Text>
-          <Text style={styles.cardSubtitle}>Create images from text prompts</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
-      </Pressable>
+      {TOOLS.map((tool) => (
+        <Pressable
+          key={tool.title}
+          style={[styles.card, { borderColor: tool.border }]}
+          onPress={tool.onPress}
+        >
+          <View style={[styles.iconContainer, { backgroundColor: tool.iconBg }]}>
+            <Ionicons name={tool.icon} size={28} color={tool.iconColor} />
+          </View>
+          <View style={styles.cardContent}>
+            <Text style={styles.cardTitle}>{tool.title}</Text>
+            <Text style={styles.cardSubtitle}>{tool.subtitle}</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+        </Pressable>
+      ))}
     </View>
   );
 }
@@ -94,9 +137,6 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     ...shadows.sm,
   },
-  aiCard: {
-    borderColor: 'rgba(139, 92, 246, 0.3)',
-  },
   iconContainer: {
     width: 48,
     height: 48,
@@ -104,9 +144,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 149, 246, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  aiIconContainer: {
-    backgroundColor: '#8B5CF6',
   },
   cardContent: {
     flex: 1,

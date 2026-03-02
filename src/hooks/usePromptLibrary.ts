@@ -55,6 +55,12 @@ export function usePromptLibrary(userId: string | undefined) {
     fetchPrompts(next, searchQuery);
   }, [page, hasMore, loading, searchQuery, fetchPrompts]);
 
+  const refresh = useCallback(() => {
+    setPage(0);
+    setLoading(true);
+    fetchPrompts(0, searchQuery);
+  }, [fetchPrompts, searchQuery]);
+
   const toggleSave = useCallback(async (promptId: string) => {
     if (!userId) return;
     const isSaved = savedPromptIds.has(promptId);
@@ -91,6 +97,7 @@ export function usePromptLibrary(userId: string | undefined) {
     searchQuery,
     setSearchQuery,
     loadMore,
+    refresh,
     savedPromptIds,
     toggleSave,
   };

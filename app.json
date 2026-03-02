@@ -8,7 +8,7 @@
     "scheme": "artigen",
     "description": "AI Art Community - Create, share, and discover AI-generated art",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "splash": {
       "image": "./assets/images/splash.png",
       "resizeMode": "contain",
@@ -16,14 +16,18 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.yourname.instagramclone"
+      "bundleIdentifier": "com.mukundakatta.artigen"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/logo.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.yourname.instagramclone"
+      "package": "com.mukundakatta.artigen",
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.CAMERA"
+      ]
     },
     "plugins": [
       "expo-router",
@@ -36,7 +40,8 @@
         }
       ],
       "@react-native-community/datetimepicker",
-      "expo-sqlite"
+      "expo-sqlite",
+      "expo-font"
     ],
     "web": {
       "bundler": "metro",
@@ -45,6 +50,15 @@
     },
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "9199ac28-084f-47e1-9b9f-69dcd76da909"
+      }
+    },
+    "owner": "mukundakatta"
   }
 }

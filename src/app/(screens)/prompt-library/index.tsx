@@ -30,9 +30,17 @@ export default function PromptLibraryRoute() {
     searchQuery,
     setSearchQuery,
     loadMore,
+    refresh,
     savedPromptIds,
     toggleSave,
   } = usePromptLibrary(user?.id);
+
+  React.useEffect(() => {
+    const unsub = router.addListener('focus', () => {
+      refresh();
+    });
+    return unsub;
+  }, [router, refresh]);
 
   function handleUsePrompt(prompt: PromptWithUser) {
     router.push({
@@ -59,13 +67,24 @@ export default function PromptLibraryRoute() {
             <Avatar uri={item.user.avatar_url} size="sm" />
             <Text style={styles.cardUsername}>{item.user.username}</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => toggleSave(item.id)} hitSlop={8}>
-            <Ionicons
-              name={isSaved ? 'bookmark' : 'bookmark-outline'}
-              size={20}
-              color={isSaved ? colors.primary : colors.textSecondary}
-            />
-          </TouchableOpacity>
+          <View style={styles.cardActions}>
+            {user && user.id === item.user.id && (
+              <TouchableOpacity
+                onPress={() => router.push(`/(screens)/prompt-library/edit/${item.id}`)}
+                hitSlop={8}
+                style={styles.actionIcon}
+              >
+                <Ionicons name="pencil" size={18} color={colors.textSecondary} />
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity onPress={() => toggleSave(item.id)} hitSlop={8} style={styles.actionIcon}>
+              <Ionicons
+                name={isSaved ? 'bookmark' : 'bookmark-outline'}
+                size={20}
+                color={isSaved ? colors.primary : colors.textSecondary}
+              />
+            </TouchableOpacity>
+          </View>
         </View>
 
         <Text style={styles.cardTitle}>{item.title}</Text>
@@ -118,6 +137,15 @@ export default function PromptLibraryRoute() {
         {searchQuery.length > 0 && (
           <TouchableOpacity onPress={() => setSearchQuery('')}>
             <Ionicons name="close-circle" size={18} color={colors.textSecondary} />
+          </TouchableOpacity>
+        )}
+        {user && (
+          <TouchableOpacity
+            onPress={() => router.push('/(screens)/prompt-library/edit')}
+            hitSlop={8}
+            style={styles.addButton}
+          >
+            <Ionicons name="add-circle" size={24} color={colors.primary} />
           </TouchableOpacity>
         )}
       </View>
@@ -173,6 +201,9 @@ const styles = StyleSheet.create({
     color: colors.text,
     padding: 0,
   },
+  addButton: {
+    marginLeft: spacing.sm,
+  },
   list: {
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.xxxl,
@@ -193,6 +224,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
+  },
+  cardActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  actionIcon: {
+    marginLeft: spacing.sm,
   },
   cardUsername: {
     fontSize: fontSize.sm,
