@@ -534,6 +534,7 @@ export default function GenerateRoute() {
         />
       </ScrollView>
     </KeyboardAvoidingView>
+    </>
   );
 }
 
