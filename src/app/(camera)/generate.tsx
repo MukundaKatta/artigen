@@ -207,7 +207,7 @@ export default function GenerateRoute() {
       negative_prompt: negativePrompt.trim(),
       model_id: selectedModel.id,
       model_name: selectedModel.name,
-      settings: JSON.stringify({ width, height, steps, cfg_scale, seed }),
+      settings: { width, height, steps, cfg_scale: cfgScale, seed },
       style_tags: [],
       is_public: savePublic,
     });
@@ -744,6 +744,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: spacing.lg,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: borderRadius.md,
+    padding: spacing.sm,
+    fontSize: fontSize.md,
+    fontFamily: typography.regular,
+    color: colors.text,
+    backgroundColor: colors.backgroundSecondary,
+  },
+  switchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.md,
   },
   // Generating phase
   generatingTitle: {

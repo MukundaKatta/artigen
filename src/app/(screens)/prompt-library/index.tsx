@@ -8,7 +8,7 @@ import {
   TextInput,
   ActivityIndicator,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/providers/AuthProvider';
 import { Avatar } from '@/components/ui/Avatar';
@@ -35,12 +35,13 @@ export default function PromptLibraryRoute() {
     toggleSave,
   } = usePromptLibrary(user?.id);
 
-  React.useEffect(() => {
-    const unsub = router.addListener('focus', () => {
+  // refresh whenever this screen comes into focus
+
+  useFocusEffect(
+    React.useCallback(() => {
       refresh();
-    });
-    return unsub;
-  }, [router, refresh]);
+    }, [refresh])
+  );
 
   function handleUsePrompt(prompt: PromptWithUser) {
     router.push({

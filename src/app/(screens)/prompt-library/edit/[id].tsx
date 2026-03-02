@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View } from 'react-native';
+import { View, Alert } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '@/providers/AuthProvider';
 import { PromptForm, PromptFormValues } from '@/components/prompt/PromptForm';
@@ -67,7 +67,13 @@ export default function PromptEditScreen() {
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
       <PromptForm initial={initial} onSubmit={handleSubmit} submitting={submitting} />
       <View style={{ padding: 16 }}>
-        <Button title="Delete Prompt" variant="destructive" onPress={handleDelete} />
+        <Button
+          title="Delete Prompt"
+          variant="outline"
+          textStyle={{ color: '#E53E3E' }}
+          style={{ borderColor: '#E53E3E' }}
+          onPress={handleDelete}
+        />
       </View>
     </View>
   );
