@@ -21,6 +21,8 @@ import { showAlert } from '@/utils/alert';
 import { colors, spacing, fontSize, typography, borderRadius, shadows } from '@/lib/theme';
 import type { AiModel } from '@/types';
 import Slider from '@react-native-community/slider';
+import { createPrompt } from '@/services/prompt-library.service';
+import { Modal, TextInput, Switch } from 'react-native';
 
 type Phase = 'prompt' | 'generating' | 'result';
 type ProviderTab = 'huggingface' | 'replicate';
@@ -82,6 +84,11 @@ export default function GenerateRoute() {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showModelPicker, setShowModelPicker] = useState(false);
   const [steps, setSteps] = useState(selectedModel.defaultSettings.steps);
+
+  // prompt library save modal
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [saveTitle, setSaveTitle] = useState('');
+  const [savePublic, setSavePublic] = useState(true);
   const [cfgScale, setCfgScale] = useState(selectedModel.defaultSettings.cfg_scale);
   const [selectedAspect, setSelectedAspect] = useState(0);
   const [seed, setSeed] = useState('');
@@ -175,6 +182,44 @@ export default function GenerateRoute() {
     });
   }
 
+  async function handleSavePrompt() {
+    if (!user) {
+      showAlert('Error', 'Sign in to save prompts');
+      return;
+    }
+    setShowSaveModal(true);
+  }
+
+  async function confirmSavePrompt() {
+    if (!user) return;
+    if (!prompt.trim()) {
+      showAlert('Error', 'Prompt cannot be empty');
+      return;
+    }
+    const title = saveTitle.trim() || prompt.trim().slice(0, 50);
+    const aspect = ASPECT_RATIOS[selectedAspect];
+    const { width, height } = getAspectDimensions(aspect, selectedModel);
+    const { error } = await createPrompt({
+      user_id: user.id,
+      title,
+      prompt: prompt.trim(),
+      negative_prompt: negativePrompt.trim(),
+      model_id: selectedModel.id,
+      model_name: selectedModel.name,
+      settings: JSON.stringify({ width, height, steps, cfg_scale, seed }),
+      style_tags: [],
+      is_public: savePublic,
+    });
+    setShowSaveModal(false);
+    if (error) {
+      showAlert('Error', error.message || 'Failed to save prompt');
+    } else {
+      showAlert('Saved', 'Prompt added to your library');
+      setSaveTitle('');
+      setSavePublic(true);
+    }
+  }
+
   // ── Generating Phase ─────────────────────────────────
   if (phase === 'generating') {
     return (
@@ -192,7 +237,9 @@ export default function GenerateRoute() {
   // ── Result Phase ─────────────────────────────────────
   if (phase === 'result' && result) {
     return (
-      <View style={styles.resultContainer}>
+      <>
+        {renderSaveModal()}
+        <View style={styles.resultContainer}>
         <ScrollView contentContainerStyle={styles.resultContent}>
           <Image
             source={{ uri: result.image_url }}
@@ -220,6 +267,14 @@ export default function GenerateRoute() {
             onPress={handleRegenerate}
             style={styles.resultButton}
           />
+          {user && (
+            <Button
+              title="Save Prompt"
+              variant="outline"
+              onPress={handleSavePrompt}
+              style={styles.resultButton}
+            />
+          )}
           <Button
             title="Use This"
             onPress={handleUseImage}
@@ -231,11 +286,46 @@ export default function GenerateRoute() {
   }
 
   // ── Prompt Phase ─────────────────────────────────────
+
+  // save prompt modal
+  function renderSaveModal() {
+    return (
+      <Modal
+        visible={showSaveModal}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setShowSaveModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Save Prompt</Text>
+            <TextInput
+              style={[styles.input, styles.modalInput]}
+              placeholder="Title (optional)"
+              value={saveTitle}
+              onChangeText={setSaveTitle}
+            />
+            <View style={styles.switchRow}>
+              <Text style={styles.modalLabel}>Public</Text>
+              <Switch value={savePublic} onValueChange={setSavePublic} />
+            </View>
+            <View style={styles.modalButtons}>
+              <Button title="Cancel" variant="outline" onPress={() => setShowSaveModal(false)} />
+              <Button title="Save" onPress={confirmSavePrompt} />
+            </View>
+          </View>
+        </View>
+      </Modal>
+    );
+  }
+
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
+    <>
+      {renderSaveModal()}
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
@@ -619,6 +709,38 @@ const styles = StyleSheet.create({
   },
   generateButton: {
     marginTop: spacing.xxl,
+  },
+  // save prompt modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: '90%',
+    backgroundColor: colors.background,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+  },
+  modalTitle: {
+    fontSize: fontSize.lg,
+    fontFamily: typography.semiBold,
+    marginBottom: spacing.md,
+    color: colors.text,
+  },
+  modalInput: {
+    marginBottom: spacing.md,
+  },
+  modalLabel: {
+    fontSize: fontSize.sm,
+    fontFamily: typography.regular,
+    color: colors.text,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: spacing.lg,
   },
   // Generating phase
   generatingTitle: {
