@@ -1,434 +1,353 @@
-# Artigen - Feature Documentation
+# Artigen - Complete Feature Documentation
 
-**Artigen** is a full-featured AI art community platform for creating, sharing, and discovering AI-generated art. Built with React Native (Expo) and Supabase.
+This document describes the full product surface currently present in the Artigen codebase.
+Last updated: 2026-03-02.
 
----
-
-## Table of Contents
-
-1. [Core Platform](#core-platform)
-2. [AI Art Generation](#ai-art-generation)
-3. [Social Features](#social-features)
-4. [Stories](#stories)
-5. [Messaging & DMs](#messaging--dms)
-6. [Discovery & Search](#discovery--search)
-7. [Communities](#communities)
-8. [Gamification](#gamification)
-9. [Monetization](#monetization)
-10. [Content Safety](#content-safety)
-11. [Creator Tools](#creator-tools)
+Status labels used in this doc:
+- `Implemented` - Feature is wired in app screens/hooks/services and has backend support.
+- `Partial` - UI/flow exists but includes placeholders, mock integrations, or limited backend behavior.
+- `In Progress` - Data model and/or service wiring exists, but end-to-end behavior is intentionally incomplete.
 
 ---
 
-## Core Platform
+## 1. Core Product Experience
 
-### Feed
-- Infinite-scroll home feed showing posts from followed users and your own posts
-- Posts support image, video, carousel (multi-image), and reel formats
-- Each post displays: user avatar, username, location tag, caption with hashtags, like/comment/share/save actions
-- Pull-to-refresh and pagination
+### Feed and Posting (`Implemented`)
+- Infinite-scroll home feed with pull-to-refresh and pagination.
+- Post types: image, video, carousel, and reels.
+- Rich post cards with creator identity, caption, hashtags, location, and engagement actions.
+- Story bar integrated at top of home feed.
+- Daily challenge card integrated in feed when active.
 
-### Profile
-- Customizable profile with avatar, bio, website link, and interest tags
-- Profile theme customization (colors, layout)
-- Post grid (3 columns), saved posts, and tagged posts tabs
-- Follower/following counts with tap-to-view lists
-- Pinned posts (up to 3)
-- Top friends display
-- Badge showcase and streak counter
-- Private account option with follow requests
+### Navigation and Routing (`Implemented`)
+- Expo Router app architecture with tab, stack, modal, and grouped route segments.
+- Main tabs: Home, Search, Create, Reels, Profile.
+- Deep-linkable feature routes for content details, creator tools, and AI utilities.
 
-### Navigation
-- 5-tab layout: Home, Search, Create, Reels, Profile
-- Stack navigation for detail screens (67+ screens)
-- Deep linking support via Expo Router
+### Authentication and Profile Foundation (`Implemented`)
+- Supabase email/password authentication.
+- Session bootstrap and auth state synchronization.
+- Profile auto-ensure behavior when auth user exists but profile row is missing.
+- Sign in, sign up, password reset, sign out flows.
 
 ---
 
-## AI Art Generation
+## 2. AI Creation Studio
 
-### Text-to-Image Generation
-- **Models supported:**
-  - Flux Schnell (fast, free via Replicate)
-  - Flux Dev (high quality via Replicate)
-  - SDXL 1.0 (via Replicate)
-  - Stable Diffusion 2.1 (free via Hugging Face)
-  - Stable Diffusion 3 (via Replicate)
-- Prompt input with negative prompt support
-- Adjustable settings: steps, guidance scale, seed
-- Aspect ratio picker (1:1, 4:5, 16:9, 9:16, 3:2, 2:3) with model-aware dimensions
-- Generation history
+### Text-to-Image Generation (`Implemented`)
+- Multi-model generation flow with model-aware defaults and settings.
+- Prompt and negative prompt support.
+- Adjustable generation controls (steps, guidance, seed, aspect ratio).
+- Post creation handoff from generated outputs.
 
-### Style Transfer (Restyle)
-- Transform existing images using AI style presets
-- Custom style prompts
-- Style preset library organized by category (artistic, photographic, etc.)
-- Preview before posting
+### Advanced Image Editing Tools
+- Restyle / style transfer (`Implemented`, backend `Partial`): style presets + custom prompt transform flow.
+- Inpainting (`Implemented`): mask-based selective replacement.
+- Outpainting (`Implemented`): directional canvas expansion.
+- Upscaling (`Implemented`): enhancement with selectable scale factors.
+- ControlNet (`Implemented`): control types, presets, prompt-guided generation.
+- Remix (`Implemented`): generate from another post's AI metadata with attribution.
 
-### Image Animation
-- Convert static images to short animations
-- Animation types: motion, camera pan, parallax, zoom, morph
-- Adjustable duration
-- Post as reel or video
+### Motion and 3D Tools
+- Image animation (`Implemented`, backend `Partial`): animation jobs and result posting.
+- Text-to-3D (`Implemented`): prompt to 3D job flow with preview thumbnail/model URL.
+- AR preview (`Partial`): configurable framing/dimensions and simulated preview UI.
 
-### Prompt Library
-- Save and share AI generation prompts
-- Browse public prompts sorted by popularity
-- Search prompts by title or content
-- Save/unsave prompts from other users
-- Use any saved prompt to generate new art
-- Prompt details: title, prompt text, negative prompt, model, settings, style tags
+### Creative Assistance
+- Prompt library (`Implemented`): save/use/search/share prompts.
+- Prompt remix editor (`Implemented`): modify existing prompt with tracked relationship.
+- AI caption generation (`Implemented`): assisted caption draft flow.
+- Avatar generation (`Implemented`, auth wiring `Partial`): selfie-based style avatar generation jobs.
+- AI music generation (`Implemented`): prompt-based music generation screen and service flow.
 
-### Prompt Remix
-- Take an existing post's AI prompt and modify it
-- Side-by-side comparison of original and modified prompts
-- Attribution to original prompt author
-- Changes description tracking
-
-### AI Caption Generation
-- Auto-generate captions for posts using AI
-
-### Visual Similarity Search
-- Find visually similar posts using CLIP embeddings
-- Search by uploading an image
-
-### Art Provenance
-- Cryptographic signing of AI-generated content
-- Content hash, prompt hash, model info, generation date
-- C2PA manifest support
-- Verification status tracking (verified/unverified/tampered)
-- Provenance badge displayed on posts
+### AI Provenance and Integrity
+- Provenance record creation and storage (`Implemented`).
+- C2PA-style metadata and verification status rendering (`Implemented`).
+- Provenance badge and detail screen (`Implemented`).
 
 ---
 
-## Social Features
+## 3. Publishing and Media Management
 
-### Following System
-- Follow/unfollow users
-- Follow requests for private accounts
-- Suggested users based on mutual connections
-- Activity status (online/last active)
+### Post Composer (`Implemented`)
+- New post flow with media selection, caption, metadata, and audience controls.
+- New reel flow with dedicated creation route.
+- New story flow and story-specific publishing settings.
 
-### Post Interactions
-- **Likes** - Standard like with heart animation
-- **Emoji Reactions** - 7 reaction types: like, love, haha, wow, sad, fire, clap
-- **Comments** - Threaded comments with replies, likes, and pinning
-- **Save** - Save to default or custom collections
-- **Share** - Share posts via DM or external apps
-- **Repost** - Repost with optional quote text
-- **Awards** - Give tiered awards (Fire, Love It, Mind Blown, Masterpiece, Diamond, Trophy)
+### Publishing Controls (`Implemented`)
+- Audience selection (everyone vs close friends where applicable).
+- Draft and scheduled publishing support.
+- Location metadata support.
+- AI metadata attachment support on publish.
 
-### Remixes
-- Remix any AI-generated post
-- Pre-fills the generate screen with the original post's prompt, model, and settings
-- Remix badge showing "Remixed from @username"
-- View all remixes of a post in a grid
-- Remix chain tracking (remix of a remix)
-
-### Polls
-- Attach polls to posts with multiple options
-- Animated vote percentage bars
-- One vote per user
-- Optional expiration time
-- Total vote count display
-
-### Collaborative Posts
-- Invite collaborators to co-author posts
-- Collaboration status: pending, accepted, declined
-- Multiple collaborator avatars displayed on post
-
-### Close Friends
-- Curate a close friends list
-- Share stories exclusively with close friends
-- Visual indicator (green ring) for close friends stories
-
-### Notifications
-- Activity types: likes, comments, follows, follow requests, mentions, story replies, comment likes, collab invites, subscriptions, tips, community invites, prompt remixes
-- Unread badge count
-
-### User Blocking
-- Block/unblock users
-- Blocked users cannot view your profile or posts
-
-### Reporting
-- Report posts or users for policy violations
+### Organization (`Implemented`)
+- Saved posts and custom collections.
+- Pinned posts on profile.
+- Profile post grid and collection browsing.
 
 ---
 
-## Stories
+## 4. Social Graph and Engagement
 
-### Story Creation
-- Photo and video stories
-- 24-hour auto-expiry
-- Close friends exclusive option
-- Story highlights (permanent collections)
+### Follow Graph (`Implemented`)
+- Follow/unfollow.
+- Private account follow request flow.
+- Followers/following list screens.
+- Suggested users powered by backend RPC.
 
-### Interactive Stickers
-- **Poll Sticker** - Two-option polls
-- **Quiz Sticker** - Multiple choice with correct answer
-- **Question Sticker** - Open-ended Q&A
-- **Emoji Slider** - Sliding scale emoji response
-- **Countdown Sticker** - Timer to an event
-- **Link Sticker** - Clickable external links
-- Sticker response tracking and analytics
+### Post Engagement (`Implemented`)
+- Likes with optimistic updates.
+- Emoji reactions.
+- Comments and replies.
+- Comment likes and pinned comments.
+- Critiques and helpful-vote interactions.
+- Saves to collections.
+- Reposts.
+- Poll voting on posts.
+- Awarding system on posts.
+- Tip actions on posts.
 
-### Story Viewing
-- Tap-to-advance, swipe between users
-- View count tracking
-- Reply to stories via DM
+### Collaboration and Remix Culture (`Implemented`)
+- Collaborative post invite flow.
+- Remix attribution chain and remixes gallery.
+- "More like this" and similarity-driven interaction entry points.
 
----
+### User Protection and Trust (`Implemented`)
+- User block/unblock.
+- Reporting UI and report submission flow.
+- Safety labels and provenance badges surfaced on feed cards.
 
-## Messaging & DMs
-
-### Conversations
-- 1-to-1 direct messages
-- Group conversations with avatars
-- Conversation list with last message preview and unread count
-
-### Message Types
-- Text messages
-- Image/video sharing
-- Post sharing (forward posts via DM)
-- Story replies
-- Voice messages with recording and playback
-
-### Message Features
-- Emoji reactions on messages
-- Vanish mode (disappearing messages)
-- Online status indicators
-
-### Notes
-- Instagram-style ephemeral status messages (max 60 characters)
-- Emoji attachment
-- 24-hour auto-expiry
-- Displayed as circular bubbles above conversation list
-- Tap to view full note
-
-### Blend Feed
-- Shared feed between two users
-- AI-curated content mixing both users' preferences
+### Social Utilities (`Implemented`)
+- Close friends list management screen and exclusive audience sharing support.
+- Notification center with unread state, mark-read, and mark-all-read actions.
 
 ---
 
-## Discovery & Search
+## 5. Stories
 
-### Search
-- Search users, hashtags, and posts
-- Recent searches history
-- Suggested content
+### Story Creation and Viewing (`Implemented`)
+- Story creation route with media support.
+- Story viewer with user-based story navigation.
+- Story replies routed into messaging.
+- Story bar and close-friends ring support.
 
-### Explore
-- Pinterest-style masonry grid (2 columns, proportional heights) with scroll-based pagination
-- AI posts get subtle sparkle overlay
-- Trending posts and styles
-- Trending prompt cards with "Use" button
-- Visual similarity search — upload an image to find similar AI art
+### Interactive Story Stickers (`Implemented`)
+- Poll sticker.
+- Quiz sticker.
+- Question sticker.
+- Emoji slider sticker.
+- Countdown sticker.
+- Link sticker.
+- Sticker tray and overlay composition system.
 
-### Hashtags
-- Auto-extraction from captions
-- Hashtag feed pages
-- Post count per hashtag
-
-### Locations
-- Tag posts with locations
-- Location feed pages
-- Explore map view
-
-### Taste Profile & Personalization
-- Set preferred styles, models, themes, and color palettes
-- Dislike filtering for styles and themes
-- Engagement signal tracking (views, likes, saves, comments, shares)
-- AI-powered personalized feed recommendations
+### Story Lifecycle (`Implemented`)
+- 24-hour expiry model.
+- Close friends story audience support.
+- Highlight surfaces in profile UI.
 
 ---
 
-## Communities
+## 6. Messaging and Presence
 
-### Community Management
-- Create communities with name, description, avatar, cover image
-- Public or private communities
-- Community rules (list)
-- Tag-based categorization
-- Member count tracking
+### DM and Group Messaging (`Implemented`)
+- 1:1 and group conversation support.
+- Conversation list, conversation detail, new message, and new group routes.
+- Message reactions and rich message bubbles.
 
-### Membership & Roles
-- Three roles: owner, moderator, member
-- Join/leave communities
-- Owner can manage member roles
+### Rich Messaging Features (`Implemented`)
+- Voice recording and voice message playback.
+- Vanish mode toggle.
+- Notes row/composer for ephemeral note status.
+- Blend feed integration inside messaging.
+- Desktop-responsive messaging layout components.
 
-### Community Content
-- Community-specific post feed
-- Post to community option when creating posts
-- Browse and discover communities
-- Search communities by name
+### Presence and Activity (`Implemented`)
+- Activity status tracking and heartbeat updates.
+- Online indicator components.
 
 ---
 
-## Gamification
+## 7. Discovery and Search
 
-### Daily Challenges
-- New creative prompt theme every day
-- 50+ curated prompts (e.g., "Underwater city at sunset", "A cat as a Renaissance painting")
-- Challenge banner card at top of feed
-- Submit entries by generating art with challenge theme
-- Community voting on entries
-- Past challenge history with winners
-- Edge function auto-generates daily prompts using date-based rotation
+### Explore and Search (`Implemented`)
+- Search across users, hashtags, posts, communities, and prompts.
+- Explore masonry grid.
+- Trending surface routes.
+- Hashtag and location result pages.
 
-### Achievement Badges
-- 15 badges across 6 categories:
-  - **Creation:** First Spark (1 post), Prolific Creator (10), Art Machine (50)
-  - **AI:** AI Pioneer (1 gen), Prompt Master (10 gens)
-  - **Engagement:** Rising Star (100 likes), Superstar (1000 likes)
-  - **Social:** Remixer (1 remix), Remix Legend (10), Community Builder (100 followers), Team Player (1 collab)
-  - **Challenge:** Challenger (1 entry), Champion (win)
-  - **Streak:** Week Warrior (7 days), Monthly Master (30 days)
-- Auto-awarded when milestones are reached
-- Badge grid on profile
+### Visual Discovery (`Implemented`)
+- Visual search route for image-based similarity queries.
+- CLIP-embedding based related content infrastructure.
 
-### Posting Streaks
-- Consecutive daily post tracking
-- Current streak and longest streak
-- Fire icon badge on profile
-- Integrates with badge system (7-day, 30-day milestones)
-
-### Leaderboard
-- Weekly, monthly, and all-time tabs
-- Ranked by weighted score (posts, followers, awards)
-- Top 3 podium display with medals
-- Tap to view creator profile
-
-### Awards System
-- 6 award types across 4 tiers:
-  - **Bronze:** Fire, Love It
-  - **Silver:** Mind Blown, Masterpiece
-  - **Gold:** Diamond
-  - **Diamond:** Trophy
-- Award picker bottom sheet
-- Award badges displayed on posts
-- Awards contribute to leaderboard score
+### Personalization (`Implemented`)
+- Taste profile capture and editing.
+- Engagement signal tracking for recommendation input.
+- Blend feed personalization between users.
 
 ---
 
-## Monetization
+## 8. Community, Events, and Competitive Layers
 
-### Creator Subscriptions
-- Create subscription tiers with name, description, price, benefits
-- Custom badge labels and colors per tier
-- Max subscriber limits
-- Subscriber management and analytics
-- Exclusive content gating by tier
+### Communities (`Implemented`)
+- Community discovery, creation, and detail screens.
+- Public/private community model.
+- Membership and role-aware behavior.
+- Community-scoped content display.
 
-### Wallet System
-- In-app wallet with balance tracking
-- Deposit and withdrawal support
-- Transaction history with types: deposit, withdrawal, tip sent/received, purchase, sale, subscription payment/earning
-- Lifetime earned/spent tracking
+### Events (`Implemented`)
+- Events listing with status filtering.
+- Event creation flow (type, schedule, meeting URL).
+- Event detail pages and attendance interactions.
 
-### Tip Jar
-- Send tips to creators on their posts
-- Preset amounts ($1, $2, $5, $10, $20)
-- Optional message with tip
-- Tip notifications
+### Exhibitions (`Implemented`)
+- Exhibition listing and filtering.
+- Exhibition creation and submission flows.
+- Exhibition detail with gallery-style content.
 
-### Marketplace
-- List AI art for sale as:
-  - **Digital downloads** - Downloadable files
-  - **Print-on-demand** - Physical prints with configurable options
-- Listing management (title, description, price, active/inactive)
-- Order system with status tracking (pending, paid, processing, shipped, delivered, cancelled, refunded)
-- Buyer and seller views
-- Search marketplace listings
+### Challenges and Weekly Events (`Implemented`)
+- Daily challenge participation and submission.
+- Challenge detail/history views.
+- Weekly event leaderboard and voting experience.
 
----
-
-## Content Safety
-
-### Safety Preferences
-- Toggle visibility of sensitive and mature content
-- NSFW blur toggle
-- Age verification
-
-### Content Labeling
-- AI-powered content classification (safe, sensitive, mature, NSFW)
-- AI confidence scores
-- Manual override by moderators
-- Content warning overlays
-
-### Community Ratings
-- Users can rate content safety levels
-- Crowd-sourced content moderation
+### Art Battles (`Implemented`)
+- Battle creation with theme and time-limit setup.
+- Battle detail and arena UI.
+- Community voting and countdown/timer support.
+- Battle finalization function in backend.
 
 ---
 
-## Creator Tools
+## 9. Learning, XP, and Mentorship
 
-### Post Insights & Analytics
-- View count (total and unique viewers)
-- Like, comment, save counts
-- Source breakdown (feed, profile, explore, hashtag, search, share)
-- Per-post analytics screen
+### Tutorials and Lessons (`Implemented`)
+- Tutorials index with category filtering.
+- Tutorial detail with lesson list and progress.
+- Lesson execution routes with content types (text/quiz/interactive/practice).
 
-### Scheduled Posts
-- Schedule posts for future publication
-- Draft mode for work-in-progress posts
-- Manage scheduled posts list
+### XP and Progression (`Implemented`)
+- XP accumulation and level progression.
+- XP bar and reward toast components.
+- Lesson completion XP awarding.
 
-### Profile Customization
-- Custom profile theme colors and layout
-- Interest tags
-- Top friends display
-- Music/audio profile section
-
----
-
-## Integration & Quality
-
-### End-to-End Feature Wiring
-All features are fully wired from screen → hook → service → database:
-- Feed toggles (like, save, reaction) update both optimistic UI and backend
-- Post creation flows through audience filtering, challenge entry, streak updates, and badge awards
-- Engagement signals (likes, saves) feed the taste profile for personalized recommendations
-- Activity status heartbeat runs from the root app layout
-- Privacy enforcement: all follow-dependent queries filter by `status = 'accepted'`
-
-### Error Handling & Memory Safety
-- All optimistic UI updates include error revert on failure
-- Voice recorder/player hooks clean up on unmount (no mic/audio leaks)
-- Debounce timers and polling intervals cleaned up via useEffect teardown
-- Upsert operations use `onConflict` to prevent duplicate constraint errors
+### Mentorship (`Implemented`)
+- Mentorship list and detail views.
+- Mentor discovery flow.
+- Mentorship request flow and mentor response actions.
+- Session/feedback tracking surfaces.
 
 ---
 
-## Technical Architecture
+## 10. Monetization
 
-### Frontend
-- **Framework:** React Native 0.76.3 with Expo 52
-- **Navigation:** Expo Router 4 (file-based routing)
-- **State:** React hooks (48 custom hooks) + context providers
-- **Animations:** React Native Reanimated
-- **UI:** Custom component library with dark/light theme system
-- **Images:** expo-image with caching and contentFit
+### Creator Subscriptions (`Implemented`)
+- Tier management.
+- Creator subscription screen and gated content UI.
+- Subscriber badge and tier presentation components.
 
-### Backend
-- **Database:** Supabase (PostgreSQL) with Row Level Security on all tables
-- **Auth:** Supabase Auth with session management and follow request privacy
-- **Storage:** Supabase Storage for media files (avatars, posts, stories, voice)
-- **Edge Functions:** 8 Deno serverless functions
-- **Realtime:** Supabase Realtime for messaging and activity status
+### Wallet and Tips (`Implemented`, rails `Partial`)
+- Wallet balance and transaction history.
+- Tip transfer flow via edge function and ledger transactions.
+- Wallet deposit and withdraw screens exist but payment/payout rails are `In Progress`.
 
-### AI Providers
-- **Replicate** — Flux Schnell, Flux Dev, SDXL 1.0, SD3 (paid)
-- **Hugging Face** — Stable Diffusion 2.1 Inference API (free)
-- **CLIP** — Visual embeddings for similarity search (pgvector)
+### Marketplace (`Implemented`, payments `Partial`)
+- Listing creation and listing detail pages.
+- Digital download and print-on-demand listing types.
+- Buyer order creation and order detail/status tracker.
+- Seller/buyer order list views.
+- Payment capture/checkout hardening is `In Progress`.
 
-### Codebase Stats
-- **67+ screens** across 5 tab groups and stack navigators
-- **55 service files** handling all Supabase interactions
-- **48 custom hooks** for state management and UI logic
-- **100+ components** organized by feature domain
-- **34 SQL migrations** with full RLS policies
-- **5 RPC functions** (suggested users, post insights, similar posts, personalized feed, blend feed)
-- **2 materialized views** for trending prompts and styles
-- **0 TypeScript errors** — fully type-safe codebase
+---
+
+## 11. Safety and Moderation
+
+### Safety Preferences (`Implemented`)
+- User safety settings UI.
+- Content preference controls.
+
+### Content Labeling (`Implemented`, classifier integration `Partial`)
+- Safety labels in feed and post UI.
+- Content warning overlays.
+- Safety check edge function present; external classifier wiring is partially placeholder-based.
+
+### Reporting and Governance (`Implemented`)
+- Reporting service and report sheet UI.
+- Community moderation support through roles and visibility controls.
+
+---
+
+## 12. Cross-Platform and Growth Features
+
+### Cross-Posting (`Implemented`, provider auth `Partial`)
+- Connect social account stubs/settings.
+- Platform selection and cross-post execution status tracking.
+- Current account connection UX is username-based; full OAuth provider integration is `In Progress`.
+
+### Sticker Packs (`Implemented`)
+- Sticker pack browse, saved, and \"my packs\" tabs.
+- Sticker pack creation and per-pack sticker management.
+- Sticker picker integration for story composition and chat surfaces.
+
+### Web Runtime Support (`Implemented`)
+- Web-specific storage/upload support.
+- PWA manifest/service worker assets in `public/`.
+- Web notifications hook support.
+
+---
+
+## 13. Creator Utility and Insights
+
+### Post Analytics (`Implemented`)
+- View, unique viewer, likes, comments, saves, and source breakdown aggregation.
+- Per-post insights route.
+
+### Scheduling and Workflow Automation (`Implemented`)
+- Scheduled posts management.
+- Workflow template creation, discovery, saving, and execution.
+- Multi-step workflow run progress, pause/resume controls.
+
+### Profile Customization (`Implemented`)
+- Profile theme customization.
+- Interest tags.
+- Profile music settings.
+- Custom portfolio editing and publishing.
+
+---
+
+## 14. Backend Capability Surface
+
+### Supabase Edge Functions (17)
+- `generate`, `restyle`, `inpaint`, `outpaint`, `upscale`, `controlnet`, `animate`
+- `text-to-3d`, `generate-avatar`, `generate-music`
+- `embed-image`, `safety-check`, `sign-provenance`
+- `process-tip`, `cross-post`, `daily-challenge`, `battle-finalize`
+
+### Service Layer Domains
+- Social graph and interactions: follow, comments, reactions, reposts, polls, awards.
+- Creator economy: subscription, wallet, tips, marketplace, orders.
+- AI stack: generation, restyle, in/outpaint, upscale, controlnet, animation, avatar, music, 3D.
+- Discovery and personalization: explore, trending, similarity, taste profile, suggestions.
+- Collaboration and community: communities, mentorship, workflows, events, exhibitions, battles.
+
+---
+
+## 15. Implementation Notes (Important)
+
+These features are present in code but currently not fully production-complete end-to-end:
+- Wallet deposit and withdrawal external payment rails (`In Progress`).
+- Cross-post account connection currently uses simplified/manual connect UX (`In Progress`).
+- AR preview is a simulated AR experience, not full live camera ARKit/ARCore (`Partial`).
+- Some AI edge functions include provider placeholders/fallback behavior (`Partial`).
+- Critique and avatar-related routes include remaining mock-auth user IDs in specific screens (`In Progress`).
+
+---
+
+## 16. Route Coverage Snapshot
+
+Primary route groups and feature scope:
+- `src/app/(tabs)` - feed, search/discovery, create entry points, reels, profile.
+- `src/app/(camera)` - all creation pipelines: generate, remix, restyle, inpaint, outpaint, upscale, animate, controlnet.
+- `src/app/(messages)` - inbox, conversations, new DM, new group.
+- `src/app/(stories)` - story viewing and story interaction.
+- `src/app/(screens)` - advanced social, creator tools, monetization, community, events, learning, marketplace, safety, and utility routes.
+
+This file is intended to be the canonical product feature map for the current repository state.
