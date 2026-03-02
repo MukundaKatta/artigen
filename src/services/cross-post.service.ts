@@ -22,7 +22,7 @@ export type CrossPost = {
 };
 
 export const SUPPORTED_PLATFORMS = [
-  'instagram',
+  'photo',
   'twitter',
   'tiktok',
   'facebook',

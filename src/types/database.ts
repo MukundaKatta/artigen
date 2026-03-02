@@ -2964,7 +2964,7 @@ export type Database = {
         Row: {
           id: string;
           user_id: string;
-          platform: 'instagram' | 'twitter' | 'tiktok' | 'facebook' | 'pinterest' | 'threads';
+          platform: 'photo' | 'twitter' | 'tiktok' | 'facebook' | 'pinterest' | 'threads';
           platform_username: string | null;
           is_connected: boolean;
           access_token_encrypted: string | null;

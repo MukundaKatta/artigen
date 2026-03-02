@@ -25,7 +25,7 @@ ALTER TABLE profiles ADD COLUMN IF NOT EXISTS portfolio_contact_email text;
 CREATE TABLE IF NOT EXISTS cross_post_accounts (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
-  platform text NOT NULL CHECK (platform IN ('instagram','twitter','tiktok','facebook','pinterest','threads')),
+  platform text NOT NULL CHECK (platform IN ('photo','twitter','tiktok','facebook','pinterest','threads')),
   platform_username text,
   is_connected boolean DEFAULT false,
   access_token_encrypted text,

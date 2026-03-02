@@ -1,5 +1,5 @@
 -- ============================================================
--- Instagram Clone - Full Database Schema
+-- Artigen Database Schema
 -- Run this in your Supabase SQL Editor (supabase.com > SQL Editor)
 -- ============================================================
 

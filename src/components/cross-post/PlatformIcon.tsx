@@ -9,7 +9,7 @@ type Props = {
 };
 
 const PLATFORM_ICONS: Record<string, { name: keyof typeof Ionicons.glyphMap; color: string }> = {
-  instagram: { name: 'logo-instagram', color: '#E1306C' },
+  photo: { name: 'camera-outline', color: '#E1306C' },
   twitter: { name: 'logo-twitter', color: '#1DA1F2' },
   tiktok: { name: 'logo-tiktok', color: '#000000' },
   facebook: { name: 'logo-facebook', color: '#1877F2' },
@@ -30,7 +30,7 @@ export function PlatformIcon({ platform, size = 24, color }: Props) {
 
 export function getPlatformLabel(platform: string): string {
   const labels: Record<string, string> = {
-    instagram: 'Instagram',
+    photo: 'Photo',
     twitter: 'X (Twitter)',
     tiktok: 'TikTok',
     facebook: 'Facebook',

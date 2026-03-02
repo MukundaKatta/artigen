@@ -3,11 +3,11 @@ import { supabase } from '@/lib/supabase';
 export type CaptionTone = 'casual' | 'professional' | 'funny' | 'poetic' | 'minimal';
 
 const TONE_PROMPTS: Record<CaptionTone, string> = {
-  casual: 'Write a casual, friendly Instagram caption for this image. Keep it relatable and use everyday language.',
-  professional: 'Write a professional, polished Instagram caption for this image. Keep it clean and brand-worthy.',
-  funny: 'Write a funny, witty Instagram caption for this image. Include humor or a clever pun.',
-  poetic: 'Write a poetic, artistic Instagram caption for this image. Use vivid imagery and metaphor.',
-  minimal: 'Write a minimal, short Instagram caption for this image. Maximum 10 words, no hashtags.',
+  casual: 'Write a casual, friendly social media caption for this image. Keep it relatable and use everyday language.',
+  professional: 'Write a professional, polished social media caption for this image. Keep it clean and brand-worthy.',
+  funny: 'Write a funny, witty social media caption for this image. Include humor or a clever pun.',
+  poetic: 'Write a poetic, artistic social media caption for this image. Use vivid imagery and metaphor.',
+  minimal: 'Write a minimal, short social media caption for this image. Maximum 10 words, no hashtags.',
 };
 
 export async function generateCaption(imageUrl: string, tone: CaptionTone): Promise<{ data: string | null; error: any }> {
