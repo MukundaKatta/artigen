@@ -6,6 +6,7 @@ import {
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as WebBrowser from 'expo-web-browser';
 import { useAuth } from '@/providers/AuthProvider';
 import {
   CREDIT_PACKAGES, getUserCredits, openStripeCheckout, createRazorpayOrder,
@@ -52,9 +53,8 @@ export default function BuyCreditsScreen() {
     if (error) { Alert.alert('Error', error); return; }
 
     // Open Razorpay hosted checkout
-    const { openBrowserAsync } = await import('expo-web-browser');
     const url = `https://api.razorpay.com/v1/checkout/embedded?key_id=${order.key_id}&order_id=${order.order_id}`;
-    await openBrowserAsync(url);
+    await WebBrowser.openBrowserAsync(url);
     // Reload balance after return
     setTimeout(loadBalance, 2000);
   }

@@ -152,10 +152,7 @@ export default function GenerateRoute() {
         showAlert(
           'Not Enough Credits',
           `This model costs ${MODEL_CREDITS[selectedModel.id] ?? 10} credits. Buy more to continue.`,
-          [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Buy Credits', onPress: () => router.push('/(screens)/buy-credits' as any) },
-          ]
+          () => router.push('/(screens)/buy-credits' as never),
         );
       } else {
         showAlert('Generation Failed', genError);
@@ -447,10 +444,11 @@ export default function GenerateRoute() {
               const { result, error } = await fn(prompt.trim());
               setEnhancing(false);
               if (error === 'insufficient_credits') {
-                showAlert('Need Credits', 'Prompt enhancement costs 5 credits.', [
-                  { text: 'Cancel', style: 'cancel' },
-                  { text: 'Buy Credits', onPress: () => router.push('/(screens)/buy-credits' as any) },
-                ]);
+                showAlert(
+                  'Need Credits',
+                  'Prompt enhancement costs 5 credits.',
+                  () => router.push('/(screens)/buy-credits' as never),
+                );
               } else if (error) {
                 showAlert('Error', error);
               } else if (result) {

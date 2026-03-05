@@ -60,7 +60,10 @@ export default [
     },
     rules: {
       ...tsPlugin.configs.recommended.rules,
-      ...reactHooksPlugin.configs.recommended.rules,
+      // Only use classic react-hooks rules (rules-of-hooks + exhaustive-deps).
+      // react-hooks v7 adds React Compiler rules that aren't applicable here.
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'warn',
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
       '@typescript-eslint/no-unused-vars': [
@@ -69,8 +72,10 @@ export default [
       ],
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-require-imports': 'off',
+      '@typescript-eslint/ban-ts-comment': 'warn',
       'no-console': ['warn', { allow: ['warn', 'error'] }],
       'no-undef': 'off', // TypeScript handles this
+      'no-empty': 'warn',
     },
   },
 
