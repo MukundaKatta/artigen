@@ -106,12 +106,9 @@ const desktopStyles = StyleSheet.create({
 
 export function ActionSheet({ visible, onClose, items, title }: Props) {
   const { isMobile } = useResponsive();
+  const useDesktop = Platform.OS === 'web' && !isMobile;
 
-  // Use centered dialog on desktop web
-  if (Platform.OS === 'web' && !isMobile) {
-    return <DesktopActionSheet visible={visible} onClose={onClose} items={items} title={title} />;
-  }
-
+  // All hooks must be called unconditionally (rules-of-hooks)
   const bottomSheetRef = useRef<BottomSheet>(null);
   const snapPoints = useMemo(() => {
     const itemHeight = 56;
@@ -123,12 +120,13 @@ export function ActionSheet({ visible, onClose, items, title }: Props) {
   }, [items.length, title]);
 
   useEffect(() => {
+    if (useDesktop) return;
     if (visible) {
       bottomSheetRef.current?.expand();
     } else {
       bottomSheetRef.current?.close();
     }
-  }, [visible]);
+  }, [visible, useDesktop]);
 
   const renderBackdrop = useCallback(
     (props: any) => (
@@ -149,6 +147,11 @@ export function ActionSheet({ visible, onClose, items, title }: Props) {
     onClose();
     setTimeout(() => item.onPress(), 200);
   };
+
+  // Use centered dialog on desktop web
+  if (useDesktop) {
+    return <DesktopActionSheet visible={visible} onClose={onClose} items={items} title={title} />;
+  }
 
   if (!visible) return null;
 

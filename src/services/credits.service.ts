@@ -49,7 +49,7 @@ export async function getCreditTransactions(userId: string) {
     .from('wallet_transactions')
     .select('*')
     .eq('wallets.user_id', userId)
-    .in('type', ['ai_generation', 'deposit'])
+    .in('type', ['purchase', 'deposit'])
     .order('created_at', { ascending: false })
     .limit(20);
   return data ?? [];

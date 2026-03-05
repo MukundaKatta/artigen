@@ -1,6 +1,5 @@
-import type { Config } from 'jest';
-
-const config: Config = {
+/** @type {import('jest').Config} */
+module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
   roots: ['<rootDir>/src'],
@@ -13,7 +12,6 @@ const config: Config = {
       'ts-jest',
       {
         tsconfig: 'tsconfig.json',
-        // Skip type checking in tests for speed
         diagnostics: false,
       },
     ],
@@ -29,5 +27,3 @@ const config: Config = {
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'text-summary', 'lcov'],
 };
-
-export default config;
