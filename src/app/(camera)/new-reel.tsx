@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
   View,
   StyleSheet,
-  ActivityIndicator,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
@@ -12,6 +11,7 @@ import { useAuth } from '@/providers/AuthProvider';
 import { useImagePicker } from '@/hooks/useImagePicker';
 import { createPost } from '@/services/post.service';
 import { showAlert } from '@/utils/alert';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { captionSchema, CaptionFormData } from '@/utils/validation';
@@ -87,7 +87,7 @@ export default function NewReelRoute() {
   if (!mediaUri) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator color={colors.textSecondary} />
+        <LoadingSpinner color={colors.textSecondary} />
       </View>
     );
   }

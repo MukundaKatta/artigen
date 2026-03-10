@@ -5,13 +5,13 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
   Linking,
 } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/providers/AuthProvider';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useEvent } from '@/hooks/useEvent';
 import { EventCountdown } from '@/components/events/EventCountdown';
 import { formatNumber } from '@/utils/format-number';
@@ -35,7 +35,7 @@ export default function EventDetailRoute() {
     return (
       <View style={styles.container}>
         <Stack.Screen options={{ title: '' }} />
-        <ActivityIndicator style={{ flex: 1 }} size="large" color={colors.primary} />
+        <LoadingSpinner fullScreen />
       </View>
     );
   }

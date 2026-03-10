@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   Image,
-  ActivityIndicator,
 } from 'react-native';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,6 +13,7 @@ import { useCrossPost } from '@/hooks/useCrossPost';
 import { PlatformSelector } from '@/components/cross-post/PlatformSelector';
 import { CrossPostStatus } from '@/components/cross-post/CrossPostStatus';
 import { Button } from '@/components/ui/Button';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { supabase } from '@/lib/supabase';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
 
@@ -63,7 +63,7 @@ export default function CrossPostRoute() {
     return (
       <View style={styles.center}>
         <Stack.Screen options={{ title: 'Cross-Post' }} />
-        <ActivityIndicator color={colors.primary} size="large" />
+        <LoadingSpinner size="large" color={colors.primary} />
       </View>
     );
   }

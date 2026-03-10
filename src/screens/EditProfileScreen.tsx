@@ -5,10 +5,13 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import * as Haptics from 'expo-haptics';
+import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useAuth } from '@/providers/AuthProvider';
 import { Avatar } from '@/components/ui/Avatar';
 import { Input } from '@/components/ui/Input';
@@ -43,6 +46,7 @@ export function EditProfileScreen() {
   });
 
   async function handleChangePhoto() {
+    if (Platform.OS !== 'web') Haptics.selectionAsync();
     const { asset, error } = await pickFromGallery({ aspect: [1, 1] });
     if (error) {
       showAlert('Error', error);
@@ -92,12 +96,12 @@ export function EditProfileScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Avatar */}
-      <View style={styles.avatarSection}>
+      <Animated.View entering={FadeInUp.duration(400)} style={styles.avatarSection}>
         <Avatar uri={avatarUri || profile?.avatar_url} size="xl" />
         <TouchableOpacity onPress={handleChangePhoto}>
           <Text style={styles.changePhotoText}>Change Profile Photo</Text>
         </TouchableOpacity>
-      </View>
+      </Animated.View>
 
       {/* Form */}
       <Controller

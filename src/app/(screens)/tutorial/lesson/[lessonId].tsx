@@ -10,6 +10,7 @@ import {
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/providers/AuthProvider';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { getLessons, getProgress, updateProgress, completeTutorial } from '@/services/tutorial.service';
 import { awardXp } from '@/services/xp.service';
 import { XpRewardToast } from '@/components/learning/XpRewardToast';
@@ -85,7 +86,7 @@ export default function LessonRoute() {
     return (
       <View style={styles.container}>
         <Stack.Screen options={{ title: '' }} />
-        <ActivityIndicator style={{ flex: 1 }} size="large" color={colors.primary} />
+        <LoadingSpinner fullScreen />
       </View>
     );
   }

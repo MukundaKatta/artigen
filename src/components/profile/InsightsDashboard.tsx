@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useInsights } from '@/hooks/useInsights';
 import { formatNumber } from '@/utils/format-number';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
@@ -27,7 +28,11 @@ export function InsightsDashboard({ postId }: Props) {
   }, [fetchInsights]);
 
   if (loading) {
-    return <ActivityIndicator style={styles.loader} color={colors.textSecondary} />;
+    return (
+      <View style={styles.loader}>
+        <LoadingSpinner size="small" color={colors.textSecondary} />
+      </View>
+    );
   }
 
   if (!insights) return null;

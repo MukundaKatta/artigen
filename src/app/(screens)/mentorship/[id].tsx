@@ -13,6 +13,7 @@ import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/providers/AuthProvider';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import {
   getMyMentorships,
   getMentorshipSessions,
@@ -88,7 +89,7 @@ export default function MentorshipDetailRoute() {
     return (
       <View style={styles.container}>
         <Stack.Screen options={{ title: '' }} />
-        <ActivityIndicator style={{ flex: 1 }} size="large" color={colors.primary} />
+        <LoadingSpinner fullScreen />
       </View>
     );
   }
@@ -243,7 +244,7 @@ export default function MentorshipDetailRoute() {
         contentContainerStyle={styles.list}
         ListEmptyComponent={
           sessionsLoading ? (
-            <ActivityIndicator style={styles.loader} color={colors.primary} />
+            <LoadingSpinner size="small" color={colors.primary} />
           ) : (
             <View style={styles.empty}>
               <Text style={styles.emptyText}>No sessions yet</Text>

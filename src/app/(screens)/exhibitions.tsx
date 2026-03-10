@@ -6,10 +6,10 @@ import {
   FlatList,
   TouchableOpacity,
   ScrollView,
-  ActivityIndicator,
 } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useExhibitions } from '@/hooks/useExhibitions';
 import { ExhibitionCard } from '@/components/exhibitions/ExhibitionCard';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
@@ -30,7 +30,7 @@ export default function ExhibitionsRoute() {
     return (
       <View style={styles.container}>
         <Stack.Screen options={{ title: 'Exhibitions' }} />
-        <ActivityIndicator style={{ flex: 1 }} color={colors.primary} />
+        <LoadingSpinner fullScreen />
       </View>
     );
   }
@@ -87,8 +87,11 @@ export default function ExhibitionsRoute() {
         }
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Ionicons name="images-outline" size={48} color={colors.border} />
-            <Text style={styles.emptyText}>No exhibitions yet</Text>
+            <View style={styles.emptyIcon}>
+              <Ionicons name="images-outline" size={28} color={colors.textSecondary} />
+            </View>
+            <Text style={styles.emptyTitle}>No exhibitions yet</Text>
+            <Text style={styles.emptyText}>Create one to showcase curated artwork</Text>
           </View>
         }
       />
@@ -150,10 +153,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing.xxxl,
   },
+  emptyIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: colors.backgroundSecondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.md,
+  },
+  emptyTitle: {
+    fontSize: fontSize.lg,
+    fontFamily: typography.semiBold,
+    color: colors.text,
+    marginBottom: spacing.xs,
+  },
   emptyText: {
     fontSize: fontSize.md,
     fontFamily: typography.regular,
     color: colors.textSecondary,
-    marginTop: spacing.md,
   },
 });

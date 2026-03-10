@@ -4,13 +4,13 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  ActivityIndicator,
   Alert,
   TextInput,
 } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/providers/AuthProvider';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { findMentors } from '@/services/mentorship.service';
 import { requestMentorship } from '@/services/mentorship.service';
 import { MentorCard } from '@/components/learning/MentorCard';
@@ -73,7 +73,7 @@ export default function FindMentorRoute() {
     return (
       <View style={styles.container}>
         <Stack.Screen options={{ title: 'Find a Mentor' }} />
-        <ActivityIndicator style={{ flex: 1 }} color={colors.primary} />
+        <LoadingSpinner fullScreen />
       </View>
     );
   }

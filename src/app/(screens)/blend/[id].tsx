@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { useRouter } from 'expo-router';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useBlendFeed } from '@/hooks/useBlendFeed';
 import { BlendFeedView } from '@/components/messages/BlendFeedView';
 import { colors } from '@/lib/theme';
@@ -15,7 +16,7 @@ export default function BlendRoute() {
     <View style={styles.container}>
       <Stack.Screen options={{ title: 'Blend Feed' }} />
       {loading ? (
-        <ActivityIndicator style={{ flex: 1 }} color={colors.primary} />
+        <LoadingSpinner fullScreen />
       ) : (
         <BlendFeedView
           posts={posts}

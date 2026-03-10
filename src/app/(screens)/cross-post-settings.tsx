@@ -7,11 +7,11 @@ import {
   TextInput,
   TouchableOpacity,
   Alert,
-  ActivityIndicator,
 } from 'react-native';
 import { Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/providers/AuthProvider';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useCrossPost } from '@/hooks/useCrossPost';
 import { PlatformIcon, getPlatformLabel } from '@/components/cross-post/PlatformIcon';
 import { SUPPORTED_PLATFORMS } from '@/services/cross-post.service';
@@ -54,7 +54,7 @@ export default function CrossPostSettingsRoute() {
     return (
       <View style={styles.center}>
         <Stack.Screen options={{ title: 'Cross-Post Settings' }} />
-        <ActivityIndicator color={colors.primary} size="large" />
+        <LoadingSpinner size="large" />
       </View>
     );
   }

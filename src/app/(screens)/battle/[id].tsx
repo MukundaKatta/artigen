@@ -6,11 +6,11 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
-  ActivityIndicator,
 } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/providers/AuthProvider';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useBattle } from '@/hooks/useBattle';
 import { BattleArena } from '@/components/battles/BattleArena';
 import { BattleTimer } from '@/components/battles/BattleTimer';
@@ -57,7 +57,7 @@ export default function BattleDetailScreen() {
     return (
       <View style={styles.container}>
         <Stack.Screen options={{ title: 'Battle' }} />
-        <ActivityIndicator style={styles.loader} color={colors.primary} />
+        <LoadingSpinner fullScreen />
       </View>
     );
   }
@@ -67,8 +67,11 @@ export default function BattleDetailScreen() {
       <View style={styles.container}>
         <Stack.Screen options={{ title: 'Battle' }} />
         <View style={styles.emptyContainer}>
-          <Ionicons name="flash-off-outline" size={48} color={colors.textSecondary} />
-          <Text style={styles.emptyText}>Battle not found</Text>
+          <View style={styles.emptyIcon}>
+            <Ionicons name="flash-off-outline" size={28} color={colors.textSecondary} />
+          </View>
+          <Text style={styles.emptyTitle}>Battle not found</Text>
+          <Text style={styles.emptyText}>This battle may have ended or been removed</Text>
         </View>
       </View>
     );
@@ -176,9 +179,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-  },
-  loader: {
-    flex: 1,
   },
   scroll: {
     paddingBottom: spacing.xxxl,
@@ -326,11 +326,25 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  emptyText: {
+  emptyIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: colors.backgroundSecondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.md,
+  },
+  emptyTitle: {
     fontSize: fontSize.lg,
     fontFamily: typography.semiBold,
     fontWeight: '600',
     color: colors.text,
-    marginTop: spacing.md,
+    marginBottom: spacing.xs,
+  },
+  emptyText: {
+    fontSize: fontSize.md,
+    fontFamily: typography.regular,
+    color: colors.textSecondary,
   },
 });

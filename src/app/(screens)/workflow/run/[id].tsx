@@ -5,11 +5,11 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
 } from 'react-native';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/providers/AuthProvider';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useWorkflow } from '@/hooks/useWorkflow';
 import { WorkflowRunProgress } from '@/components/workflows/WorkflowRunProgress';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
@@ -35,7 +35,7 @@ export default function WorkflowRunScreen() {
     return (
       <View style={styles.container}>
         <Stack.Screen options={{ title: 'Workflow Run' }} />
-        <ActivityIndicator style={styles.loader} color={colors.primary} />
+        <LoadingSpinner fullScreen />
       </View>
     );
   }

@@ -5,12 +5,12 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/providers/AuthProvider';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useChallenge } from '@/hooks/useChallenge';
 import { Avatar } from '@/components/ui/Avatar';
 import { POST_GRID_SIZE, POST_GRID_GAP } from '@/lib/constants';
@@ -97,7 +97,7 @@ export default function ChallengeScreen() {
   if (loading) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator style={styles.loader} color={colors.textSecondary} />
+        <LoadingSpinner fullScreen />
       </View>
     );
   }
@@ -106,7 +106,9 @@ export default function ChallengeScreen() {
     return (
       <View style={styles.container}>
         <View style={styles.noChallengeContainer}>
-          <Ionicons name="sparkles" size={48} color={colors.textSecondary} />
+          <View style={styles.emptyIcon}>
+            <Ionicons name="sparkles" size={28} color={colors.textSecondary} />
+          </View>
           <Text style={styles.noChallengeText}>No challenge today</Text>
           <Text style={styles.noChallengeSubtext}>Check back tomorrow!</Text>
         </View>
@@ -168,23 +170,24 @@ export default function ChallengeScreen() {
         }
         ListFooterComponent={
           loadingEntries && entries.length > 0 ? (
-            <ActivityIndicator
-              style={styles.footerLoader}
-              color={colors.textSecondary}
-            />
+            <View style={styles.footerLoader}>
+              <LoadingSpinner />
+            </View>
           ) : null
         }
         ListEmptyComponent={
           loadingEntries ? (
-            <ActivityIndicator
-              style={styles.loader}
-              color={colors.textSecondary}
-            />
+            <View style={styles.loader}>
+              <LoadingSpinner />
+            </View>
           ) : (
             <View style={styles.emptyContainer}>
-              <Ionicons name="image-outline" size={48} color={colors.textSecondary} />
+              <View style={styles.emptyIcon}>
+                <Ionicons name="image-outline" size={28} color={colors.textSecondary} />
+              </View>
+              <Text style={styles.emptyTitle}>No entries yet</Text>
               <Text style={styles.emptyText}>
-                No entries yet — be the first!
+                Be the first to join this challenge!
               </Text>
             </View>
           )
@@ -201,6 +204,7 @@ const styles = StyleSheet.create({
   },
   loader: {
     marginTop: spacing.xxxl,
+    alignItems: 'center',
   },
   // ── Header / Challenge Card ─────────────────────────
   header: {
@@ -342,14 +346,30 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xxxl,
     paddingHorizontal: spacing.lg,
   },
+  emptyIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: colors.backgroundSecondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.md,
+  },
+  emptyTitle: {
+    fontSize: fontSize.lg,
+    fontFamily: typography.semiBold,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: spacing.xs,
+  },
   emptyText: {
     textAlign: 'center',
     color: colors.textSecondary,
     fontSize: fontSize.md,
     fontFamily: typography.regular,
-    marginTop: spacing.lg,
   },
   footerLoader: {
     paddingVertical: spacing.lg,
+    alignItems: 'center',
   },
 });

@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Image } from 'react-native';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
 
 type Props = { sourceUrl: string; resultUrl?: string; loading?: boolean; status?: string };
@@ -14,7 +15,7 @@ export function AnimationPreview({ sourceUrl, resultUrl, loading, status }: Prop
           <Image source={{ uri: sourceUrl }} style={styles.image} />
           {loading && (
             <View style={styles.overlay}>
-              <ActivityIndicator size="large" color="#fff" />
+              <LoadingSpinner size="large" color="#fff" />
               <Text style={styles.statusText}>{status === 'processing' ? 'Animating...' : 'Preparing...'}</Text>
             </View>
           )}

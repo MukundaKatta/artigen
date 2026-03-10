@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TextInput, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, TextInput } from 'react-native';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { useAuth } from '@/providers/AuthProvider';
 import { useOutpainting } from '@/hooks/useOutpainting';
@@ -29,7 +30,7 @@ export default function OutpaintRoute() {
         )}
         {loading && (
           <View style={styles.loadingOverlay}>
-            <ActivityIndicator size="large" color={colors.primary} />
+            <LoadingSpinner size="large" color={colors.primary} />
             <Text style={styles.loadingText}>Processing...</Text>
           </View>
         )}

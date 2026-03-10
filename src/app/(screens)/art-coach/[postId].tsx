@@ -5,12 +5,12 @@ import {
   StyleSheet,
   ScrollView,
   Pressable,
-  ActivityIndicator,
 } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { analyzeArtwork } from '@/services/art-coach.service';
 import type { ArtCritique } from '@/services/art-coach.service';
 import { colors, spacing, fontSize, typography, borderRadius, shadows } from '@/lib/theme';
@@ -114,7 +114,9 @@ export default function ArtCoachScreen() {
               end={{ x: 1, y: 0 }}
               style={styles.loadingGradientBar}
             />
-            <ActivityIndicator color={colors.primary} size="large" style={{ marginTop: spacing.xl }} />
+            <View style={{ marginTop: spacing.xl }}>
+              <LoadingSpinner size="large" color={colors.primary} />
+            </View>
             <Text style={styles.loadingText}>Analyzing your artwork with AI...</Text>
             <Text style={styles.loadingSubtext}>Examining composition, color, creativity & more</Text>
           </View>

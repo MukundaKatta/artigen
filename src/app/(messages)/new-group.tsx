@@ -6,11 +6,11 @@ import {
   TextInput,
   TouchableOpacity,
   FlatList,
-  ActivityIndicator,
 } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/providers/AuthProvider';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Avatar } from '@/components/ui/Avatar';
 import { searchUsers } from '@/services/profile.service';
 import { supabase } from '@/lib/supabase';
@@ -130,7 +130,7 @@ export default function NewGroupRoute() {
         />
       </View>
 
-      {searching && <ActivityIndicator style={{ padding: spacing.md }} color={colors.textSecondary} />}
+      {searching && <View style={{ padding: spacing.md, alignItems: 'center' }}><LoadingSpinner /></View>}
 
       <FlatList
         data={users}

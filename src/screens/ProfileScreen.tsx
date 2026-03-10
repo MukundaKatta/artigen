@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { useAuth } from '@/providers/AuthProvider';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import { ProfilePostGrid } from '@/components/profile/ProfilePostGrid';
@@ -129,7 +130,9 @@ export function ProfileScreen() {
               <PostGridSkeleton />
             ) : posts.length === 0 ? (
               <View style={styles.emptyContainer}>
-                <Ionicons name="camera-outline" size={48} color={colors.border} />
+                <View style={styles.emptyIconCircle}>
+                  <Ionicons name="camera-outline" size={32} color={colors.textSecondary} />
+                </View>
                 <Text style={styles.emptyTitle}>No posts yet</Text>
                 <Text style={styles.emptySubtext}>
                   Tap the + button to create your first AI artwork
@@ -145,7 +148,9 @@ export function ProfileScreen() {
             <PostGridSkeleton />
           ) : collections.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <Ionicons name="bookmark-outline" size={48} color={colors.border} />
+              <View style={styles.emptyIconCircle}>
+                <Ionicons name="bookmark-outline" size={32} color={colors.textSecondary} />
+              </View>
               <Text style={styles.emptyTitle}>No saved posts</Text>
               <Text style={styles.emptySubtext}>
                 Save posts you love to find them here
@@ -161,7 +166,10 @@ export function ProfileScreen() {
           {/* Insights Link */}
           <TouchableOpacity
             style={styles.insightsRow}
-            onPress={() => router.push('/(screens)/scheduled-posts')}
+            onPress={() => {
+              if (Platform.OS !== 'web') Haptics.selectionAsync();
+              router.push('/(screens)/scheduled-posts');
+            }}
             activeOpacity={0.6}
           >
             <Ionicons name="bar-chart-outline" size={18} color={colors.primary} />
@@ -183,6 +191,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: spacing.xxxl * 2,
+  },
+  emptyIconCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: colors.backgroundSecondary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.md,
   },
   emptyTitle: {
     fontSize: fontSize.lg,
