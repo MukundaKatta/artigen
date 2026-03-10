@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -169,8 +169,9 @@ export const PostCard = React.memo(function PostCard({
     setShowActionSheet(true);
   }, []);
 
-  const sortedMedia = [...(post.media || [])].sort(
-    (a, b) => a.sort_order - b.sort_order
+  const sortedMedia = useMemo(
+    () => [...(post.media || [])].sort((a, b) => a.sort_order - b.sort_order),
+    [post.media]
   );
 
   return (
@@ -198,7 +199,7 @@ export const PostCard = React.memo(function PostCard({
             ) : null}
           </View>
         </AnimatedPressable>
-        <AnimatedPressable onPress={handleMore} hitSlop={8} scaleValue={0.9}>
+        <AnimatedPressable onPress={handleMore} hitSlop={8} scaleValue={0.9} accessibilityRole="button" accessibilityLabel="More options">
           <Ionicons
             name="ellipsis-horizontal"
             size={20}
@@ -292,10 +293,10 @@ export const PostCard = React.memo(function PostCard({
           <AnimatedPressable
             onPress={handleLike}
             onLongPress={handleLongPressLike}
-            hitSlop={8}
+            hitSlop={12}
             style={styles.actionButton}
             accessibilityRole="button"
-            accessibilityLabel={post.isLiked ? 'Unlike' : 'Like'}
+            accessibilityLabel={post.isLiked ? 'Unlike post' : 'Like post'}
             accessibilityState={{ selected: post.isLiked }}
             scaleValue={0.85}
           >
@@ -315,7 +316,7 @@ export const PostCard = React.memo(function PostCard({
             hitSlop={8}
             style={styles.actionButton}
             accessibilityRole="button"
-            accessibilityLabel={`${post.comments_count} comments`}
+            accessibilityLabel={`Comment on post, ${post.comments_count} comments`}
             scaleValue={0.85}
           >
             <Ionicons
@@ -331,6 +332,8 @@ export const PostCard = React.memo(function PostCard({
               if (Platform.OS !== 'web') Haptics.selectionAsync();
               onShare?.(post.id);
             }}
+            accessibilityRole="button"
+            accessibilityLabel="Share post"
             scaleValue={0.85}
           >
             <Ionicons
@@ -367,9 +370,9 @@ export const PostCard = React.memo(function PostCard({
           <AnimatedPressable
             onPress={handleSave}
             onLongPress={handleLongPressSave}
-            hitSlop={8}
+            hitSlop={12}
             accessibilityRole="button"
-            accessibilityLabel={post.isSaved ? 'Unsave' : 'Save'}
+            accessibilityLabel={post.isSaved ? 'Unsave post' : 'Save post'}
             accessibilityState={{ selected: post.isSaved }}
             scaleValue={0.85}
           >

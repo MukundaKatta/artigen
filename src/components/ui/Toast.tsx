@@ -11,7 +11,7 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, spacing, fontSize, typography, shadows } from '@/lib/theme';
+import { colors, spacing, fontSize, typography, shadows, borderRadius } from '@/lib/theme';
 
 type ToastType = 'success' | 'error' | 'info' | 'warning';
 

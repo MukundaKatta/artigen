@@ -112,7 +112,8 @@ export function useFeed(userId: string | undefined) {
           })
         );
       } else if (!wasLiked) {
-        recordEngagement(userId, postId, 'like', post.ai_metadata?.style_tags || []).catch(() => {});
+        // Fire-and-forget engagement tracking for new likes
+        recordEngagement(userId, postId, 'like', post.ai_metadata?.style_tags || []).catch((err) => console.warn('Engagement tracking failed:', err));
       }
     },
     [userId, posts]
@@ -150,7 +151,8 @@ export function useFeed(userId: string | undefined) {
           })
         );
       } else if (!wasSaved) {
-        recordEngagement(userId, postId, 'save', post.ai_metadata?.style_tags || []).catch(() => {});
+        // Fire-and-forget engagement tracking for new saves
+        recordEngagement(userId, postId, 'save', post.ai_metadata?.style_tags || []).catch((err) => console.warn('Engagement tracking failed:', err));
       }
     },
     [userId, posts]

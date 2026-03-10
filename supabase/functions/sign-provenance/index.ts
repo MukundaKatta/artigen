@@ -1,9 +1,4 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { corsHeaders, jsonResponse, createServiceClient, requireAuth } from '../_shared/auth.ts';
 
 async function sha256(data: string): Promise<string> {
   const encoder = new TextEncoder();
@@ -11,31 +6,52 @@ async function sha256(data: string): Promise<string> {
   return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+async function hmacSign(data: string, key: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const cryptoKey = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(key),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  const sig = await crypto.subtle.sign('HMAC', cryptoKey, encoder.encode(data));
+  return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    );
+    const authResult = await requireAuth(req);
+    if (authResult instanceof Response) return authResult;
 
-    const { post_id, author_id, image_url, prompt, model_id, model_name } = await req.json();
+    const supabase = createServiceClient();
+    const { post_id, image_url, prompt, model_id, model_name } = await req.json();
 
-    if (!post_id || !author_id || !image_url) {
-      return new Response(JSON.stringify({ error: 'post_id, author_id, image_url required' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    if (!post_id || !image_url) {
+      return jsonResponse({ error: 'post_id and image_url required' }, 400);
     }
 
-    // Compute content hash from image URL
+    const author_id = authResult.userId;
+
+    // Verify the post belongs to this user
+    const { data: post } = await supabase.from('posts').select('user_id').eq('id', post_id).single();
+    if (!post || post.user_id !== author_id) {
+      return jsonResponse({ error: 'Forbidden' }, 403);
+    }
+
     const contentHash = await sha256(image_url + post_id);
     const promptHash = prompt ? await sha256(prompt) : null;
 
-    // Create signature (HMAC with server secret)
-    const signingKey = Deno.env.get('PROVENANCE_SIGNING_KEY') || 'default-dev-key';
+    // Proper HMAC signature
+    const signingKey = Deno.env.get('PROVENANCE_SIGNING_KEY');
+    if (!signingKey || signingKey === 'default-dev-key') {
+      console.warn('PROVENANCE_SIGNING_KEY not set — signatures are not production-grade');
+    }
     const signatureData = `${contentHash}:${author_id}:${post_id}`;
-    const signature = await sha256(signatureData + signingKey);
+    const signature = await hmacSign(signatureData, signingKey || 'default-dev-key');
 
-    // Build C2PA-like manifest
     const c2paManifest = {
       claim_generator: 'artigen/1.0',
       title: `AI Art by ${author_id}`,
@@ -44,13 +60,12 @@ Deno.serve(async (req) => {
         { label: 'c2pa.hash.data', data: { hash: contentHash, algorithm: 'SHA-256' } },
       ],
       signature_info: {
-        alg: 'SHA-256-HMAC',
+        alg: 'HMAC-SHA-256',
         issuer: 'artigen',
         time: new Date().toISOString(),
       },
     };
 
-    // Upsert provenance record
     await supabase.from('art_provenance').upsert({
       post_id,
       author_id,
@@ -64,11 +79,10 @@ Deno.serve(async (req) => {
       verification_status: 'verified',
     }, { onConflict: 'post_id' });
 
-    // Mark post as having provenance
     await supabase.from('posts').update({ has_provenance: true }).eq('id', post_id);
 
-    return new Response(JSON.stringify({ success: true, content_hash: contentHash }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    return jsonResponse({ success: true, content_hash: contentHash });
   } catch (err) {
-    return new Response(JSON.stringify({ error: (err as Error).message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    return jsonResponse({ error: 'Internal server error' }, 500);
   }
 });

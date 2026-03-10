@@ -68,6 +68,9 @@ export function Button({
         onPress={handlePress}
         disabled={isDisabled}
         style={[styles[`size_${size}`], shadows.md as ViewStyle, style] as ViewStyle[]}
+        accessibilityRole="button"
+        accessibilityLabel={title}
+        accessibilityState={{ disabled: isDisabled, busy: loading }}
       >
         <LinearGradient
           colors={gradients.primaryButton}
@@ -93,6 +96,9 @@ export function Button({
         variant === 'primary' && isDisabled && styles.primaryDisabled,
         style,
       ] as ViewStyle[]}
+      accessibilityRole="button"
+      accessibilityLabel={title}
+      accessibilityState={{ disabled: isDisabled, busy: loading }}
     >
       {inner}
     </AnimatedPressable>
@@ -117,7 +123,7 @@ const styles = StyleSheet.create({
   },
   primaryDisabled: {
     backgroundColor: colors.primary,
-    opacity: 0.4,
+    opacity: 0.5,
   },
   secondary: {
     backgroundColor: colors.backgroundSecondary,
@@ -133,13 +139,13 @@ const styles = StyleSheet.create({
   size_sm: {
     paddingVertical: spacing.xs,
     paddingHorizontal: spacing.md,
-    minHeight: 30,
+    minHeight: 36,
     borderRadius: borderRadius.md,
   },
   size_md: {
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.lg,
-    minHeight: 40,
+    minHeight: 44,
     borderRadius: borderRadius.md,
   },
   size_lg: {
@@ -149,7 +155,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
   },
   disabled: {
-    opacity: 0.4,
+    opacity: 0.5,
   },
   buttonText: {
     fontFamily: typography.semiBold,

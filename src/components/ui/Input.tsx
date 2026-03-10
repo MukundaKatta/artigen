@@ -75,7 +75,7 @@ export const Input = forwardRef<TextInput, Props>(
             onFocus={handleFocus}
             onBlur={handleBlur}
             accessibilityLabel={label || props.placeholder}
-            accessibilityState={{ disabled: !props.editable }}
+            accessibilityState={{ disabled: props.editable === false }}
             {...props}
           />
         </AnimatedView>

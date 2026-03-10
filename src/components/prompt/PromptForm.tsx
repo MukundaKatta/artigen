@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, Switch, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Button } from '@/components/ui/Button';
@@ -28,11 +28,18 @@ export function PromptForm({ initial = {}, onSubmit, submitting }: Props) {
   const [modelId, setModelId] = useState(initial.model_id || AI_MODELS[0].id);
   const [styleTagsText, setStyleTagsText] = useState((initial.style_tags || []).join(', '));
   const [isPublic, setIsPublic] = useState(initial.is_public ?? true);
+  const [errors, setErrors] = useState<{ title?: string; prompt?: string }>({});
+
+  const validate = (): boolean => {
+    const newErrors: { title?: string; prompt?: string } = {};
+    if (!title.trim()) newErrors.title = 'Title is required';
+    if (!prompt.trim()) newErrors.prompt = 'Prompt is required';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async () => {
-    if (!title.trim() || !prompt.trim()) {
-      return; // maybe show error earlier
-    }
+    if (!validate()) return;
     const values: PromptFormValues = {
       title: title.trim(),
       prompt: prompt.trim(),
@@ -51,20 +58,28 @@ export function PromptForm({ initial = {}, onSubmit, submitting }: Props) {
     <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
       <Text style={styles.label}>Title</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, errors.title ? styles.inputError : undefined]}
         value={title}
-        onChangeText={setTitle}
+        onChangeText={(v) => { setTitle(v); if (errors.title) setErrors((e) => ({ ...e, title: undefined })); }}
         placeholder="Enter a title"
+        placeholderTextColor={colors.textSecondary}
+        accessibilityLabel="Prompt title"
+        accessibilityHint="Enter a title for your prompt"
       />
+      {errors.title && <Text style={styles.errorText}>{errors.title}</Text>}
 
       <Text style={styles.label}>Prompt</Text>
       <TextInput
-        style={[styles.input, styles.multiLine]}
+        style={[styles.input, styles.multiLine, errors.prompt ? styles.inputError : undefined]}
         value={prompt}
-        onChangeText={setPrompt}
+        onChangeText={(v) => { setPrompt(v); if (errors.prompt) setErrors((e) => ({ ...e, prompt: undefined })); }}
         placeholder="Describe what you want to generate"
+        placeholderTextColor={colors.textSecondary}
         multiline
+        accessibilityLabel="Generation prompt"
+        accessibilityHint="Describe the image you want to create"
       />
+      {errors.prompt && <Text style={styles.errorText}>{errors.prompt}</Text>}
 
       <Text style={styles.label}>Negative Prompt</Text>
       <TextInput
@@ -72,11 +87,14 @@ export function PromptForm({ initial = {}, onSubmit, submitting }: Props) {
         value={negative}
         onChangeText={setNegative}
         placeholder="What to avoid (optional)"
+        placeholderTextColor={colors.textSecondary}
         multiline
+        accessibilityLabel="Negative prompt"
+        accessibilityHint="Describe what to avoid in the generated image"
       />
 
       <Text style={styles.label}>Model</Text>
-      <View style={styles.modelPicker}>        
+      <View style={styles.modelPicker} accessibilityRole="radiogroup" accessibilityLabel="Select AI model">
         {AI_MODELS.filter((m) => m.category === 'image').map((m) => (
           <TouchableOpacity
             key={m.id}
@@ -85,6 +103,9 @@ export function PromptForm({ initial = {}, onSubmit, submitting }: Props) {
               modelId === m.id && styles.modelOptionSelected,
             ]}
             onPress={() => setModelId(m.id)}
+            accessibilityRole="radio"
+            accessibilityState={{ selected: modelId === m.id }}
+            accessibilityLabel={m.name}
           >
             <Text
               style={[
@@ -104,17 +125,25 @@ export function PromptForm({ initial = {}, onSubmit, submitting }: Props) {
         value={styleTagsText}
         onChangeText={setStyleTagsText}
         placeholder="e.g. fantasy, dark, neon"
+        placeholderTextColor={colors.textSecondary}
+        accessibilityLabel="Style tags"
+        accessibilityHint="Enter comma separated style tags"
       />
 
       <View style={styles.switchRow}>
         <Text style={styles.label}>Public</Text>
-        <Switch value={isPublic} onValueChange={setIsPublic} />
+        <Switch
+          value={isPublic}
+          onValueChange={setIsPublic}
+          accessibilityLabel="Make prompt public"
+        />
       </View>
 
       <Button
         title={submitting ? 'Saving...' : 'Save'}
         onPress={handleSubmit}
         disabled={submitting}
+        loading={submitting}
         size="lg"
         style={styles.saveButton}
       />
@@ -135,11 +164,23 @@ const styles = StyleSheet.create({
   input: {
     backgroundColor: colors.backgroundSecondary,
     borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.backgroundSecondary,
     padding: spacing.sm,
     marginBottom: spacing.md,
     fontSize: fontSize.md,
     fontFamily: typography.regular,
     color: colors.text,
+  },
+  inputError: {
+    borderColor: colors.error,
+    marginBottom: spacing.xs,
+  },
+  errorText: {
+    fontSize: fontSize.xs,
+    fontFamily: typography.regular,
+    color: colors.error,
+    marginBottom: spacing.md,
   },
   multiLine: {
     height: 80,
@@ -157,6 +198,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.backgroundSecondary,
     marginRight: spacing.sm,
     marginBottom: spacing.sm,
+    minHeight: 44,
+    justifyContent: 'center',
   },
   modelOptionSelected: {
     backgroundColor: colors.primary,

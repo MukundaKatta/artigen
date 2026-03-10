@@ -24,7 +24,7 @@ export async function createInpaintingJob(params: {
 
   if (data) {
     supabase.functions.invoke('inpaint', { body: { job_id: data.id } }).catch((err) => {
-      console.error('[inpainting] edge function failed:', err);
+      console.warn('Inpaint invoke failed:', err);
       supabase.from('inpainting_jobs').update({ status: 'failed', error_message: 'Failed to start processing' }).eq('id', data.id);
     });
   }

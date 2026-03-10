@@ -34,7 +34,7 @@ export async function createRestyleJob(params: {
 
   if (data) {
     supabase.functions.invoke('restyle', { body: { job_id: data.id } }).catch((err) => {
-      console.error('[restyle] edge function failed:', err);
+      console.warn('Restyle invoke failed:', err);
       supabase.from('restyle_jobs').update({ status: 'failed', error_message: 'Failed to start processing' }).eq('id', data.id);
     });
   }

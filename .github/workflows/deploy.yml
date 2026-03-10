@@ -1,0 +1,110 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ── 0. Quality Gate ──────────────────────────────────────
+  quality:
+    name: Quality Gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript type check
+        run: npx tsc --noEmit
+
+  # ── 1. Web Build + Firebase Live Deploy ─────────────────
+  deploy-web:
+    name: Build & Deploy Web (Firebase)
+    runs-on: ubuntu-latest
+    needs: quality
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Validate required secrets
+        run: |
+          if [ -z "${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}" ]; then echo "::error::Missing EXPO_PUBLIC_SUPABASE_URL secret"; exit 1; fi
+          if [ -z "${{ secrets.FIREBASE_SERVICE_ACCOUNT_ARTIGEN_APP }}" ]; then echo "::error::Missing Firebase service account secret"; exit 1; fi
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build web
+        run: npx expo export --platform web
+        env:
+          EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
+
+      - name: Patch HTML (SEO, PWA, mobile CSS)
+        run: node scripts/patch-web-html.js
+
+      - name: Deploy to Firebase Hosting (live)
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_ARTIGEN_APP }}
+          projectId: artigen-app
+          channelId: live
+
+  # ── 2. Supabase Edge Functions Deploy ───────────────────
+  deploy-functions:
+    name: Deploy Supabase Edge Functions
+    runs-on: ubuntu-latest
+    needs: quality
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate required secrets
+        run: |
+          if [ -z "${{ secrets.SUPABASE_ACCESS_TOKEN }}" ]; then echo "::error::Missing SUPABASE_ACCESS_TOKEN secret"; exit 1; fi
+          if [ -z "${{ secrets.SUPABASE_PROJECT_REF }}" ]; then echo "::error::Missing SUPABASE_PROJECT_REF secret"; exit 1; fi
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Deploy all edge functions
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          failed=0
+          for dir in supabase/functions/*/; do
+            func=$(basename "$dir")
+            echo "::group::Deploying $func"
+            if ! supabase functions deploy "$func" \
+              --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}; then
+              echo "::error::Failed to deploy function: $func"
+              failed=1
+            fi
+            echo "::endgroup::"
+          done
+          if [ "$failed" -eq 1 ]; then
+            echo "::error::One or more function deployments failed"
+            exit 1
+          fi

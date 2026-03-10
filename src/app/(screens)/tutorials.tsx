@@ -75,7 +75,7 @@ export default function TutorialsRoute() {
               key={cat.label}
               style={[
                 styles.categoryChip,
-                category === cat.key && styles.categoryChipActive,
+                category === cat.key ? styles.categoryChipActive : undefined,
               ]}
               onPress={() => {
                 if (Platform.OS !== 'web') Haptics.selectionAsync();

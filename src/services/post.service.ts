@@ -201,8 +201,8 @@ export async function createPost({
   }
 
   // Update user streak (fire-and-forget)
-  updateStreak(userId).catch(() => {});
-  checkAndAwardPostBadges(userId).catch(() => {});
+  updateStreak(userId).catch((err) => console.warn('Streak update failed:', err));
+  checkAndAwardPostBadges(userId).catch((err) => console.warn('Badge check failed:', err));
 
   return { data: post, error: null };
 }
