@@ -4,13 +4,13 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  ActivityIndicator,
   TouchableOpacity,
 } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/providers/AuthProvider';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useExhibition } from '@/hooks/useExhibition';
 import { GalleryGrid } from '@/components/exhibitions/GalleryGrid';
 import { SubmissionCard } from '@/components/exhibitions/SubmissionCard';
@@ -34,7 +34,7 @@ export default function ExhibitionDetailRoute() {
     return (
       <View style={styles.container}>
         <Stack.Screen options={{ title: '' }} />
-        <ActivityIndicator style={{ flex: 1 }} size="large" color={colors.primary} />
+        <LoadingSpinner fullScreen />
       </View>
     );
   }
@@ -44,8 +44,11 @@ export default function ExhibitionDetailRoute() {
       <View style={styles.container}>
         <Stack.Screen options={{ title: '' }} />
         <View style={styles.empty}>
-          <Ionicons name="images-outline" size={48} color={colors.border} />
-          <Text style={styles.emptyText}>Exhibition not found</Text>
+          <View style={styles.emptyIcon}>
+            <Ionicons name="images-outline" size={28} color={colors.textSecondary} />
+          </View>
+          <Text style={styles.emptyTitle}>Exhibition not found</Text>
+          <Text style={styles.emptyText}>This exhibition may have been removed</Text>
         </View>
       </View>
     );
@@ -278,14 +281,30 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.lg,
   },
   empty: {
+    flex: 1,
     alignItems: 'center',
+    justifyContent: 'center',
     paddingVertical: spacing.xxxl,
+  },
+  emptyIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: colors.backgroundSecondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.md,
+  },
+  emptyTitle: {
+    fontSize: fontSize.lg,
+    fontFamily: typography.semiBold,
+    color: colors.text,
+    marginBottom: spacing.xs,
   },
   emptyText: {
     fontSize: fontSize.md,
     fontFamily: typography.regular,
     color: colors.textSecondary,
-    marginTop: spacing.md,
   },
   bottomSpacer: {
     height: spacing.xxxl,

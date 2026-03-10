@@ -6,11 +6,11 @@ import {
   TextInput,
   FlatList,
   TouchableOpacity,
-  ActivityIndicator,
 } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/providers/AuthProvider';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { searchUsers } from '@/services/profile.service';
 import { getOrCreateConversation } from '@/services/message.service';
 import { Avatar } from '@/components/ui/Avatar';
@@ -107,18 +107,28 @@ export default function NewMessageRoute() {
       </View>
 
       {creating || searching ? (
-        <ActivityIndicator style={styles.loader} color={colors.textSecondary} />
+        <View style={styles.loader}><LoadingSpinner /></View>
       ) : (
         <FlatList
           data={results}
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
           ListEmptyComponent={
-            query.trim() ? (
-              <Text style={styles.emptyText}>No users found</Text>
-            ) : (
-              <Text style={styles.emptyText}>Search for people to message</Text>
-            )
+            <View style={styles.emptyContainer}>
+              <View style={styles.emptyIcon}>
+                <Ionicons
+                  name={query.trim() ? 'person-outline' : 'search-outline'}
+                  size={28}
+                  color={colors.textSecondary}
+                />
+              </View>
+              <Text style={styles.emptyTitle}>
+                {query.trim() ? 'No users found' : 'Find someone'}
+              </Text>
+              <Text style={styles.emptyText}>
+                {query.trim() ? 'Try a different search term' : 'Search for people to message'}
+              </Text>
+            </View>
           }
         />
       )}
@@ -176,12 +186,31 @@ const styles = StyleSheet.create({
   },
   loader: {
     marginTop: spacing.xxxl,
+    alignItems: 'center',
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    paddingVertical: spacing.xxxl,
+  },
+  emptyIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: colors.backgroundSecondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.md,
+  },
+  emptyTitle: {
+    fontSize: fontSize.lg,
+    fontFamily: typography.semiBold,
+    color: colors.text,
+    marginBottom: spacing.xs,
   },
   emptyText: {
     textAlign: 'center',
     color: colors.textSecondary,
     fontSize: fontSize.md,
-    marginTop: spacing.xxxl,
   },
   groupButton: {
     flexDirection: 'row',

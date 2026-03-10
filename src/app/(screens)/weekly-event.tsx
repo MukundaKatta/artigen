@@ -5,12 +5,12 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  ActivityIndicator,
 } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/providers/AuthProvider';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useWeeklyEvent } from '@/hooks/useWeeklyEvent';
 import { EventCountdown } from '@/components/events/EventCountdown';
 import { formatNumber } from '@/utils/format-number';
@@ -26,7 +26,7 @@ export default function WeeklyEventRoute() {
     return (
       <View style={styles.container}>
         <Stack.Screen options={{ title: 'Weekly Event' }} />
-        <ActivityIndicator style={{ flex: 1 }} color={colors.primary} />
+        <LoadingSpinner fullScreen />
       </View>
     );
   }

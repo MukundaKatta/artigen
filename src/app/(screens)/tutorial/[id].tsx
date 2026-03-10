@@ -4,13 +4,13 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  ActivityIndicator,
   TouchableOpacity,
 } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/providers/AuthProvider';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useTutorial } from '@/hooks/useTutorial';
 import { LessonList } from '@/components/learning/LessonList';
 import { XpBar } from '@/components/learning/XpBar';
@@ -33,7 +33,7 @@ export default function TutorialDetailRoute() {
     return (
       <View style={styles.container}>
         <Stack.Screen options={{ title: '' }} />
-        <ActivityIndicator style={{ flex: 1 }} size="large" color={colors.primary} />
+        <LoadingSpinner fullScreen />
       </View>
     );
   }
@@ -43,8 +43,11 @@ export default function TutorialDetailRoute() {
       <View style={styles.container}>
         <Stack.Screen options={{ title: '' }} />
         <View style={styles.empty}>
-          <Ionicons name="school-outline" size={48} color={colors.border} />
-          <Text style={styles.emptyText}>Tutorial not found</Text>
+          <View style={styles.emptyIcon}>
+            <Ionicons name="school-outline" size={28} color={colors.textSecondary} />
+          </View>
+          <Text style={styles.emptyTitle}>Tutorial not found</Text>
+          <Text style={styles.emptyText}>This tutorial may have been removed</Text>
         </View>
       </View>
     );
@@ -265,14 +268,30 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   empty: {
+    flex: 1,
     alignItems: 'center',
+    justifyContent: 'center',
     paddingVertical: spacing.xxxl,
+  },
+  emptyIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: colors.backgroundSecondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.md,
+  },
+  emptyTitle: {
+    fontSize: fontSize.lg,
+    fontFamily: typography.semiBold,
+    color: colors.text,
+    marginBottom: spacing.xs,
   },
   emptyText: {
     fontSize: fontSize.md,
     fontFamily: typography.regular,
     color: colors.textSecondary,
-    marginTop: spacing.md,
   },
   bottomSpacer: {
     height: spacing.xxxl,

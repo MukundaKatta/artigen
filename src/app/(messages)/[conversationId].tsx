@@ -28,6 +28,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { VoiceRecordButton } from '@/components/messages/VoiceRecordButton';
 import { VoiceMessageBubble } from '@/components/messages/VoiceMessageBubble';
 import { VanishModeToggle, VanishModeBanner } from '@/components/messages/VanishModeToggle';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { getSharedPost } from '@/services/message.service';
 import { sendVoiceMessage } from '@/services/voice.service';
 import { supabase } from '@/lib/supabase';
@@ -249,11 +250,15 @@ export default function ChatRoute() {
           ListHeaderComponent={isOtherTyping ? <TypingIndicator /> : null}
           ListFooterComponent={
             loadingMore ? (
-              <ActivityIndicator color={colors.textSecondary} style={{ padding: spacing.md }} />
+              <View style={{ padding: spacing.md }}><LoadingSpinner /></View>
             ) : null
           }
           ListEmptyComponent={
             <View style={styles.emptyChat}>
+              <View style={styles.emptyChatIcon}>
+                <Ionicons name="chatbubbles-outline" size={32} color={colors.textSecondary} />
+              </View>
+              <Text style={styles.emptyChatTitle}>No messages yet</Text>
               <Text style={styles.emptyChatText}>
                 Send a message to start the conversation
               </Text>
@@ -491,6 +496,21 @@ const styles = StyleSheet.create({
   emptyChat: {
     alignItems: 'center',
     paddingVertical: spacing.xxxl,
+  },
+  emptyChatIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: colors.backgroundSecondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.md,
+  },
+  emptyChatTitle: {
+    fontSize: fontSize.lg,
+    fontFamily: typography.semiBold,
+    color: colors.text,
+    marginBottom: spacing.xs,
   },
   emptyChatText: {
     color: colors.textSecondary,

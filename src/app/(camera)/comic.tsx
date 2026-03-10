@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useRouter, Stack } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '@/providers/AuthProvider';
@@ -220,7 +221,7 @@ export default function ComicGeneratorScreen() {
               {/* Progress header */}
               {phase === 'generating' && (
                 <View style={styles.progressHeader}>
-                  <ActivityIndicator color={colors.primary} />
+                  <LoadingSpinner size="small" color={colors.primary} />
                   <Text style={styles.progressText}>
                     Generating panel {completedCount + 1} of {panelCount}...
                   </Text>
@@ -243,7 +244,7 @@ export default function ComicGeneratorScreen() {
                         <Image source={{ uri: panel.imageUrl }} style={styles.panelImage} contentFit="cover" />
                       ) : panel.generating ? (
                         <View style={styles.panelPlaceholder}>
-                          <ActivityIndicator color={colors.primary} size="small" />
+                          <LoadingSpinner size="small" color={colors.primary} />
                           <Text style={styles.panelGeneratingText}>Generating...</Text>
                         </View>
                       ) : (

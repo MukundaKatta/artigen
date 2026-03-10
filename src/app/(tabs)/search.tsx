@@ -11,11 +11,13 @@ import {
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
   Easing,
+  FadeIn,
 } from 'react-native-reanimated';
 import { Avatar } from '@/components/ui/Avatar';
 import { AnimatedTabBar } from '@/components/ui/AnimatedTabBar';
@@ -89,14 +91,17 @@ export default function SearchRoute() {
   }, [searchBarScale]);
 
   function handlePostPress(postId: string) {
+    if (Platform.OS !== 'web') Haptics.selectionAsync();
     router.push(`/(screens)/post/${postId}`);
   }
 
   function handleUserPress(userId: string) {
+    if (Platform.OS !== 'web') Haptics.selectionAsync();
     router.push(`/(screens)/user/${userId}`);
   }
 
   function handleHashtagPress(name: string) {
+    if (Platform.OS !== 'web') Haptics.selectionAsync();
     router.push(`/(screens)/hashtag/${name}`);
   }
 
@@ -302,8 +307,11 @@ export default function SearchRoute() {
               renderItem={getSearchData().render as any}
               ListEmptyComponent={
                 <View style={styles.emptyContainer}>
-                  <Ionicons name="search-outline" size={48} color={colors.border} />
+                  <View style={styles.emptyIconCircle}>
+                    <Ionicons name="search-outline" size={28} color={colors.textSecondary} />
+                  </View>
                   <Text style={styles.emptyText}>{getEmptyMessage()}</Text>
+                  <Text style={styles.emptySubtext}>Try a different search term</Text>
                 </View>
               }
               keyboardShouldPersistTaps="handled"
@@ -320,7 +328,10 @@ export default function SearchRoute() {
             <View style={styles.filterRow}>
               <TouchableOpacity
                 style={[styles.filterChip, aiOnly && styles.filterChipActive]}
-                onPress={toggleAiOnly}
+                onPress={() => {
+                  if (Platform.OS !== 'web') Haptics.selectionAsync();
+                  toggleAiOnly();
+                }}
               >
                 <Ionicons
                   name="sparkles"
@@ -355,7 +366,9 @@ export default function SearchRoute() {
           </View>
           {explorePosts.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <Ionicons name="compass-outline" size={48} color={colors.border} />
+              <View style={styles.emptyIconCircle}>
+                <Ionicons name="compass-outline" size={32} color={colors.textSecondary} />
+              </View>
               <Text style={styles.emptyText}>No posts to explore yet</Text>
               <Text style={styles.emptySubtext}>Follow creators to discover art</Text>
             </View>
@@ -507,6 +520,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: spacing.xxxl * 2,
+  },
+  emptyIconCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: colors.backgroundSecondary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.md,
   },
   emptyText: {
     textAlign: 'center',

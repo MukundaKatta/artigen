@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  ActivityIndicator,
   TouchableOpacity,
 } from 'react-native';
 import { Image } from 'expo-image';
@@ -13,6 +12,7 @@ import { useAuth } from '@/providers/AuthProvider';
 import { useImagePicker } from '@/hooks/useImagePicker';
 import { createStory } from '@/services/story.service';
 import { showAlert } from '@/utils/alert';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Button } from '@/components/ui/Button';
 import { StickerTray } from '@/components/stories/StickerTray';
 import { SCREEN_WIDTH } from '@/lib/constants';
@@ -67,7 +67,7 @@ export default function NewStoryRoute() {
   if (!imageUri) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator color={colors.textSecondary} />
+        <LoadingSpinner color={colors.textSecondary} />
       </View>
     );
   }

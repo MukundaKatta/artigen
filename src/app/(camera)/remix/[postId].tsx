@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { useAuth } from '@/providers/AuthProvider';
 import { PromptRemixEditor } from '@/components/create/PromptRemixEditor';
@@ -30,7 +31,7 @@ export default function RemixRoute() {
       });
   }, [postId]);
 
-  if (loading) return <ActivityIndicator style={{ flex: 1 }} color={colors.primary} />;
+  if (loading) return <LoadingSpinner fullScreen color={colors.primary} />;
 
   return (
     <ScrollView style={styles.container}>

@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { Stack } from 'expo-router';
 import { useAuth } from '@/providers/AuthProvider';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { SafetySettings } from '@/components/profile/SafetySettings';
 import { useSafetyPreferences } from '@/hooks/useSafetyPreferences';
 import { colors } from '@/lib/theme';
@@ -10,7 +11,7 @@ export default function SafetySettingsRoute() {
   const { user } = useAuth();
   const { prefs, loading, update } = useSafetyPreferences(user?.id);
 
-  if (loading) return <ActivityIndicator style={{ flex: 1 }} color={colors.primary} />;
+  if (loading) return <LoadingSpinner fullScreen />;
 
   return (
     <View style={styles.container}>
