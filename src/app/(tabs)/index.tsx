@@ -171,6 +171,7 @@ export default function HomeRoute() {
       }
       onRefresh={refresh}
       refreshing={refreshing}
+      progressViewOffset={10}
       onEndReached={loadMore}
       onEndReachedThreshold={0.5}
       onScroll={handleScroll}
@@ -178,6 +179,9 @@ export default function HomeRoute() {
       onViewableItemsChanged={onViewableItemsChanged}
       viewabilityConfig={viewabilityConfig}
       showsVerticalScrollIndicator={false}
+      windowSize={7}
+      maxToRenderPerBatch={5}
+      removeClippedSubviews
       style={styles.container}
       contentContainerStyle={{ paddingBottom: 80 }}
     />

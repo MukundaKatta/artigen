@@ -79,6 +79,7 @@ export default function BattlesScreen() {
         onEndReachedThreshold={0.5}
         refreshing={loading}
         onRefresh={refresh}
+        removeClippedSubviews
         ListHeaderComponent={
           <Animated.View entering={FadeInUp.duration(400)}>
             <TouchableOpacity

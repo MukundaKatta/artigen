@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Modal, Pressable, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import Animated, { FadeIn, ZoomIn } from 'react-native-reanimated';
 import { Button } from '@/components/ui/Button';
 import { colors, spacing, fontSize, typography, borderRadius, shadows } from '@/lib/theme';
 
@@ -44,9 +45,10 @@ export function ConfirmDialog({
   if (!visible) return null;
 
   return (
-    <Modal transparent visible={visible} onRequestClose={onClose} animationType="fade">
+    <Modal transparent visible={visible} onRequestClose={onClose} animationType="none">
       <Pressable style={styles.overlay} onPress={onClose}>
-        <Pressable style={styles.dialog} onPress={(e) => e.stopPropagation()}>
+        <Animated.View entering={ZoomIn.springify().damping(20)} style={styles.dialog}>
+          <Pressable onPress={(e) => e.stopPropagation()}>
           {icon && (
             <View style={[styles.iconContainer, destructive && styles.iconDestructive]}>
               <Ionicons
@@ -76,7 +78,8 @@ export function ConfirmDialog({
               textStyle={destructive ? { color: colors.error } : undefined}
             />
           </View>
-        </Pressable>
+          </Pressable>
+        </Animated.View>
       </Pressable>
     </Modal>
   );

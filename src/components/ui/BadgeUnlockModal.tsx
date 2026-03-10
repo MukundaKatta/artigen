@@ -1,13 +1,15 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   StyleSheet,
   Modal,
-  TouchableOpacity,
-  Animated,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import Animated, { ZoomIn, FadeInUp } from 'react-native-reanimated';
+import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
 
 type Badge = {
@@ -25,64 +27,50 @@ type Props = {
 };
 
 export function BadgeUnlockModal({ visible, badge, onClose }: Props) {
-  const scaleAnim = useRef(new Animated.Value(0)).current;
-  const opacityAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    if (visible) {
-      scaleAnim.setValue(0);
-      opacityAnim.setValue(0);
-      Animated.parallel([
-        Animated.spring(scaleAnim, {
-          toValue: 1,
-          friction: 5,
-          tension: 80,
-          useNativeDriver: true,
-        }),
-        Animated.timing(opacityAnim, {
-          toValue: 1,
-          duration: 250,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    }
-  }, [visible, scaleAnim, opacityAnim]);
-
   if (!badge) return null;
 
   return (
     <Modal
       visible={visible}
       transparent
-      animationType="none"
+      animationType="fade"
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
-        <Animated.View
-          style={[
-            styles.card,
-            {
-              opacity: opacityAnim,
-              transform: [{ scale: scaleAnim }],
-            },
-          ]}
-        >
-          <View style={styles.iconContainer}>
+        <Animated.View entering={ZoomIn.springify().damping(12)} style={styles.card}>
+          <Animated.View entering={ZoomIn.delay(200).springify().damping(8)} style={styles.iconContainer}>
             <Ionicons
               name={badge.icon as any}
               size={48}
               color={colors.primary}
             />
-          </View>
+          </Animated.View>
 
-          <Text style={styles.title}>Badge Unlocked!</Text>
-          <Text style={styles.badgeName}>{badge.name}</Text>
-          <Text style={styles.description}>{badge.description}</Text>
-          <Text style={styles.category}>{badge.category}</Text>
+          <Animated.Text entering={FadeInUp.delay(300).duration(300)} style={styles.title}>
+            Badge Unlocked!
+          </Animated.Text>
+          <Animated.Text entering={FadeInUp.delay(400).duration(300)} style={styles.badgeName}>
+            {badge.name}
+          </Animated.Text>
+          <Animated.Text entering={FadeInUp.delay(500).duration(300)} style={styles.description}>
+            {badge.description}
+          </Animated.Text>
+          <Animated.Text entering={FadeInUp.delay(600).duration(300)} style={styles.category}>
+            {badge.category}
+          </Animated.Text>
 
-          <TouchableOpacity style={styles.button} onPress={onClose}>
-            <Text style={styles.buttonText}>Got it</Text>
-          </TouchableOpacity>
+          <Animated.View entering={FadeInUp.delay(700).duration(300)}>
+            <AnimatedPressable
+              style={styles.button}
+              onPress={() => {
+                if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                onClose();
+              }}
+              scaleValue={0.95}
+            >
+              <Text style={styles.buttonText}>Got it</Text>
+            </AnimatedPressable>
+          </Animated.View>
         </Animated.View>
       </View>
     </Modal>

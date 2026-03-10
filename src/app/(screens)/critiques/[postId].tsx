@@ -90,9 +90,12 @@ export default function CritiquesScreen() {
       onEndReachedThreshold={0.3}
       onRefresh={refresh}
       refreshing={false}
+      removeClippedSubviews
       ListEmptyComponent={
         <View style={styles.emptyContainer}>
-          <Ionicons name="chatbubbles-outline" size={48} color={colors.textSecondary} />
+          <View style={styles.emptyIconCircle}>
+            <Ionicons name="chatbubbles-outline" size={32} color={colors.textSecondary} />
+          </View>
           <Text style={styles.emptyText}>No critiques yet</Text>
           <Text style={styles.emptySubtext}>Be the first to share your feedback on this artwork!</Text>
         </View>
@@ -146,6 +149,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing.xxxl,
     gap: spacing.sm,
+  },
+  emptyIconCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: colors.backgroundSecondary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
   },
   emptyText: {
     fontSize: fontSize.lg,

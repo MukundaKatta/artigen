@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import type { PortfolioItem } from '@/services/portfolio.service';
@@ -35,11 +36,14 @@ export function PortfolioItemCard({ item, onPress, onRemove }: Props) {
         </View>
       )}
       {caption ? (
-        <View style={styles.captionOverlay}>
+        <LinearGradient
+          colors={['transparent', 'rgba(0,0,0,0.7)']}
+          style={styles.captionOverlay}
+        >
           <Text style={styles.captionText} numberOfLines={2}>
             {caption}
           </Text>
-        </View>
+        </LinearGradient>
       ) : null}
       {onRemove ? (
         <TouchableOpacity style={styles.removeButton} onPress={onRemove}>
@@ -72,9 +76,9 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
     paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
+    paddingVertical: spacing.sm,
+    paddingTop: spacing.xl,
   },
   captionText: {
     fontSize: fontSize.xs,
