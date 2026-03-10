@@ -7,7 +7,10 @@ import Animated, {
   withRepeat,
   withTiming,
   withDelay,
+  withSpring,
   Easing,
+  FadeInUp,
+  FadeOutUp,
 } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -227,6 +230,24 @@ export default function HomeRoute() {
       contentContainerStyle={{ paddingBottom: 80 }}
     />
     {showScrollTop && (
+      <Animated.View entering={FadeInUp.duration(300)} exiting={FadeOutUp.duration(200)}>
+        <AnimatedPressable
+          style={styles.newPostsPill}
+          onPress={() => {
+            if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            scrollToTop();
+            refresh();
+          }}
+          scaleValue={0.95}
+          accessibilityLabel="Scroll to top and refresh feed"
+          accessibilityRole="button"
+        >
+          <Ionicons name="arrow-up" size={14} color="#fff" />
+          <Text style={styles.newPostsPillText}>New Posts</Text>
+        </AnimatedPressable>
+      </Animated.View>
+    )}
+    {showScrollTop && (
       <AnimatedPressable
         style={styles.scrollTopButton}
         onPress={() => {
@@ -366,6 +387,24 @@ const styles = StyleSheet.create({
   },
   retryText: {
     fontSize: fontSize.md,
+    fontFamily: typography.semiBold,
+    color: '#fff',
+  },
+  newPostsPill: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 100 : 60,
+    alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.full,
+    ...shadows.md,
+  },
+  newPostsPillText: {
+    fontSize: fontSize.sm,
     fontFamily: typography.semiBold,
     color: '#fff',
   },

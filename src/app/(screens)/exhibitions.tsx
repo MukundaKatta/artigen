@@ -4,11 +4,13 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  TouchableOpacity,
   ScrollView,
+  Platform,
 } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useExhibitions } from '@/hooks/useExhibitions';
 import { ExhibitionCard } from '@/components/exhibitions/ExhibitionCard';
@@ -46,14 +48,17 @@ export default function ExhibitionsRoute() {
         ListHeaderComponent={
           <View>
             {/* Create button */}
-            <TouchableOpacity
+            <AnimatedPressable
               style={styles.createButton}
-              onPress={() => router.push('/(screens)/exhibition/create')}
-              activeOpacity={0.7}
+              onPress={() => {
+                if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push('/(screens)/exhibition/create');
+              }}
+              scaleValue={0.97}
             >
               <Ionicons name="add" size={20} color={colors.textLight} />
               <Text style={styles.createButtonText}>Create Exhibition</Text>
-            </TouchableOpacity>
+            </AnimatedPressable>
 
             {/* Status filter */}
             <ScrollView
@@ -63,14 +68,17 @@ export default function ExhibitionsRoute() {
               style={styles.filters}
             >
               {STATUS_FILTERS.map((f) => (
-                <TouchableOpacity
+                <AnimatedPressable
                   key={f.label}
                   style={[
                     styles.filterChip,
                     statusFilter === f.key && styles.filterChipActive,
                   ]}
-                  onPress={() => filter(f.key as string | undefined)}
-                  activeOpacity={0.7}
+                  onPress={() => {
+                    if (Platform.OS !== 'web') Haptics.selectionAsync();
+                    filter(f.key as string | undefined);
+                  }}
+                  scaleValue={0.92}
                 >
                   <Text
                     style={[
@@ -80,7 +88,7 @@ export default function ExhibitionsRoute() {
                   >
                     {f.label}
                   </Text>
-                </TouchableOpacity>
+                </AnimatedPressable>
               ))}
             </ScrollView>
           </View>

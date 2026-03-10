@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Platform } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { getChallenges, getActiveChallenge } from '@/services/challenge.service';
+import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
 
@@ -60,18 +61,18 @@ export default function ChallengesRoute() {
       <Stack.Screen options={{ title: 'Challenges' }} />
       {active && (
         <Animated.View entering={FadeInUp.duration(400).springify()}>
-          <TouchableOpacity
+          <AnimatedPressable
             style={styles.activeCard}
             onPress={() => {
               if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
               router.push(`/(screens)/challenge/${active.id}`);
             }}
-            activeOpacity={0.7}
+            scaleValue={0.97}
           >
             <View style={styles.activeBadge}><Text style={styles.activeBadgeText}>ACTIVE</Text></View>
             <Text style={styles.activeTitle}>{active.prompt_theme}</Text>
             <Text style={styles.activeHint}>{active.description}</Text>
-          </TouchableOpacity>
+          </AnimatedPressable>
         </Animated.View>
       )}
       <Text style={styles.sectionTitle}>All Challenges</Text>
@@ -80,20 +81,20 @@ export default function ChallengesRoute() {
         keyExtractor={item => item.id}
         renderItem={({ item, index }) => (
           <Animated.View entering={FadeIn.delay(Math.min(index, 8) * 40).duration(300)}>
-            <TouchableOpacity
+            <AnimatedPressable
               style={styles.row}
               onPress={() => {
                 if (Platform.OS !== 'web') Haptics.selectionAsync();
                 router.push(`/(screens)/challenge/${item.id}`);
               }}
-              activeOpacity={0.7}
+              scaleValue={0.98}
             >
               <View style={{ flex: 1 }}>
                 <Text style={styles.rowTitle}>{item.prompt_theme}</Text>
                 <Text style={styles.rowMeta}>daily · {item.date}</Text>
               </View>
               <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
-            </TouchableOpacity>
+            </AnimatedPressable>
           </Animated.View>
         )}
         ListEmptyComponent={
