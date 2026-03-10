@@ -16,7 +16,7 @@ export function StylePresetGrid({ presets, selectedId, onSelect }: Props) {
       contentContainerStyle={styles.grid}
       renderItem={({ item }) => (
         <AnimatedPressable
-          style={[styles.card, selectedId === item.id && styles.cardActive]}
+          style={[styles.card, selectedId === item.id ? styles.cardActive : undefined]}
           onPress={() => {
             if (Platform.OS !== 'web') Haptics.selectionAsync();
             onSelect(item);

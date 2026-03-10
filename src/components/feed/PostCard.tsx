@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -169,8 +169,9 @@ export const PostCard = React.memo(function PostCard({
     setShowActionSheet(true);
   }, []);
 
-  const sortedMedia = [...(post.media || [])].sort(
-    (a, b) => a.sort_order - b.sort_order
+  const sortedMedia = useMemo(
+    () => [...(post.media || [])].sort((a, b) => a.sort_order - b.sort_order),
+    [post.media]
   );
 
   return (
@@ -197,7 +198,7 @@ export const PostCard = React.memo(function PostCard({
             ) : null}
           </View>
         </TouchableOpacity>
-        <TouchableOpacity onPress={handleMore} hitSlop={8}>
+        <TouchableOpacity onPress={handleMore} hitSlop={12} accessibilityRole="button" accessibilityLabel="More options">
           <Ionicons
             name="ellipsis-horizontal"
             size={20}
@@ -290,10 +291,10 @@ export const PostCard = React.memo(function PostCard({
           <TouchableOpacity
             onPress={handleLike}
             onLongPress={handleLongPressLike}
-            hitSlop={8}
+            hitSlop={12}
             style={styles.actionButton}
             accessibilityRole="button"
-            accessibilityLabel={post.isLiked ? 'Unlike' : 'Like'}
+            accessibilityLabel={post.isLiked ? 'Unlike post' : 'Like post'}
             accessibilityState={{ selected: post.isLiked }}
           >
             <Animated.View style={likeButtonStyle}>
@@ -306,10 +307,10 @@ export const PostCard = React.memo(function PostCard({
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => onComment(post.id)}
-            hitSlop={8}
+            hitSlop={12}
             style={styles.actionButton}
             accessibilityRole="button"
-            accessibilityLabel={`${post.comments_count} comments`}
+            accessibilityLabel={`Comment on post, ${post.comments_count} comments`}
           >
             <Ionicons
               name="chatbubble-outline"
@@ -317,7 +318,13 @@ export const PostCard = React.memo(function PostCard({
               color={colors.text}
             />
           </TouchableOpacity>
-          <TouchableOpacity hitSlop={8} style={styles.actionButton} onPress={() => onShare?.(post.id)}>
+          <TouchableOpacity
+            hitSlop={12}
+            style={styles.actionButton}
+            onPress={() => onShare?.(post.id)}
+            accessibilityRole="button"
+            accessibilityLabel="Share post"
+          >
             <Ionicons
               name="paper-plane-outline"
               size={24}
@@ -344,9 +351,9 @@ export const PostCard = React.memo(function PostCard({
           <TouchableOpacity
             onPress={handleSave}
             onLongPress={handleLongPressSave}
-            hitSlop={8}
+            hitSlop={12}
             accessibilityRole="button"
-            accessibilityLabel={post.isSaved ? 'Unsave' : 'Save'}
+            accessibilityLabel={post.isSaved ? 'Unsave post' : 'Save post'}
             accessibilityState={{ selected: post.isSaved }}
           >
             <Animated.View style={saveButtonStyle}>

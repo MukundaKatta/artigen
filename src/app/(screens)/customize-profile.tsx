@@ -70,7 +70,7 @@ export default function CustomizeProfileRoute() {
           {ACCENT_COLORS.map((c) => (
             <AnimatedPressable
               key={c}
-              style={[styles.colorDot, { backgroundColor: c }, accentColor === c && styles.colorSelected]}
+              style={[styles.colorDot, { backgroundColor: c }, accentColor === c ? styles.colorSelected : undefined]}
               onPress={() => {
                 if (Platform.OS !== 'web') Haptics.selectionAsync();
                 setAccentColor(c);

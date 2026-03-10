@@ -1,23 +1,29 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { corsHeaders, jsonResponse, createServiceClient, requireAuth } from '../_shared/auth.ts';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    );
+    // Verify authentication
+    const authResult = await requireAuth(req);
+    if (authResult instanceof Response) return authResult;
 
-    const { sender_id, recipient_id, post_id, amount_cents, message } = await req.json();
+    const supabase = createServiceClient();
+    const { recipient_id, post_id, amount_cents, message } = await req.json();
 
-    if (!sender_id || !recipient_id || !amount_cents || amount_cents <= 0) {
-      return new Response(JSON.stringify({ error: 'Invalid parameters' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    // The sender must be the authenticated user
+    const sender_id = authResult.userId;
+
+    if (!recipient_id || !amount_cents || amount_cents <= 0) {
+      return jsonResponse({ error: 'recipient_id and positive amount_cents required' }, 400);
+    }
+
+    if (sender_id === recipient_id) {
+      return jsonResponse({ error: 'Cannot tip yourself' }, 400);
+    }
+
+    if (!Number.isInteger(amount_cents) || amount_cents > 100000) {
+      return jsonResponse({ error: 'Invalid amount' }, 400);
     }
 
     // Get sender wallet
@@ -28,7 +34,7 @@ Deno.serve(async (req) => {
       .single();
 
     if (!senderWallet || senderWallet.balance_cents < amount_cents) {
-      return new Response(JSON.stringify({ error: 'Insufficient balance' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      return jsonResponse({ error: 'Insufficient balance' }, 400);
     }
 
     // Get or create recipient wallet
@@ -50,11 +56,30 @@ Deno.serve(async (req) => {
     const fee_cents = Math.floor(amount_cents * 0.05); // 5% platform fee
     const net_amount = amount_cents - fee_cents;
 
-    // Debit sender
-    await supabase.from('wallets').update({
-      balance_cents: senderWallet.balance_cents - amount_cents,
-      lifetime_spent_cents: senderWallet.lifetime_spent_cents + amount_cents,
-    }).eq('id', senderWallet.id);
+    // Use RPC for atomic wallet transfer if available, otherwise do sequential updates
+    // Debit sender — use conditional update to prevent race conditions
+    const { error: debitError } = await supabase.rpc('debit_wallet', {
+      p_user_id: sender_id,
+      p_amount: amount_cents,
+    }).single();
+
+    if (debitError) {
+      // Fallback: conditional update ensuring balance is sufficient
+      const { data: updated, error: updateErr } = await supabase
+        .from('wallets')
+        .update({
+          balance_cents: senderWallet.balance_cents - amount_cents,
+          lifetime_spent_cents: senderWallet.lifetime_spent_cents + amount_cents,
+        })
+        .eq('id', senderWallet.id)
+        .gte('balance_cents', amount_cents)
+        .select('id')
+        .single();
+
+      if (updateErr || !updated) {
+        return jsonResponse({ error: 'Insufficient balance' }, 400);
+      }
+    }
 
     // Credit recipient
     await supabase.from('wallets').update({
@@ -70,7 +95,7 @@ Deno.serve(async (req) => {
       fee_cents: 0,
       counterparty_id: recipient_id,
       post_id: post_id || null,
-      description: `Tip to creator`,
+      description: 'Tip to creator',
       status: 'completed',
     }).select('id').single();
 
@@ -81,7 +106,7 @@ Deno.serve(async (req) => {
       fee_cents,
       counterparty_id: sender_id,
       post_id: post_id || null,
-      description: `Tip received`,
+      description: 'Tip received',
       status: 'completed',
     });
 
@@ -103,8 +128,8 @@ Deno.serve(async (req) => {
       post_id: post_id || null,
     });
 
-    return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    return jsonResponse({ success: true });
   } catch (err) {
-    return new Response(JSON.stringify({ error: (err as Error).message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    return jsonResponse({ error: 'Internal server error' }, 500);
   }
 });

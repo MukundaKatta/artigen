@@ -24,7 +24,7 @@ export async function createUpscalingJob(params: {
 
   if (data) {
     supabase.functions.invoke('upscale', { body: { job_id: data.id } }).catch((err) => {
-      console.error('[upscaling] edge function failed:', err);
+      console.warn('Upscale invoke failed:', err);
       supabase.from('upscaling_jobs').update({ status: 'failed', error_message: 'Failed to start processing' }).eq('id', data.id);
     });
   }

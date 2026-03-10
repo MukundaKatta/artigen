@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, PressableProps, ViewStyle } from 'react-native';
+import { Pressable, PressableProps, ViewStyle, StyleProp } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -10,8 +10,8 @@ const AnimatedPress = Animated.createAnimatedComponent(Pressable);
 
 type Props = PressableProps & {
   scaleValue?: number;
-  style?: ViewStyle | ViewStyle[];
-  children: React.ReactNode;
+  style?: StyleProp<ViewStyle>;
+  children?: React.ReactNode;
 };
 
 export function AnimatedPressable({

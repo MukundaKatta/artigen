@@ -128,6 +128,35 @@ export default function HomeRoute() {
     flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
   }, []);
 
+  const onComment = useCallback((postId: string) => {
+    router.push(`/(screens)/comments/${postId}`);
+  }, [router]);
+
+  const onUserPress = useCallback((userId: string) => {
+    router.push(`/(screens)/user/${userId}`);
+  }, [router]);
+
+  const onPostPress = useCallback((postId: string) => {
+    router.push(`/(screens)/post/${postId}`);
+  }, [router]);
+
+  const currentUserId = user?.id || '';
+
+  const renderItem = useCallback(({ item, index }: { item: FeedPost; index: number }) => (
+    <AnimatedListItem index={index}>
+      <PostCard
+        post={item}
+        currentUserId={currentUserId}
+        onLike={toggleLike}
+        onSave={toggleSave}
+        onReaction={toggleReaction}
+        onComment={onComment}
+        onUserPress={onUserPress}
+        onPostPress={onPostPress}
+      />
+    </AnimatedListItem>
+  ), [currentUserId, toggleLike, toggleSave, toggleReaction, onComment, onUserPress, onPostPress]);
+
   if (loading) return <FeedSkeleton />;
 
   if (error && posts.length === 0) {
@@ -140,26 +169,7 @@ export default function HomeRoute() {
       ref={flatListRef}
       data={posts}
       keyExtractor={(item) => item.id}
-      renderItem={({ item, index }) => (
-        <AnimatedListItem index={index}>
-          <PostCard
-            post={item}
-            currentUserId={user?.id || ''}
-            onLike={toggleLike}
-            onSave={toggleSave}
-            onReaction={toggleReaction}
-            onComment={(postId) =>
-              router.push(`/(screens)/comments/${postId}`)
-            }
-            onUserPress={(userId) =>
-              router.push(`/(screens)/user/${userId}`)
-            }
-            onPostPress={(postId) =>
-              router.push(`/(screens)/post/${postId}`)
-            }
-          />
-        </AnimatedListItem>
-      )}
+      renderItem={renderItem}
       ListHeaderComponent={
         <>
           <StoryBar />

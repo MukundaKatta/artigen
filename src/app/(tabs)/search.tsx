@@ -327,7 +327,7 @@ export default function SearchRoute() {
           <View>
             <View style={styles.filterRow}>
               <AnimatedPressable
-                style={[styles.filterChip, aiOnly && styles.filterChipActive]}
+                style={[styles.filterChip, aiOnly ? styles.filterChipActive : undefined]}
                 onPress={() => {
                   if (Platform.OS !== 'web') Haptics.selectionAsync();
                   toggleAiOnly();

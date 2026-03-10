@@ -410,6 +410,9 @@ export default function GenerateRoute() {
               key={tab.key}
               style={[styles.providerTab, providerTab === tab.key && tab.activeStyle]}
               onPress={() => handleProviderSwitch(tab.key as ProviderTab)}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: providerTab === tab.key }}
+              accessibilityLabel={`${tab.label} AI provider`}
             >
               <Ionicons name={tab.icon as any} size={13} color={providerTab === tab.key ? tab.activeColor : tab.inactiveColor} />
               <Text style={[styles.providerTabText, providerTab === tab.key && styles.providerTabTextActive]}>
@@ -485,6 +488,8 @@ export default function GenerateRoute() {
           multiline
           numberOfLines={4}
           textAlignVertical="top"
+          accessibilityLabel="Image generation prompt"
+          accessibilityHint={describeMode ? 'Describe in plain English what you want' : 'Enter a detailed prompt for image generation'}
         />
         {/* AI Prompt Enhancer row */}
         <View style={styles.enhancerRow}>
@@ -584,6 +589,8 @@ export default function GenerateRoute() {
                 minimumTrackTintColor={colors.primary}
                 maximumTrackTintColor={colors.border}
                 thumbTintColor={colors.primary}
+                accessibilityLabel={`Inference steps: ${steps}`}
+                accessibilityRole="adjustable"
               />
             </View>
 
@@ -600,6 +607,8 @@ export default function GenerateRoute() {
                 minimumTrackTintColor={colors.primary}
                 maximumTrackTintColor={colors.border}
                 thumbTintColor={colors.primary}
+                accessibilityLabel={`CFG Scale: ${cfgScale.toFixed(1)}`}
+                accessibilityRole="adjustable"
               />
             </View>
 
@@ -617,11 +626,12 @@ export default function GenerateRoute() {
         )}
 
         <Button
-          title="Generate"
+          title={`Generate${MODEL_CREDITS[selectedModel.id] ? ` · ${MODEL_CREDITS[selectedModel.id]} credits` : ''}`}
           onPress={handleGenerate}
           size="lg"
           style={styles.generateButton}
-          disabled={!prompt.trim()}
+          disabled={!prompt.trim() || generating}
+          loading={generating}
         />
       </ScrollView>
     </KeyboardAvoidingView>

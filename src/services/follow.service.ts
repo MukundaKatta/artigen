@@ -6,9 +6,10 @@ export async function followUser(followerId: string, followingId: string) {
     .from('follows')
     .insert({ follower_id: followerId, following_id: followingId });
 
-  // Create notification (fire-and-forget)
+  // Create notification (fire-and-forget with error logging)
   if (!error) {
-    createNotification({ type: 'follow', senderId: followerId, recipientId: followingId });
+    createNotification({ type: 'follow', senderId: followerId, recipientId: followingId })
+      .catch((err) => console.warn('Failed to create follow notification:', err));
   }
 
   return { error };

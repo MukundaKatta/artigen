@@ -1,36 +1,39 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { corsHeaders, jsonResponse, createServiceClient, requireAuth } from '../_shared/auth.ts';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    );
+    // Verify authentication
+    const authResult = await requireAuth(req);
+    if (authResult instanceof Response) return authResult;
 
+    const supabase = createServiceClient();
     const { job_id } = await req.json();
 
     if (!job_id) {
-      return new Response(JSON.stringify({ error: 'job_id required' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      return jsonResponse({ error: 'job_id required' }, 400);
     }
 
-    // Get the job
+    // Get the job and verify ownership
     const { data: job } = await supabase.from('controlnet_jobs').select('*').eq('id', job_id).single();
     if (!job) {
-      return new Response(JSON.stringify({ error: 'Job not found' }), { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      return jsonResponse({ error: 'Job not found' }, 404);
+    }
+
+    if (job.user_id !== authResult.userId) {
+      return jsonResponse({ error: 'Forbidden' }, 403);
     }
 
     // Update status to processing
-    await supabase.from('controlnet_jobs').update({ status: 'processing' }).eq('id', job_id);
+    await supabase.from('controlnet_jobs').update({ status: 'processing' }).eq('id', job_id).eq('status', 'pending');
 
     // Call Replicate API for ControlNet
-    const replicateToken = Deno.env.get('REPLICATE_API_TOKEN') || '';
+    const replicateToken = Deno.env.get('REPLICATE_API_TOKEN');
+    if (!replicateToken) {
+      await supabase.from('controlnet_jobs').update({ status: 'failed', error_message: 'API not configured', completed_at: new Date().toISOString() }).eq('id', job_id);
+      return jsonResponse({ error: 'API not configured' }, 500);
+    }
 
     try {
       const response = await fetch('https://api.replicate.com/v1/predictions', {
@@ -49,7 +52,7 @@ Deno.serve(async (req) => {
         }),
       });
 
-      if (!response.ok) throw new Error('API call failed');
+      if (!response.ok) throw new Error(`API error: ${response.status}`);
 
       const { output: result_url } = await response.json();
 
@@ -58,16 +61,16 @@ Deno.serve(async (req) => {
         result_image_url: Array.isArray(result_url) ? result_url[0] : result_url,
         completed_at: new Date().toISOString(),
       }).eq('id', job_id);
-    } catch {
+    } catch (apiErr) {
       await supabase.from('controlnet_jobs').update({
         status: 'failed',
-        error_message: 'ControlNet API unavailable',
+        error_message: (apiErr as Error).message || 'ControlNet API unavailable',
         completed_at: new Date().toISOString(),
       }).eq('id', job_id);
     }
 
-    return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    return jsonResponse({ success: true });
   } catch (err) {
-    return new Response(JSON.stringify({ error: (err as Error).message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    return jsonResponse({ error: 'Internal server error' }, 500);
   }
 });

@@ -177,7 +177,7 @@ export default function NewPostRoute() {
 
     // Link post to challenge if applicable
     if (!error && postData && challengeId && (postData as any).id) {
-      await submitEntry(challengeId, (postData as any).id, user.id).catch(() => {});
+      await submitEntry(challengeId, (postData as any).id, user.id).catch((err) => console.warn('Challenge entry submission failed:', err));
     }
 
     setSharing(false);

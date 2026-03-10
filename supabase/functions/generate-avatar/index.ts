@@ -1,29 +1,19 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { corsHeaders, jsonResponse, createServiceClient, requireAuth } from '../_shared/auth.ts';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    );
+    const authResult = await requireAuth(req);
+    if (authResult instanceof Response) return authResult;
 
+    const supabase = createServiceClient();
     const { job_id } = await req.json();
 
     if (!job_id) {
-      return new Response(JSON.stringify({ error: 'job_id required' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return jsonResponse({ error: 'job_id required' }, 400);
     }
 
-    // Get the job
     const { data: job } = await supabase
       .from('avatar_generation_jobs')
       .select('*')
@@ -31,17 +21,18 @@ Deno.serve(async (req) => {
       .single();
 
     if (!job) {
-      return new Response(JSON.stringify({ error: 'Job not found' }), {
-        status: 404,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return jsonResponse({ error: 'Job not found' }, 404);
     }
 
-    // Update status to processing
+    if (job.user_id !== authResult.userId) {
+      return jsonResponse({ error: 'Forbidden' }, 403);
+    }
+
     await supabase
       .from('avatar_generation_jobs')
       .update({ status: 'processing' })
-      .eq('id', job_id);
+      .eq('id', job_id)
+      .eq('status', 'pending');
 
     // Build style prompt based on the selected style
     const stylePrompts: Record<string, string> = {
@@ -62,8 +53,12 @@ Deno.serve(async (req) => {
       ? `${stylePrompt}, ${job.prompt_modifier}`
       : stylePrompt;
 
-    // Call Replicate API (e.g., tencentarc/photomaker)
     const replicateApiToken = Deno.env.get('REPLICATE_API_TOKEN') || '';
+    if (!replicateApiToken) {
+      await supabase.from('avatar_generation_jobs').update({ status: 'failed', error_message: 'API not configured', completed_at: new Date().toISOString() }).eq('id', job_id);
+      return jsonResponse({ error: 'API not configured' }, 500);
+    }
+
     const replicateModelUrl =
       Deno.env.get('REPLICATE_AVATAR_MODEL_URL') ||
       'https://api.replicate.com/v1/predictions';
@@ -86,14 +81,13 @@ Deno.serve(async (req) => {
         }),
       });
 
-      if (!response.ok) throw new Error('Replicate API call failed');
+      if (!response.ok) throw new Error(`API error: ${response.status}`);
 
       const prediction = await response.json();
 
-      // Poll for prediction completion
       let resultUrls: string[] = [];
       let attempts = 0;
-      const maxAttempts = 60; // 5 minutes at 5s intervals
+      const maxAttempts = 60;
 
       while (attempts < maxAttempts) {
         await new Promise((resolve) => setTimeout(resolve, 5000));
@@ -101,9 +95,7 @@ Deno.serve(async (req) => {
 
         const pollResponse = await fetch(
           `https://api.replicate.com/v1/predictions/${prediction.id}`,
-          {
-            headers: { Authorization: `Token ${replicateApiToken}` },
-          }
+          { headers: { Authorization: `Token ${replicateApiToken}` } }
         );
 
         const pollData = await pollResponse.json();
@@ -141,13 +133,8 @@ Deno.serve(async (req) => {
         .eq('id', job_id);
     }
 
-    return new Response(JSON.stringify({ success: true }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return jsonResponse({ success: true });
   } catch (err) {
-    return new Response(JSON.stringify({ error: (err as Error).message }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return jsonResponse({ error: 'Internal server error' }, 500);
   }
 });

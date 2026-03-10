@@ -1,37 +1,37 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { corsHeaders, jsonResponse, createServiceClient, requireAuth } from '../_shared/auth.ts';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    );
+    const authResult = await requireAuth(req);
+    if (authResult instanceof Response) return authResult;
 
+    const supabase = createServiceClient();
     const { job_id } = await req.json();
 
     if (!job_id) {
-      return new Response(JSON.stringify({ error: 'job_id required' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      return jsonResponse({ error: 'job_id required' }, 400);
     }
 
-    // Get the job
     const { data: job } = await supabase.from('text_to_3d_jobs').select('*').eq('id', job_id).single();
     if (!job) {
-      return new Response(JSON.stringify({ error: 'Job not found' }), { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      return jsonResponse({ error: 'Job not found' }, 404);
     }
 
-    // Update status to processing
-    await supabase.from('text_to_3d_jobs').update({ status: 'processing' }).eq('id', job_id);
+    if (job.user_id !== authResult.userId) {
+      return jsonResponse({ error: 'Forbidden' }, 403);
+    }
 
-    // Call Text-to-3D API (Replicate/Meshy)
+    await supabase.from('text_to_3d_jobs').update({ status: 'processing' }).eq('id', job_id).eq('status', 'pending');
+
     const apiUrl = Deno.env.get('TEXT_TO_3D_API_URL') || 'https://api.replicate.com/v1/predictions';
-    const apiKey = Deno.env.get('REPLICATE_API_KEY') || '';
+    const apiKey = Deno.env.get('REPLICATE_API_KEY') || Deno.env.get('REPLICATE_API_TOKEN') || '';
+
+    if (!apiKey) {
+      await supabase.from('text_to_3d_jobs').update({ status: 'failed', error_message: 'API not configured', completed_at: new Date().toISOString() }).eq('id', job_id);
+      return jsonResponse({ error: 'API not configured' }, 500);
+    }
 
     try {
       const response = await fetch(apiUrl, {
@@ -50,14 +50,13 @@ Deno.serve(async (req) => {
         }),
       });
 
-      if (!response.ok) throw new Error('Text-to-3D API call failed');
+      if (!response.ok) throw new Error(`API error: ${response.status}`);
 
       const prediction = await response.json();
 
-      // Poll for completion (Replicate async pattern)
       let result = prediction;
       let attempts = 0;
-      const maxAttempts = 120; // 10 minutes max for 3D generation
+      const maxAttempts = 120;
 
       while (result.status !== 'succeeded' && result.status !== 'failed' && attempts < maxAttempts) {
         await new Promise((resolve) => setTimeout(resolve, 5000));
@@ -69,7 +68,6 @@ Deno.serve(async (req) => {
       }
 
       if (result.status === 'succeeded' && result.output) {
-        // Output format depends on the model — typically has model URL and/or thumbnail
         const output = result.output;
         const modelUrl = typeof output === 'string'
           ? output
@@ -95,8 +93,8 @@ Deno.serve(async (req) => {
       }).eq('id', job_id);
     }
 
-    return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    return jsonResponse({ success: true });
   } catch (err) {
-    return new Response(JSON.stringify({ error: (err as Error).message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    return jsonResponse({ error: 'Internal server error' }, 500);
   }
 });
