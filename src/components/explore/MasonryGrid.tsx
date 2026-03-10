@@ -1,9 +1,10 @@
 import React, { useMemo, useCallback, useRef } from 'react';
-import { View, StyleSheet, ActivityIndicator, ScrollView, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
+import { View, StyleSheet, ScrollView, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { SCREEN_WIDTH } from '@/lib/constants';
 import { colors, spacing, borderRadius } from '@/lib/theme';
 import type { PostMedia } from '@/types/database';
@@ -133,7 +134,7 @@ export function MasonryGrid({ posts, onPostPress, onEndReached, loading }: Props
       </View>
       {loading && (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="small" color={colors.primary} />
+          <LoadingSpinner size="small" color={colors.primary} />
         </View>
       )}
     </ScrollView>

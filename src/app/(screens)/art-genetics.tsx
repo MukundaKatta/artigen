@@ -13,6 +13,7 @@ import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, Stack } from 'expo-router';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useAuth } from '@/providers/AuthProvider';
 import { breedArtworks, saveOffspringPost } from '@/services/art-genetics.service';
 import type { BreedResult } from '@/services/art-genetics.service';
@@ -175,7 +176,7 @@ export default function ArtGeneticsScreen() {
             {/* Animated DNA helix representation */}
             <View style={styles.dnaAnimation}>
               <View style={styles.dnaStrandA} />
-              <ActivityIndicator color="#833AB4" size="large" />
+              <LoadingSpinner size="large" color="#833AB4" />
               <View style={styles.dnaStrandB} />
             </View>
             <Text style={styles.breedingTitle}>Combining genetic material...</Text>

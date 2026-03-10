@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { useAuth } from '@/providers/AuthProvider';
 import { useText3D } from '@/hooks/useText3D';
 import { Text3DPreview } from '@/components/3d/Text3DPreview';
 import { Text3DPromptInput } from '@/components/3d/Text3DPromptInput';
 import { Button } from '@/components/ui/Button';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
 
 export default function TextTo3DScreen() {
@@ -31,7 +32,7 @@ export default function TextTo3DScreen() {
 
       {job?.status === 'processing' && (
         <View style={styles.processingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
+          <LoadingSpinner size="large" color={colors.primary} />
           <Text style={styles.processingText}>Generating your 3D model...</Text>
           <Text style={styles.processingSubtext}>This may take a few minutes</Text>
         </View>

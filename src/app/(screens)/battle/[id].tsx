@@ -180,9 +180,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  loader: {
-    flex: 1,
-  },
   scroll: {
     paddingBottom: spacing.xxxl,
   },

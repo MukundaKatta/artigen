@@ -1,11 +1,12 @@
 import React, { useState, useRef, useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TextInput, Pressable,
-  KeyboardAvoidingView, Platform, ActivityIndicator,
+  KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useAuth } from '@/providers/AuthProvider';
 import { chatMessage, TEXT_AI_PROVIDERS } from '@/services/text-ai.service';
 import type { TextAIProvider, ChatMessage } from '@/services/text-ai.service';
@@ -146,7 +147,7 @@ export default function AIAssistantScreen() {
                 <Ionicons name="sparkles" size={14} color={colors.primary} />
               </View>
               <View style={styles.aiBubbleContent}>
-                <ActivityIndicator size="small" color={colors.primary} />
+                <LoadingSpinner size="small" color={colors.primary} />
               </View>
             </View>
           )}

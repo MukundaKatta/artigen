@@ -36,8 +36,11 @@ export default function WeeklyEventRoute() {
       <View style={styles.container}>
         <Stack.Screen options={{ title: 'Weekly Event' }} />
         <View style={styles.empty}>
-          <Ionicons name="flame-outline" size={48} color={colors.border} />
-          <Text style={styles.emptyText}>No active weekly event</Text>
+          <View style={styles.emptyIcon}>
+            <Ionicons name="flame-outline" size={28} color={colors.textSecondary} />
+          </View>
+          <Text style={styles.emptyTitle}>No active weekly event</Text>
+          <Text style={styles.emptyText}>Check back soon for the next event</Text>
         </View>
       </View>
     );
@@ -154,8 +157,11 @@ export default function WeeklyEventRoute() {
         contentContainerStyle={styles.list}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Ionicons name="images-outline" size={48} color={colors.border} />
-            <Text style={styles.emptyText}>No entries yet. Be the first!</Text>
+            <View style={styles.emptyIcon}>
+              <Ionicons name="images-outline" size={28} color={colors.textSecondary} />
+            </View>
+            <Text style={styles.emptyTitle}>No entries yet</Text>
+            <Text style={styles.emptyText}>Be the first to submit your artwork!</Text>
           </View>
         }
       />
@@ -323,10 +329,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing.xxxl,
   },
+  emptyIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: colors.backgroundSecondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.md,
+  },
+  emptyTitle: {
+    fontSize: fontSize.lg,
+    fontFamily: typography.semiBold,
+    color: colors.text,
+    marginBottom: spacing.xs,
+  },
   emptyText: {
     fontSize: fontSize.md,
     fontFamily: typography.regular,
     color: colors.textSecondary,
-    marginTop: spacing.md,
   },
 });

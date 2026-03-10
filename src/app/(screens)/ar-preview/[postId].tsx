@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  ActivityIndicator,
 } from 'react-native';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,6 +13,7 @@ import { ARPreviewView } from '@/components/ar/ARPreviewView';
 import { FrameStylePicker } from '@/components/ar/FrameStylePicker';
 import { SizeControls } from '@/components/ar/SizeControls';
 import { Button } from '@/components/ui/Button';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { supabase } from '@/lib/supabase';
 import type { FrameStyle } from '@/services/ar-preview.service';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
@@ -73,7 +73,7 @@ export default function ARPreviewRoute() {
     return (
       <View style={styles.center}>
         <Stack.Screen options={{ title: 'AR Preview' }} />
-        <ActivityIndicator color={colors.primary} size="large" />
+        <LoadingSpinner size="large" color={colors.primary} />
       </View>
     );
   }

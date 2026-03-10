@@ -6,11 +6,11 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
-  ActivityIndicator,
 } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/providers/AuthProvider';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useWorkflow } from '@/hooks/useWorkflow';
 import { WorkflowStepList } from '@/components/workflows/WorkflowStepList';
 import { Avatar } from '@/components/ui/Avatar';
@@ -48,7 +48,7 @@ export default function WorkflowDetailScreen() {
     return (
       <View style={styles.container}>
         <Stack.Screen options={{ title: 'Workflow' }} />
-        <ActivityIndicator style={styles.loader} color={colors.primary} />
+        <LoadingSpinner fullScreen />
       </View>
     );
   }

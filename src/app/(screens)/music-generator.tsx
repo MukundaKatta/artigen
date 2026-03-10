@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import Slider from '@react-native-community/slider';
 import { useRouter, Stack } from 'expo-router';
 import { useAuth } from '@/providers/AuthProvider';
@@ -7,6 +7,7 @@ import { useAiMusic } from '@/hooks/useAiMusic';
 import { MoodPicker } from '@/components/music/MoodPicker';
 import { MusicPlayer } from '@/components/music/MusicPlayer';
 import { Button } from '@/components/ui/Button';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Input } from '@/components/ui/Input';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
 
@@ -64,7 +65,7 @@ export default function MusicGeneratorScreen() {
 
       {job?.status === 'processing' && (
         <View style={styles.processingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
+          <LoadingSpinner size="large" color={colors.primary} />
           <Text style={styles.processingText}>Generating your music...</Text>
         </View>
       )}

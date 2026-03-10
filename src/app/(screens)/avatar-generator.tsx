@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   Alert,
   Modal,
-  ActivityIndicator,
   Dimensions,
 } from 'react-native';
 import { Image } from 'expo-image';
@@ -170,7 +169,7 @@ export default function AvatarGeneratorScreen() {
         <View style={styles.jobSection}>
           {(job.status === 'pending' || job.status === 'processing') && (
             <View style={styles.progressContainer}>
-              <ActivityIndicator size="large" color={colors.primary} />
+              <LoadingSpinner size="large" color={colors.primary} />
               <Text style={styles.progressText}>
                 {job.status === 'pending' ? 'Queued...' : 'Generating your avatars...'}
               </Text>

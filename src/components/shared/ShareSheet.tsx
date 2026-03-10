@@ -13,6 +13,7 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Avatar } from '@/components/ui/Avatar';
 import { colors, fontSize, spacing, typography, borderRadius } from '@/lib/theme';
 import { searchUsers } from '@/services/profile.service';
@@ -106,7 +107,9 @@ export function ShareSheet({
           </View>
 
           {searching && (
-            <ActivityIndicator style={{ padding: spacing.md }} color={colors.textSecondary} />
+            <View style={{ padding: spacing.md }}>
+              <LoadingSpinner size="small" color={colors.textSecondary} />
+            </View>
           )}
 
           <FlatList
