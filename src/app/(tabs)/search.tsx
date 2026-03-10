@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TextInput,
   FlatList,
-  TouchableOpacity,
   Platform,
 } from 'react-native';
 import { Image } from 'expo-image';
@@ -19,6 +18,7 @@ import Animated, {
   Easing,
   FadeIn,
 } from 'react-native-reanimated';
+import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { Avatar } from '@/components/ui/Avatar';
 import { AnimatedTabBar } from '@/components/ui/AnimatedTabBar';
 import { UserRowSkeleton } from '@/components/ui/Skeleton';
@@ -113,9 +113,9 @@ export default function SearchRoute() {
     const isAi = !!(item as any).ai_metadata;
 
     return (
-      <TouchableOpacity
+      <AnimatedPressable
         onPress={() => handlePostPress(item.id)}
-        activeOpacity={0.8}
+        scaleValue={0.97}
       >
         <View style={styles.gridItem}>
           <Image
@@ -140,17 +140,17 @@ export default function SearchRoute() {
             </View>
           )}
         </View>
-      </TouchableOpacity>
+      </AnimatedPressable>
     );
   }
 
   // Search result renderers
   function renderUserItem({ item }: { item: (typeof searchResultUsers)[0] }) {
     return (
-      <TouchableOpacity
+      <AnimatedPressable
         style={styles.userRow}
         onPress={() => handleUserPress(item.id)}
-        activeOpacity={0.6}
+        scaleValue={0.98}
       >
         <Avatar uri={item.avatar_url} size="md" />
         <View style={styles.userInfo}>
@@ -162,16 +162,16 @@ export default function SearchRoute() {
           </View>
           <Text style={styles.fullName} numberOfLines={1}>{item.full_name}</Text>
         </View>
-      </TouchableOpacity>
+      </AnimatedPressable>
     );
   }
 
   function renderHashtagItem({ item }: { item: { id: string; name: string; post_count: number } }) {
     return (
-      <TouchableOpacity
+      <AnimatedPressable
         style={styles.userRow}
         onPress={() => handleHashtagPress(item.name)}
-        activeOpacity={0.6}
+        scaleValue={0.98}
       >
         <View style={styles.hashtagIcon}>
           <Text style={styles.hashSymbol}>#</Text>
@@ -180,7 +180,7 @@ export default function SearchRoute() {
           <Text style={styles.username}>#{item.name}</Text>
           <Text style={styles.fullName}>{formatNumber(item.post_count)} posts</Text>
         </View>
-      </TouchableOpacity>
+      </AnimatedPressable>
     );
   }
 
@@ -188,10 +188,10 @@ export default function SearchRoute() {
     const firstMedia = item.media?.[0];
     const isAi = !!(item as any).ai_metadata;
     return (
-      <TouchableOpacity
+      <AnimatedPressable
         style={styles.userRow}
         onPress={() => handlePostPress(item.id)}
-        activeOpacity={0.6}
+        scaleValue={0.98}
       >
         <Image
           source={{ uri: firstMedia?.media_url }}
@@ -211,7 +211,7 @@ export default function SearchRoute() {
             {item.caption || 'No caption'}
           </Text>
         </View>
-      </TouchableOpacity>
+      </AnimatedPressable>
     );
   }
 
@@ -219,10 +219,10 @@ export default function SearchRoute() {
     const firstMedia = item.media?.[0];
     const aiMeta = (item as any).ai_metadata;
     return (
-      <TouchableOpacity
+      <AnimatedPressable
         style={styles.userRow}
         onPress={() => handlePostPress(item.id)}
-        activeOpacity={0.6}
+        scaleValue={0.98}
       >
         <Image
           source={{ uri: firstMedia?.media_url }}
@@ -240,7 +240,7 @@ export default function SearchRoute() {
             {aiMeta?.prompt || 'No prompt'}
           </Text>
         </View>
-      </TouchableOpacity>
+      </AnimatedPressable>
     );
   }
 
@@ -282,9 +282,9 @@ export default function SearchRoute() {
             returnKeyType="search"
           />
           {query.length > 0 && (
-            <TouchableOpacity onPress={clearSearch} hitSlop={8}>
+            <AnimatedPressable onPress={clearSearch} scaleValue={0.85}>
               <Ionicons name="close-circle" size={18} color={colors.textSecondary} />
-            </TouchableOpacity>
+            </AnimatedPressable>
           )}
           <VisualSearchButton onPress={() => router.push('/(screens)/visual-search')} />
         </View>
@@ -326,12 +326,13 @@ export default function SearchRoute() {
         <View style={{ flex: 1 }}>
           <View>
             <View style={styles.filterRow}>
-              <TouchableOpacity
+              <AnimatedPressable
                 style={[styles.filterChip, aiOnly && styles.filterChipActive]}
                 onPress={() => {
                   if (Platform.OS !== 'web') Haptics.selectionAsync();
                   toggleAiOnly();
                 }}
+                scaleValue={0.92}
               >
                 <Ionicons
                   name="sparkles"
@@ -341,21 +342,29 @@ export default function SearchRoute() {
                 <Text style={[styles.filterChipText, aiOnly && styles.filterChipTextActive]}>
                   AI Only
                 </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
+              </AnimatedPressable>
+              <AnimatedPressable
                 style={styles.filterChip}
-                onPress={() => router.push('/(screens)/trending')}
+                onPress={() => {
+                  if (Platform.OS !== 'web') Haptics.selectionAsync();
+                  router.push('/(screens)/trending');
+                }}
+                scaleValue={0.92}
               >
                 <Ionicons name="trending-up" size={14} color={colors.primary} />
                 <Text style={styles.filterChipText}>Trending</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
+              </AnimatedPressable>
+              <AnimatedPressable
                 style={styles.filterChip}
-                onPress={() => router.push('/(screens)/communities')}
+                onPress={() => {
+                  if (Platform.OS !== 'web') Haptics.selectionAsync();
+                  router.push('/(screens)/communities');
+                }}
+                scaleValue={0.92}
               >
                 <Ionicons name="people" size={14} color={colors.primary} />
                 <Text style={styles.filterChipText}>Communities</Text>
-              </TouchableOpacity>
+              </AnimatedPressable>
             </View>
             {trendingStyles.length > 0 && (
               <TrendingStyleChips styles_data={trendingStyles} onSelect={(s: string) => search(s)} />

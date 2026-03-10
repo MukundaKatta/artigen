@@ -4,14 +4,14 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  TouchableOpacity,
   ScrollView,
   Platform,
 } from 'react-native';
 import { Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import Animated, { FadeIn } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
+import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { useAuth } from '@/providers/AuthProvider';
 import { useTutorials } from '@/hooks/useTutorials';
 import { useXp } from '@/hooks/useXp';
@@ -58,9 +58,9 @@ export default function TutorialsRoute() {
       <View>
         {/* XP Bar */}
         {xp && (
-          <View style={styles.xpSection}>
+          <Animated.View entering={FadeInUp.duration(400)} style={styles.xpSection}>
             <XpBar totalXp={xp.total_xp} level={level} xpToNext={xpToNext} />
-          </View>
+          </Animated.View>
         )}
 
         {/* Category filter */}
@@ -71,7 +71,7 @@ export default function TutorialsRoute() {
           style={styles.categories}
         >
           {CATEGORIES.map((cat) => (
-            <TouchableOpacity
+            <AnimatedPressable
               key={cat.label}
               style={[
                 styles.categoryChip,
@@ -81,7 +81,7 @@ export default function TutorialsRoute() {
                 if (Platform.OS !== 'web') Haptics.selectionAsync();
                 filterByCategory(cat.key as string | undefined);
               }}
-              activeOpacity={0.7}
+              scaleValue={0.92}
             >
               <Text
                 style={[
@@ -91,7 +91,7 @@ export default function TutorialsRoute() {
               >
                 {cat.label}
               </Text>
-            </TouchableOpacity>
+            </AnimatedPressable>
           ))}
         </ScrollView>
 

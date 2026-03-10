@@ -12,6 +12,7 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Stack, useRouter } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 import { useAuth } from '@/providers/AuthProvider';
 import { generateImage } from '@/services/ai.service';
 import { buildAmbientPrompt, AMBIENT_INTERVALS } from '@/services/ambient.service';
@@ -210,7 +211,10 @@ export default function AmbientModeScreen() {
                     <Pressable
                       key={opt.value}
                       style={[styles.intervalChip, interval === opt.value && styles.intervalChipActive]}
-                      onPress={() => setInterval_(opt.value)}
+                      onPress={() => {
+                        if (Platform.OS !== 'web') Haptics.selectionAsync();
+                        setInterval_(opt.value);
+                      }}
                     >
                       <Text style={[styles.intervalChipText, interval === opt.value && styles.intervalChipTextActive]}>
                         {opt.label}
@@ -224,7 +228,10 @@ export default function AmbientModeScreen() {
             {/* Start / Stop */}
             <Pressable
               style={[styles.mainButton, isRunning && styles.mainButtonStop]}
-              onPress={isRunning ? stopAmbient : startAmbient}
+              onPress={() => {
+                if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                (isRunning ? stopAmbient : startAmbient)();
+              }}
             >
               {isRunning ? (
                 <>
@@ -241,7 +248,10 @@ export default function AmbientModeScreen() {
 
             {/* Force generate now */}
             {isRunning && !generating && (
-              <Pressable style={styles.nowButton} onPress={generateNext}>
+              <Pressable style={styles.nowButton} onPress={() => {
+                if (Platform.OS !== 'web') Haptics.selectionAsync();
+                generateNext();
+              }}>
                 <Ionicons name="refresh" size={16} color="rgba(255,255,255,0.8)" />
                 <Text style={styles.nowButtonText}>Generate now</Text>
               </Pressable>

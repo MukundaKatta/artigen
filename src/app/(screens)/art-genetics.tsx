@@ -8,10 +8,14 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as Haptics from 'expo-haptics';
+import Animated, { FadeInUp } from 'react-native-reanimated';
+import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { useRouter, Stack } from 'expo-router';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useAuth } from '@/providers/AuthProvider';
@@ -139,7 +143,10 @@ export default function ArtGeneticsScreen() {
 
             <Pressable
               style={[styles.breedBtn, (!postIdA.trim() || !postIdB.trim()) && styles.breedBtnDisabled]}
-              onPress={handleBreed}
+              onPress={() => {
+                if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+                handleBreed();
+              }}
               disabled={!postIdA.trim() || !postIdB.trim()}
             >
               <LinearGradient
@@ -188,14 +195,19 @@ export default function ArtGeneticsScreen() {
 
         {phase === 'result' && result && (
           <>
-            <Text style={styles.resultTitle}>🎉 Offspring Created</Text>
+            <Animated.View entering={FadeInUp.duration(400)}>
+              <Text style={styles.resultTitle}>🎉 Offspring Created</Text>
+            </Animated.View>
 
             {/* Offspring artwork */}
-            <Image
-              source={{ uri: result.imageUrl }}
-              style={styles.offspringImage}
-              contentFit="cover"
-            />
+            <Animated.View entering={FadeInUp.delay(100).duration(500)}>
+              <Image
+                source={{ uri: result.imageUrl }}
+                style={styles.offspringImage}
+                contentFit="cover"
+                transition={400}
+              />
+            </Animated.View>
 
             {/* Genetic traits */}
             <Text style={styles.sectionTitle}>Inherited Traits</Text>
@@ -226,12 +238,26 @@ export default function ArtGeneticsScreen() {
             </View>
 
             {/* Actions */}
-            <View style={styles.actionRow}>
-              <Pressable style={styles.resetBtn} onPress={handleReset}>
+            <Animated.View entering={FadeInUp.delay(300).duration(400)} style={styles.actionRow}>
+              <AnimatedPressable
+                style={styles.resetBtn}
+                onPress={() => {
+                  if (Platform.OS !== 'web') Haptics.selectionAsync();
+                  handleReset();
+                }}
+                scaleValue={0.95}
+              >
                 <Ionicons name="refresh" size={18} color={colors.text} />
                 <Text style={styles.resetBtnText}>Breed Again</Text>
-              </Pressable>
-              <Pressable style={styles.saveBtn} onPress={handleSave} disabled={saving}>
+              </AnimatedPressable>
+              <AnimatedPressable
+                style={styles.saveBtn}
+                onPress={() => {
+                  if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                  handleSave();
+                }}
+                scaleValue={0.95}
+              >
                 {saving ? (
                   <ActivityIndicator color="#fff" size="small" />
                 ) : (
@@ -240,8 +266,8 @@ export default function ArtGeneticsScreen() {
                     <Text style={styles.saveBtnText}>Share Offspring</Text>
                   </>
                 )}
-              </Pressable>
-            </View>
+              </AnimatedPressable>
+            </Animated.View>
           </>
         )}
 

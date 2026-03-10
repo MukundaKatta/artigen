@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
+import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { useAuth } from '@/providers/AuthProvider';
 import { useWallet } from '@/hooks/useWallet';
 import { WalletCard } from '@/components/profile/WalletCard';
@@ -50,28 +51,30 @@ export default function WalletScreen() {
       <Animated.View entering={FadeInUp.duration(400)}>
         <WalletCard balanceCents={balanceCents} onPress={() => {}} />
       </Animated.View>
-      <View style={styles.actions}>
-        <TouchableOpacity
+      <Animated.View entering={FadeInUp.delay(100).duration(400)} style={styles.actions}>
+        <AnimatedPressable
           style={styles.actionBtn}
           onPress={() => {
             if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             router.push('/(screens)/wallet-deposit');
           }}
+          scaleValue={0.9}
         >
           <Ionicons name="add-circle-outline" size={24} color={colors.primary} />
           <Text style={styles.actionText}>Deposit</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+        </AnimatedPressable>
+        <AnimatedPressable
           style={styles.actionBtn}
           onPress={() => {
             if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             router.push('/(screens)/wallet-withdraw');
           }}
+          scaleValue={0.9}
         >
           <Ionicons name="arrow-up-circle-outline" size={24} color={colors.primary} />
           <Text style={styles.actionText}>Withdraw</Text>
-        </TouchableOpacity>
-      </View>
+        </AnimatedPressable>
+      </Animated.View>
       <Text style={styles.sectionTitle}>Transaction History</Text>
       <FlatList
         data={transactions}

@@ -1,7 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
 import { formatNumber } from '@/utils/format-number';
 import type { AppEventWithHost } from '@/services/event.service';
@@ -44,7 +46,14 @@ export function EventCard({ event }: Props) {
   const isLive = event.status === 'live';
 
   return (
-    <TouchableOpacity style={styles.card} onPress={handlePress} activeOpacity={0.7}>
+    <AnimatedPressable
+      style={styles.card}
+      onPress={() => {
+        if (Platform.OS !== 'web') Haptics.selectionAsync();
+        handlePress();
+      }}
+      scaleValue={0.97}
+    >
       {/* Left: date */}
       <View style={styles.dateColumn}>
         <Text style={styles.dateMonth}>
@@ -95,7 +104,7 @@ export function EventCard({ event }: Props) {
           color={STATUS_COLORS[event.status]}
         />
       </View>
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
 }
 
