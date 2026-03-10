@@ -1,10 +1,64 @@
-import React from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withDelay,
+  withTiming,
+  Easing,
+} from 'react-native-reanimated';
+import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { useImagePicker } from '@/hooks/useImagePicker';
 import { showAlert } from '@/utils/alert';
 import { colors, spacing, fontSize, typography, borderRadius, shadows } from '@/lib/theme';
+
+type ToolCardProps = {
+  icon: keyof typeof Ionicons.glyphMap;
+  title: string;
+  subtitle: string;
+  onPress: () => void;
+  gradient: [string, string];
+  index: number;
+};
+
+function ToolCard({ icon, title, subtitle, onPress, gradient, index }: ToolCardProps) {
+  const opacity = useSharedValue(0);
+  const translateY = useSharedValue(24);
+
+  useEffect(() => {
+    const delay = index * 80;
+    opacity.value = withDelay(delay, withTiming(1, { duration: 500, easing: Easing.out(Easing.ease) }));
+    translateY.value = withDelay(delay, withTiming(0, { duration: 500, easing: Easing.out(Easing.ease) }));
+  }, [index, opacity, translateY]);
+
+  const animStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ translateY: translateY.value }],
+  }));
+
+  return (
+    <Animated.View style={animStyle}>
+      <AnimatedPressable onPress={onPress} style={[styles.card, shadows.sm as any]}>
+        <LinearGradient
+          colors={gradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.iconContainer}
+        >
+          <Ionicons name={icon} size={26} color="#fff" />
+        </LinearGradient>
+        <View style={styles.cardContent}>
+          <Text style={styles.cardTitle}>{title}</Text>
+          <Text style={styles.cardSubtitle}>{subtitle}</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
+      </AnimatedPressable>
+    </Animated.View>
+  );
+}
 
 export default function CreateRoute() {
   const router = useRouter();
@@ -30,89 +84,60 @@ export default function CreateRoute() {
     }
   }
 
-  function handleGenerate() {
-    router.push('/(camera)/generate');
-  }
-
-  const TOOLS = [
+  const TOOLS: Omit<ToolCardProps, 'index'>[] = [
     {
-      icon: 'cloud-upload-outline' as const,
+      icon: 'sparkles',
+      title: 'Generate with AI',
+      subtitle: 'Create images from text prompts',
+      onPress: () => router.push('/(camera)/generate'),
+      gradient: ['#8B5CF6', '#6D28D9'],
+    },
+    {
+      icon: 'cloud-upload-outline',
       title: 'Upload Photo / Video',
       subtitle: 'Share your own AI creations',
       onPress: handleUpload,
-      iconBg: 'rgba(0,149,246,0.1)',
-      iconColor: colors.primary,
-      border: colors.border,
+      gradient: ['#0095F6', '#1877F2'],
     },
     {
-      icon: 'sparkles' as const,
-      title: 'Generate with AI',
-      subtitle: 'Create images from text prompts',
-      onPress: handleGenerate,
-      iconBg: '#8B5CF6',
-      iconColor: '#fff',
-      border: 'rgba(139,92,246,0.3)',
-    },
-    {
-      icon: 'book-outline' as const,
+      icon: 'book-outline',
       title: 'Comic Generator',
       subtitle: 'Turn your story into AI panels',
       onPress: () => router.push('/(camera)/comic'),
-      iconBg: '#E1306C',
-      iconColor: '#fff',
-      border: 'rgba(225,48,108,0.3)',
+      gradient: ['#E1306C', '#C13584'],
     },
     {
-      icon: 'flask-outline' as const,
+      icon: 'flask-outline',
       title: 'Art Genetics',
       subtitle: 'Breed two artworks into a new one',
       onPress: () => router.push('/(screens)/art-genetics'),
-      iconBg: '#515BD4',
-      iconColor: '#fff',
-      border: 'rgba(81,91,212,0.3)',
+      gradient: ['#515BD4', '#8134AF'],
     },
     {
-      icon: 'moon-outline' as const,
+      icon: 'moon-outline',
       title: 'Ambient Art Mode',
       subtitle: 'Endless AI art based on your taste',
       onPress: () => router.push('/(screens)/ambient-mode'),
-      iconBg: '#0a0a2e',
-      iconColor: '#9b8fff',
-      border: 'rgba(155,143,255,0.3)',
+      gradient: ['#0a0a2e', '#1a1a4e'],
     },
     {
-      icon: 'chatbubble-ellipses-outline' as const,
+      icon: 'chatbubble-ellipses-outline',
       title: 'AI Assistant',
       subtitle: 'Chat with Claude, GPT-4o or Gemini',
       onPress: () => router.push('/(screens)/ai-assistant'),
-      iconBg: '#F77737',
-      iconColor: '#fff',
-      border: 'rgba(247,119,55,0.3)',
+      gradient: ['#F77737', '#FD1D1D'],
     },
   ];
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
       <Text style={styles.title}>Create</Text>
       <Text style={styles.subtitle}>Share AI art with the world</Text>
 
-      {TOOLS.map((tool) => (
-        <Pressable
-          key={tool.title}
-          style={[styles.card, { borderColor: tool.border }]}
-          onPress={tool.onPress}
-        >
-          <View style={[styles.iconContainer, { backgroundColor: tool.iconBg }]}>
-            <Ionicons name={tool.icon} size={28} color={tool.iconColor} />
-          </View>
-          <View style={styles.cardContent}>
-            <Text style={styles.cardTitle}>{tool.title}</Text>
-            <Text style={styles.cardSubtitle}>{tool.subtitle}</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
-        </Pressable>
+      {TOOLS.map((tool, index) => (
+        <ToolCard key={tool.title} {...tool} index={index} />
       ))}
-    </View>
+    </ScrollView>
   );
 }
 
@@ -120,8 +145,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  contentContainer: {
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.xxxl,
+    paddingBottom: 100,
   },
   title: {
     fontSize: fontSize.xxl,
@@ -133,7 +161,7 @@ const styles = StyleSheet.create({
     fontSize: fontSize.md,
     fontFamily: typography.regular,
     color: colors.textSecondary,
-    marginBottom: spacing.xxxl,
+    marginBottom: spacing.xl,
   },
   card: {
     flexDirection: 'row',
@@ -142,15 +170,13 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.lg,
     padding: spacing.lg,
     marginBottom: spacing.md,
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,
-    ...shadows.sm,
   },
   iconContainer: {
-    width: 48,
-    height: 48,
+    width: 50,
+    height: 50,
     borderRadius: borderRadius.md,
-    backgroundColor: 'rgba(0, 149, 246, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
   },
