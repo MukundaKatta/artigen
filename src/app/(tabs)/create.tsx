@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   useSharedValue,
@@ -41,7 +42,10 @@ function ToolCard({ icon, title, subtitle, onPress, gradient, index }: ToolCardP
 
   return (
     <Animated.View style={animStyle}>
-      <AnimatedPressable onPress={onPress} style={[styles.card, shadows.sm as any]}>
+      <AnimatedPressable onPress={() => {
+        if (Platform.OS !== 'web') Haptics.selectionAsync();
+        onPress();
+      }} style={[styles.card, shadows.sm as any]}>
         <LinearGradient
           colors={gradient}
           start={{ x: 0, y: 0 }}

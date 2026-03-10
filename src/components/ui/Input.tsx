@@ -11,6 +11,7 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
+  withSequence,
   interpolateColor,
 } from 'react-native-reanimated';
 import { colors, fontSize, borderRadius, spacing, typography } from '@/lib/theme';
@@ -26,6 +27,22 @@ const AnimatedView = Animated.View;
 export const Input = forwardRef<TextInput, Props>(
   ({ label, error, containerStyle, style, onFocus, onBlur, ...props }, ref) => {
     const focusAnim = useSharedValue(0);
+    const shakeAnim = useSharedValue(0);
+    const prevError = React.useRef<string | undefined>();
+
+    // Shake when a new error appears
+    React.useEffect(() => {
+      if (error && error !== prevError.current) {
+        shakeAnim.value = withSequence(
+          withTiming(8, { duration: 50 }),
+          withTiming(-8, { duration: 50 }),
+          withTiming(6, { duration: 50 }),
+          withTiming(-6, { duration: 50 }),
+          withTiming(0, { duration: 50 }),
+        );
+      }
+      prevError.current = error;
+    }, [error, shakeAnim]);
 
     const borderStyle = useAnimatedStyle(() => {
       const borderColor = interpolateColor(
@@ -33,7 +50,7 @@ export const Input = forwardRef<TextInput, Props>(
         [0, 1],
         [error ? colors.error : colors.border, error ? colors.error : colors.primary]
       );
-      return { borderColor };
+      return { borderColor, transform: [{ translateX: shakeAnim.value }] };
     });
 
     const handleFocus = (e: any) => {

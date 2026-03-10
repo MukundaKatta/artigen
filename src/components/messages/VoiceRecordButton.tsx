@@ -1,6 +1,15 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Pressable } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withTiming,
+  withSequence,
+} from 'react-native-reanimated';
+import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { formatDuration } from '@/services/voice.service';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
 
@@ -12,28 +21,57 @@ type Props = {
   onCancel: () => void;
 };
 
+function PulsingRedDot() {
+  const opacity = useSharedValue(1);
+
+  useEffect(() => {
+    opacity.value = withRepeat(
+      withSequence(
+        withTiming(0.3, { duration: 500 }),
+        withTiming(1, { duration: 500 }),
+      ),
+      -1,
+    );
+  }, [opacity]);
+
+  const style = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+  }));
+
+  return <Animated.View style={[styles.redDot, style]} />;
+}
+
 export function VoiceRecordButton({ recording, duration, onStart, onStop, onCancel }: Props) {
   if (recording) {
     return (
       <View style={styles.recordingBar}>
-        <TouchableOpacity onPress={onCancel} style={styles.cancelButton}>
+        <TouchableOpacity onPress={() => {
+          if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          onCancel();
+        }} style={styles.cancelButton}>
           <Ionicons name="close" size={20} color={colors.error} />
         </TouchableOpacity>
         <View style={styles.recordingIndicator}>
-          <View style={styles.redDot} />
+          <PulsingRedDot />
           <Text style={styles.durationText}>{formatDuration(duration)}</Text>
         </View>
-        <TouchableOpacity onPress={onStop} style={styles.sendButton}>
+        <AnimatedPressable onPress={() => {
+          if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+          onStop();
+        }} style={styles.sendButton} scaleValue={0.9}>
           <Ionicons name="send" size={20} color={colors.textLight} />
-        </TouchableOpacity>
+        </AnimatedPressable>
       </View>
     );
   }
 
   return (
-    <TouchableOpacity onPress={onStart} hitSlop={8}>
+    <AnimatedPressable onPress={() => {
+      if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      onStart();
+    }} hitSlop={8} scaleValue={0.9} accessibilityLabel="Record voice message">
       <Ionicons name="mic-outline" size={24} color={colors.text} />
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
 }
 

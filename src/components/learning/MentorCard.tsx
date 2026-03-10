@@ -1,8 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
 
 type MentorProfile = {
@@ -23,11 +25,12 @@ export function MentorCard({ mentor, focusAreas, onRequest }: Props) {
   const router = useRouter();
 
   function handlePress() {
+    if (Platform.OS !== 'web') Haptics.selectionAsync();
     router.push(`/(screens)/user/${mentor.id}`);
   }
 
   return (
-    <TouchableOpacity style={styles.card} onPress={handlePress} activeOpacity={0.7}>
+    <AnimatedPressable style={styles.card} onPress={handlePress} scaleValue={0.97}>
       <Image
         source={
           mentor.avatar_url
@@ -36,6 +39,7 @@ export function MentorCard({ mentor, focusAreas, onRequest }: Props) {
         }
         style={styles.avatar}
         contentFit="cover"
+        transition={200}
       />
       <View style={styles.info}>
         <View style={styles.nameRow}>
@@ -60,13 +64,16 @@ export function MentorCard({ mentor, focusAreas, onRequest }: Props) {
       {onRequest && (
         <TouchableOpacity
           style={styles.requestButton}
-          onPress={() => onRequest(mentor.id)}
+          onPress={() => {
+            if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            onRequest(mentor.id);
+          }}
           activeOpacity={0.7}
         >
           <Text style={styles.requestButtonText}>Request</Text>
         </TouchableOpacity>
       )}
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
 }
 

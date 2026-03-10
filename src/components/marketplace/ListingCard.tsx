@@ -1,14 +1,20 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
+import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
 
 type Props = { listing: any; onPress: () => void };
 
 export function ListingCard({ listing, onPress }: Props) {
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress}>
-      <Image source={{ uri: listing.post?.media?.[0]?.media_url }} style={styles.image} />
+    <AnimatedPressable style={styles.card} onPress={() => {
+      if (Platform.OS !== 'web') Haptics.selectionAsync();
+      onPress();
+    }} scaleValue={0.97}>
+      <Image source={{ uri: listing.post?.media?.[0]?.media_url }} style={styles.image} contentFit="cover" transition={200} />
       <View style={styles.info}>
         <Text style={styles.title} numberOfLines={1}>{listing.title}</Text>
         <Text style={styles.price}>${(listing.price_cents / 100).toFixed(2)}</Text>
@@ -18,7 +24,7 @@ export function ListingCard({ listing, onPress }: Props) {
           {listing.sales_count > 0 && <Text style={styles.sales}>{listing.sales_count} sold</Text>}
         </View>
       </View>
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
 }
 

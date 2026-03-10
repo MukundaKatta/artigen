@@ -1,8 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
 import { formatNumber } from '@/utils/format-number';
 import type { ExhibitionWithCurator } from '@/services/exhibition.service';
@@ -29,16 +31,18 @@ export function ExhibitionCard({ exhibition }: Props) {
   const router = useRouter();
 
   function handlePress() {
+    if (Platform.OS !== 'web') Haptics.selectionAsync();
     router.push(`/(screens)/exhibition/${exhibition.id}`);
   }
 
   return (
-    <TouchableOpacity style={styles.card} onPress={handlePress} activeOpacity={0.7}>
+    <AnimatedPressable style={styles.card} onPress={handlePress} scaleValue={0.97}>
       {exhibition.cover_image_url ? (
         <Image
           source={{ uri: exhibition.cover_image_url }}
           style={styles.cover}
           contentFit="cover"
+          transition={200}
         />
       ) : (
         <View style={[styles.cover, styles.coverPlaceholder]}>
@@ -84,11 +88,12 @@ export function ExhibitionCard({ exhibition }: Props) {
             }
             style={styles.curatorAvatar}
             contentFit="cover"
+            transition={200}
           />
           <Text style={styles.curatorName}>@{exhibition.curator.username}</Text>
         </View>
       </View>
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
 }
 

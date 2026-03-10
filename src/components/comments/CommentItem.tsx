@@ -4,8 +4,10 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -57,6 +59,7 @@ export function CommentItem({
   }
 
   const handleLike = useCallback(() => {
+    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     likeScale.value = withSequence(
       withSpring(1.4, { damping: 4, stiffness: 300 }),
       withSpring(1, { damping: 6, stiffness: 300 })
@@ -98,7 +101,10 @@ export function CommentItem({
               </Text>
             )}
             {!isReply && onReply && (
-              <TouchableOpacity onPress={() => onReply(comment.id, comment.user.username)}>
+              <TouchableOpacity onPress={() => {
+                if (Platform.OS !== 'web') Haptics.selectionAsync();
+                onReply(comment.id, comment.user.username);
+              }}>
                 <Text style={styles.replyButton}>Reply</Text>
               </TouchableOpacity>
             )}
