@@ -210,7 +210,7 @@ export async function createPost({
 // ── Hashtags (private) ────────────────────────────────────────────
 
 async function linkHashtags(postId: string, tags: string[]) {
-  for (const tag of tags) {
+  await Promise.all(tags.map(async (tag) => {
     let { data: existing } = await supabase
       .from('hashtags')
       .select('id, post_count')
@@ -238,7 +238,7 @@ async function linkHashtags(postId: string, tags: string[]) {
         .from('post_hashtags')
         .insert({ post_id: postId, hashtag_id: existing.id });
     }
-  }
+  }));
 }
 
 // ── Delete ────────────────────────────────────────────────────────

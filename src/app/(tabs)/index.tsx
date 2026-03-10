@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { FlatList, View, Text, StyleSheet } from 'react-native';
+import React, { useMemo, useRef } from 'react';
+import { FlatList, View, Text, StyleSheet, ViewabilityConfig } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/providers/AuthProvider';
 import { useFeed } from '@/hooks/useFeed';
@@ -46,7 +46,13 @@ export default function HomeRoute() {
     toggleLike,
     toggleSave,
     toggleReaction,
+    onViewableItemsChanged,
   } = useFeed(user?.id);
+
+  const viewabilityConfig = useRef<ViewabilityConfig>({
+    itemVisiblePercentThreshold: 50,
+    minimumViewTime: 1000,
+  }).current;
   const { todayChallenge } = useChallenge(user?.id);
 
   const shortcuts = useMemo(() => ({
@@ -98,6 +104,8 @@ export default function HomeRoute() {
       refreshing={refreshing}
       onEndReached={loadMore}
       onEndReachedThreshold={0.5}
+      onViewableItemsChanged={onViewableItemsChanged}
+      viewabilityConfig={viewabilityConfig}
       showsVerticalScrollIndicator={false}
       style={styles.container}
       contentContainerStyle={{ paddingBottom: 80 }}

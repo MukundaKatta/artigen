@@ -51,17 +51,20 @@ export function useResponsive(): ResponsiveInfo {
       setInfo(getInfo(window.innerWidth, window.innerHeight));
     };
 
-    window.addEventListener('resize', handleResize);
-    window.addEventListener('orientationchange', () => {
+    const handleOrientation = () => {
       // Delay slightly to let the browser settle after rotation
       setTimeout(handleResize, 100);
-    });
+    };
+
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleOrientation);
 
     // Run once immediately in case dimensions changed before mount
     handleResize();
 
     return () => {
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleOrientation);
     };
   }, []);
 
