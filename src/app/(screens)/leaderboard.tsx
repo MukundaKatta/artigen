@@ -5,13 +5,16 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import Animated, { FadeInUp, FadeIn } from 'react-native-reanimated';
 import { useLeaderboard } from '@/hooks/useLeaderboard';
 import { LeaderboardRow } from '@/components/leaderboard/LeaderboardRow';
-import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { colors, spacing, fontSize, typography, borderRadius, shadows } from '@/lib/theme';
 import type { LeaderboardPeriod, LeaderboardEntry } from '@/services/leaderboard.service';
 
 const PERIODS: { key: LeaderboardPeriod; label: string }[] = [
@@ -19,6 +22,30 @@ const PERIODS: { key: LeaderboardPeriod; label: string }[] = [
   { key: 'monthly', label: 'Monthly' },
   { key: 'all_time', label: 'All Time' },
 ];
+
+function LeaderboardSkeleton() {
+  return (
+    <View style={styles.skeletonContainer}>
+      <View style={styles.topThreeContainer}>
+        {[50, 64, 50].map((size, i) => (
+          <View key={i} style={[styles.topCard, i === 1 && styles.topCardFirst]}>
+            <Skeleton width={28} height={28} borderRadius={14} />
+            <Skeleton width={size} height={size} borderRadius={size / 2} style={{ marginVertical: spacing.xs }} />
+            <Skeleton width={60} height={12} />
+            <Skeleton width={40} height={10} style={{ marginTop: 4 }} />
+          </View>
+        ))}
+      </View>
+      {[...Array(5)].map((_, i) => (
+        <View key={i} style={styles.skeletonRow}>
+          <Skeleton width={24} height={14} />
+          <Skeleton width={36} height={36} borderRadius={18} style={{ marginLeft: spacing.md }} />
+          <Skeleton width={100} height={14} style={{ marginLeft: spacing.md }} />
+        </View>
+      ))}
+    </View>
+  );
+}
 
 function TopThreeHeader({ entries, onPress }: { entries: LeaderboardEntry[]; onPress: (id: string) => void }) {
   const top3 = entries.slice(0, 3);
@@ -35,35 +62,42 @@ function TopThreeHeader({ entries, onPress }: { entries: LeaderboardEntry[]; onP
       {podiumOrder.map((entry, index) => {
         const isFirst = entry.rank === 1;
         const medalIndex = entry.rank - 1;
+        const animDelay = isFirst ? 0 : index === 0 ? 150 : 300;
 
         return (
-          <TouchableOpacity
-            key={entry.id}
-            style={[styles.topCard, isFirst && styles.topCardFirst]}
-            onPress={() => onPress(entry.id)}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.medal}>{medals[medalIndex]}</Text>
-            <View
-              style={[
-                styles.topAvatarRing,
-                { borderColor: medalColors[medalIndex] },
-                isFirst && styles.topAvatarRingFirst,
-              ]}
+          <Animated.View key={entry.id} entering={FadeInUp.delay(animDelay).duration(500).springify()}>
+            <TouchableOpacity
+              style={[styles.topCard, isFirst && styles.topCardFirst]}
+              onPress={() => {
+                if (Platform.OS !== 'web') Haptics.selectionAsync();
+                onPress(entry.id);
+              }}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={`${entry.username}, rank ${entry.rank}, ${entry.score} points`}
             >
-              <View style={styles.topAvatarPlaceholder}>
-                <Text style={styles.topAvatarInitial}>
-                  {entry.username.charAt(0).toUpperCase()}
-                </Text>
+              <Text style={styles.medal}>{medals[medalIndex]}</Text>
+              <View
+                style={[
+                  styles.topAvatarRing,
+                  { borderColor: medalColors[medalIndex] },
+                  isFirst && styles.topAvatarRingFirst,
+                ]}
+              >
+                <View style={styles.topAvatarPlaceholder}>
+                  <Text style={styles.topAvatarInitial}>
+                    {entry.username.charAt(0).toUpperCase()}
+                  </Text>
+                </View>
               </View>
-            </View>
-            <Text style={styles.topUsername} numberOfLines={1}>
-              {entry.username}
-            </Text>
-            <Text style={[styles.topScore, { color: medalColors[medalIndex] }]}>
-              {entry.score} pts
-            </Text>
-          </TouchableOpacity>
+              <Text style={styles.topUsername} numberOfLines={1}>
+                {entry.username}
+              </Text>
+              <Text style={[styles.topScore, { color: medalColors[medalIndex] }]}>
+                {entry.score} pts
+              </Text>
+            </TouchableOpacity>
+          </Animated.View>
         );
       })}
     </View>
@@ -78,6 +112,11 @@ export default function LeaderboardScreen() {
     router.push(`/(screens)/user/${userId}`);
   }
 
+  function handlePeriodChange(key: LeaderboardPeriod) {
+    if (Platform.OS !== 'web') Haptics.selectionAsync();
+    changePeriod(key);
+  }
+
   const restEntries = entries.slice(3);
 
   return (
@@ -88,8 +127,11 @@ export default function LeaderboardScreen() {
           <TouchableOpacity
             key={p.key}
             style={[styles.tab, period === p.key && styles.tabActive]}
-            onPress={() => changePeriod(p.key)}
+            onPress={() => handlePeriodChange(p.key)}
             activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={`${p.label} leaderboard`}
+            accessibilityState={{ selected: period === p.key }}
           >
             <Text style={[styles.tabText, period === p.key && styles.tabTextActive]}>
               {p.label}
@@ -99,18 +141,23 @@ export default function LeaderboardScreen() {
       </View>
 
       {loading ? (
-        <ActivityIndicator style={styles.loader} size="large" color={colors.primary} />
+        <LeaderboardSkeleton />
       ) : entries.length === 0 ? (
         <View style={styles.empty}>
-          <Ionicons name="trophy-outline" size={48} color={colors.border} />
-          <Text style={styles.emptyText}>No creators yet</Text>
+          <View style={styles.emptyIconCircle}>
+            <Ionicons name="trophy-outline" size={32} color={colors.textSecondary} />
+          </View>
+          <Text style={styles.emptyTitle}>No creators yet</Text>
+          <Text style={styles.emptyText}>Be the first to earn points!</Text>
         </View>
       ) : (
         <FlatList
           data={restEntries}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <LeaderboardRow entry={item} onPress={handleUserPress} />
+          renderItem={({ item, index }) => (
+            <Animated.View entering={FadeIn.delay(Math.min(index, 8) * 40).duration(300)}>
+              <LeaderboardRow entry={item} onPress={handleUserPress} />
+            </Animated.View>
           )}
           ListHeaderComponent={<TopThreeHeader entries={entries} onPress={handleUserPress} />}
           contentContainerStyle={styles.list}
@@ -142,6 +189,7 @@ const styles = StyleSheet.create({
   },
   tabActive: {
     backgroundColor: colors.primary,
+    ...shadows.sm,
   },
   tabText: {
     fontSize: fontSize.md,
@@ -218,8 +266,14 @@ const styles = StyleSheet.create({
   list: {
     paddingBottom: spacing.xxxl,
   },
-  loader: {
-    paddingVertical: spacing.xxxl,
+  skeletonContainer: {
+    paddingVertical: spacing.md,
+  },
+  skeletonRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
   },
   empty: {
     flex: 1,
@@ -227,10 +281,25 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: spacing.xxxl,
   },
+  emptyIconCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: colors.backgroundSecondary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
+  emptyTitle: {
+    fontSize: fontSize.xl,
+    fontFamily: typography.semiBold,
+    fontWeight: '600',
+    color: colors.text,
+  },
   emptyText: {
     fontSize: fontSize.md,
     fontFamily: typography.regular,
     color: colors.textSecondary,
-    marginTop: spacing.md,
+    marginTop: spacing.xs,
   },
 });
