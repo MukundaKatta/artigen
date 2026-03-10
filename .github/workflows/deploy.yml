@@ -96,6 +96,7 @@ jobs:
           failed=0
           for dir in supabase/functions/*/; do
             func=$(basename "$dir")
+            if [ "$func" = "_shared" ]; then continue; fi
             echo "::group::Deploying $func"
             if ! supabase functions deploy "$func" \
               --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}; then
