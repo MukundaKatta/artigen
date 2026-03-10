@@ -1,5 +1,14 @@
-import React, { useMemo } from 'react';
-import { FlatList, View, Text, StyleSheet } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { FlatList, View, Text, StyleSheet, TouchableOpacity, ViewabilityConfig, Platform, NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withTiming,
+  withDelay,
+  Easing,
+} from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/providers/AuthProvider';
 import { useFeed } from '@/hooks/useFeed';
@@ -7,10 +16,11 @@ import { PostCard } from '@/components/feed/PostCard';
 import { ChallengeCard } from '@/components/feed/ChallengeCard';
 import { StoryBar } from '@/components/feed/StoryBar';
 import { StoryBarSkeleton, PostCardSkeleton } from '@/components/ui/Skeleton';
+import { AnimatedListItem } from '@/components/ui/AnimatedListItem';
 import { useChallenge } from '@/hooks/useChallenge';
 import { ResponsiveContainer } from '@/components/layout/ResponsiveContainer';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
-import { colors, spacing, fontSize, typography } from '@/lib/theme';
+import { colors, spacing, fontSize, typography, borderRadius, shadows } from '@/lib/theme';
 import type { FeedPost } from '@/types';
 
 function FeedSkeleton() {
@@ -23,12 +33,50 @@ function FeedSkeleton() {
   );
 }
 
+function PulsingDot({ delay }: { delay: number }) {
+  const opacity = useSharedValue(0.3);
+
+  useEffect(() => {
+    opacity.value = withDelay(
+      delay,
+      withRepeat(
+        withTiming(1, { duration: 600, easing: Easing.inOut(Easing.ease) }),
+        -1,
+        true,
+      ),
+    );
+  }, [opacity, delay]);
+
+  const style = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ scale: 0.8 + opacity.value * 0.4 }],
+  }));
+
+  return <Animated.View style={[styles.loadingDot, style]} />;
+}
+
 function LoadingDots() {
   return (
     <View style={styles.loadingDots}>
-      <View style={[styles.loadingDot, { opacity: 0.3 }]} />
-      <View style={[styles.loadingDot, { opacity: 0.6 }]} />
-      <View style={[styles.loadingDot, { opacity: 0.9 }]} />
+      <PulsingDot delay={0} />
+      <PulsingDot delay={150} />
+      <PulsingDot delay={300} />
+    </View>
+  );
+}
+
+function FeedError({ message, onRetry }: { message: string; onRetry: () => void }) {
+  return (
+    <View style={styles.errorContainer}>
+      <View style={styles.errorIconCircle}>
+        <Ionicons name="cloud-offline-outline" size={28} color={colors.textSecondary} />
+      </View>
+      <Text style={styles.errorTitle}>Couldn't load your feed</Text>
+      <Text style={styles.errorMessage}>{message}</Text>
+      <TouchableOpacity style={styles.retryButton} onPress={onRetry} activeOpacity={0.7}>
+        <Ionicons name="refresh" size={16} color="#fff" />
+        <Text style={styles.retryText}>Retry</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -36,17 +84,26 @@ function LoadingDots() {
 export default function HomeRoute() {
   const { user } = useAuth();
   const router = useRouter();
+  const flatListRef = useRef<FlatList>(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
   const {
     posts,
     loading,
     refreshing,
     loadingMore,
+    error,
     refresh,
     loadMore,
     toggleLike,
     toggleSave,
     toggleReaction,
+    onViewableItemsChanged,
   } = useFeed(user?.id);
+
+  const viewabilityConfig = useRef<ViewabilityConfig>({
+    itemVisiblePercentThreshold: 50,
+    minimumViewTime: 1000,
+  }).current;
   const { todayChallenge } = useChallenge(user?.id);
 
   const shortcuts = useMemo(() => ({
@@ -54,30 +111,45 @@ export default function HomeRoute() {
   }), [router]);
   useKeyboardShortcuts(shortcuts);
 
+  const handleScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    setShowScrollTop(e.nativeEvent.contentOffset.y > 800);
+  }, []);
+
+  const scrollToTop = useCallback(() => {
+    flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+  }, []);
+
   if (loading) return <FeedSkeleton />;
+
+  if (error && posts.length === 0) {
+    return <FeedError message={error} onRetry={refresh} />;
+  }
 
   return (
     <ResponsiveContainer>
     <FlatList<FeedPost>
+      ref={flatListRef}
       data={posts}
       keyExtractor={(item) => item.id}
-      renderItem={({ item }) => (
-        <PostCard
-          post={item}
-          currentUserId={user?.id || ''}
-          onLike={toggleLike}
-          onSave={toggleSave}
-          onReaction={toggleReaction}
-          onComment={(postId) =>
-            router.push(`/(screens)/comments/${postId}`)
-          }
-          onUserPress={(userId) =>
-            router.push(`/(screens)/user/${userId}`)
-          }
-          onPostPress={(postId) =>
-            router.push(`/(screens)/post/${postId}`)
-          }
-        />
+      renderItem={({ item, index }) => (
+        <AnimatedListItem index={index}>
+          <PostCard
+            post={item}
+            currentUserId={user?.id || ''}
+            onLike={toggleLike}
+            onSave={toggleSave}
+            onReaction={toggleReaction}
+            onComment={(postId) =>
+              router.push(`/(screens)/comments/${postId}`)
+            }
+            onUserPress={(userId) =>
+              router.push(`/(screens)/user/${userId}`)
+            }
+            onPostPress={(postId) =>
+              router.push(`/(screens)/post/${postId}`)
+            }
+          />
+        </AnimatedListItem>
       )}
       ListHeaderComponent={
         <>
@@ -98,10 +170,23 @@ export default function HomeRoute() {
       refreshing={refreshing}
       onEndReached={loadMore}
       onEndReachedThreshold={0.5}
+      onScroll={handleScroll}
+      scrollEventThrottle={200}
+      onViewableItemsChanged={onViewableItemsChanged}
+      viewabilityConfig={viewabilityConfig}
       showsVerticalScrollIndicator={false}
       style={styles.container}
       contentContainerStyle={{ paddingBottom: 80 }}
     />
+    {showScrollTop && (
+      <TouchableOpacity
+        style={styles.scrollTopButton}
+        onPress={scrollToTop}
+        activeOpacity={0.8}
+      >
+        <Ionicons name="chevron-up" size={20} color="#fff" />
+      </TouchableOpacity>
+    )}
     </ResponsiveContainer>
   );
 }
@@ -139,10 +224,66 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
   },
   loadingDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.textSecondary,
-    marginHorizontal: 3,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.primary,
+    marginHorizontal: 4,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.xxxl,
+    backgroundColor: colors.background,
+  },
+  errorIconCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: colors.backgroundSecondary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
+  errorTitle: {
+    fontSize: fontSize.xl,
+    fontFamily: typography.semiBold,
+    color: colors.text,
+    marginBottom: spacing.xs,
+  },
+  errorMessage: {
+    fontSize: fontSize.md,
+    fontFamily: typography.regular,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: spacing.xl,
+  },
+  retryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.lg,
+    gap: spacing.sm,
+  },
+  retryText: {
+    fontSize: fontSize.md,
+    fontFamily: typography.semiBold,
+    color: '#fff',
+  },
+  scrollTopButton: {
+    position: 'absolute',
+    bottom: Platform.OS === 'web' ? spacing.xl : 100,
+    right: spacing.lg,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...shadows.md,
   },
 });

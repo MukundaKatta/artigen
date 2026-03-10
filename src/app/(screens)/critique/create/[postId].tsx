@@ -10,16 +10,15 @@ import {
   Platform,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useAuth } from '@/providers/AuthProvider';
 import { RatingStars } from '@/components/critiques/RatingStars';
 import { Button } from '@/components/ui/Button';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
 import { submitCritique } from '@/services/critique.service';
 import type { CritiqueRatings } from '@/services/critique.service';
 
-// TODO: Replace with real auth hook
-const MOCK_USER_ID = 'current-user-id';
-
 export default function CreateCritiqueScreen() {
+  const { user } = useAuth();
   const { postId } = useLocalSearchParams<{ postId: string }>();
   const router = useRouter();
 
@@ -45,7 +44,7 @@ export default function CreateCritiqueScreen() {
     if (!canSubmit || !postId) return;
 
     setSubmitting(true);
-    const { data, error } = await submitCritique(postId, MOCK_USER_ID, ratings, feedbackText.trim());
+    const { error } = await submitCritique(postId, user?.id ?? '', ratings, feedbackText.trim());
     setSubmitting(false);
 
     if (error) {
@@ -56,7 +55,7 @@ export default function CreateCritiqueScreen() {
     Alert.alert('Success', 'Your critique has been submitted!', [
       { text: 'OK', onPress: () => router.back() },
     ]);
-  }, [canSubmit, postId, ratings, feedbackText, router]);
+  }, [canSubmit, postId, user?.id, ratings, feedbackText, router]);
 
   return (
     <KeyboardAvoidingView

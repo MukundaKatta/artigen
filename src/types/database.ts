@@ -186,6 +186,7 @@ export type Database = {
           media_url: string;
           media_type: string;
           thumbnail_url: string | null;
+          blurhash: string | null;
           width: number | null;
           height: number | null;
           duration_seconds: number | null;
@@ -198,6 +199,7 @@ export type Database = {
           media_url: string;
           media_type?: string;
           thumbnail_url?: string | null;
+          blurhash?: string | null;
           width?: number | null;
           height?: number | null;
           duration_seconds?: number | null;
@@ -206,6 +208,7 @@ export type Database = {
         };
         Update: {
           sort_order?: number;
+          blurhash?: string | null;
         };
         Relationships: [];
       };

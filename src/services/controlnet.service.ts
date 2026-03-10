@@ -37,7 +37,10 @@ export async function createControlNetJob(params: {
     .single();
 
   if (data) {
-    supabase.functions.invoke('controlnet', { body: { job_id: data.id } }).catch(() => {});
+    supabase.functions.invoke('controlnet', { body: { job_id: data.id } }).catch((err) => {
+      console.error('[controlnet] edge function failed:', err);
+      supabase.from('controlnet_jobs').update({ status: 'failed', error_message: 'Failed to start processing' }).eq('id', data.id);
+    });
   }
   return { data, error };
 }

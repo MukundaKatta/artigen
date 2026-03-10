@@ -1,8 +1,11 @@
-import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import { useColorScheme } from 'react-native';
+import { storage } from '@/lib/storage';
 import { lightColors, darkColors, type ThemeColors } from '@/lib/theme';
 
 type ThemePreference = 'system' | 'light' | 'dark';
+
+const THEME_STORAGE_KEY = 'artigen_theme_preference';
 
 type ThemeContextType = {
   colorScheme: 'light' | 'dark';
@@ -24,6 +27,15 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const systemScheme = useColorScheme();
   const [preference, setPreference] = useState<ThemePreference>('system');
 
+  // Restore persisted preference on mount
+  useEffect(() => {
+    storage.getItem(THEME_STORAGE_KEY).then((saved) => {
+      if (saved === 'light' || saved === 'dark' || saved === 'system') {
+        setPreference(saved);
+      }
+    });
+  }, []);
+
   const colorScheme = useMemo(() => {
     if (preference === 'system') return systemScheme || 'light';
     return preference;
@@ -32,9 +44,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const isDark = colorScheme === 'dark';
   const themeColors = isDark ? darkColors : lightColors;
 
-  function setTheme(pref: ThemePreference) {
+  const setTheme = useCallback((pref: ThemePreference) => {
     setPreference(pref);
-  }
+    storage.setItem(THEME_STORAGE_KEY, pref);
+  }, []);
 
   const value = useMemo(() => ({
     colorScheme,
@@ -42,7 +55,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     themeColors,
     themePreference: preference,
     setTheme,
-  }), [colorScheme, isDark, themeColors, preference]);
+  }), [colorScheme, isDark, themeColors, preference, setTheme]);
 
   return (
     <ThemeContext.Provider value={value}>
