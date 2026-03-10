@@ -38,6 +38,7 @@ import Slider from '@react-native-community/slider';
 import { createPrompt } from '@/services/prompt-library.service';
 import { enhancePrompt, describeToPrompt } from '@/services/text-ai.service';
 import { MODEL_CREDITS } from '@/services/credits.service';
+import { saveGeneration } from '@/services/generation-history.service';
 
 type Phase = 'prompt' | 'generating' | 'result';
 type ProviderTab = 'huggingface' | 'replicate' | 'openai' | 'gemini';
@@ -195,7 +196,7 @@ export default function GenerateRoute() {
 
     const aspect = ASPECT_RATIOS[selectedAspect];
     const { width, height } = getAspectDimensions(aspect, selectedModel);
-    const { error: genError } = await generate({
+    const { data: genResult, error: genError } = await generate({
       model_id: selectedModel.id,
       provider: selectedModel.provider,
       prompt: prompt.trim(),
@@ -221,6 +222,20 @@ export default function GenerateRoute() {
     } else {
       setPhase('result');
       if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      // Save to generation history (fire-and-forget)
+      if (user && genResult) {
+        saveGeneration(user.id, {
+          prompt: prompt.trim(),
+          negative_prompt: negativePrompt.trim() || undefined,
+          model_id: selectedModel.id,
+          model_name: selectedModel.name,
+          provider: selectedModel.provider,
+          image_url: genResult.image_url,
+          generation_time_ms: genResult.generation_time_ms,
+          credits_used: MODEL_CREDITS[selectedModel.id] ?? 0,
+          settings: genResult.settings || {},
+        }).catch((err) => console.warn('Failed to save generation history:', err));
+      }
     }
   }
 
@@ -526,6 +541,45 @@ export default function GenerateRoute() {
             </Text>
           </Pressable>
         </View>
+
+        {/* Prompt Suggestions */}
+        {!prompt.trim() && (
+          <View style={styles.suggestionsContainer}>
+            <View style={styles.suggestionsHeader}>
+              <Text style={styles.suggestionsLabel}>Try a prompt</Text>
+              <Pressable
+                onPress={() => router.push('/(screens)/generation-history' as never)}
+                hitSlop={8}
+                accessibilityLabel="View generation history"
+              >
+                <View style={styles.historyLink}>
+                  <Ionicons name="time-outline" size={14} color={colors.primary} />
+                  <Text style={styles.historyLinkText}>History</Text>
+                </View>
+              </Pressable>
+            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.suggestionsScroll}>
+              {[
+                'A majestic dragon perched on a crystal mountain at sunset',
+                'Cyberpunk city street with neon signs and rain reflections',
+                'Watercolor portrait of a woman with flowers in her hair',
+                'Cute robot exploring an alien jungle, Pixar style',
+                'Ancient temple overgrown with bioluminescent plants',
+                'Astronaut floating above Earth with aurora borealis',
+              ].map((suggestion) => (
+                <Pressable
+                  key={suggestion}
+                  style={styles.suggestionChip}
+                  onPress={() => setPrompt(suggestion)}
+                >
+                  <Text style={styles.suggestionChipText} numberOfLines={2}>
+                    {suggestion}
+                  </Text>
+                </Pressable>
+              ))}
+            </ScrollView>
+          </View>
+        )}
 
         {/* Aspect Ratio */}
         <Text style={styles.label}>Aspect Ratio</Text>
@@ -1012,4 +1066,47 @@ const styles = StyleSheet.create({
   },
   enhancerBtnDisabled: { opacity: 0.5 },
   enhancerBtnText: { fontSize: fontSize.sm, fontFamily: typography.medium, color: colors.primary },
+  suggestionsContainer: {
+    marginBottom: spacing.md,
+  },
+  suggestionsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.xs,
+  },
+  suggestionsLabel: {
+    fontSize: fontSize.sm,
+    fontFamily: typography.medium,
+    color: colors.textSecondary,
+  },
+  historyLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  historyLinkText: {
+    fontSize: fontSize.sm,
+    fontFamily: typography.medium,
+    color: colors.primary,
+  },
+  suggestionsScroll: {
+    gap: spacing.xs,
+    paddingRight: spacing.md,
+  },
+  suggestionChip: {
+    backgroundColor: `${colors.primary}08`,
+    borderWidth: 1,
+    borderColor: `${colors.primary}20`,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    maxWidth: 200,
+  },
+  suggestionChipText: {
+    fontSize: fontSize.xs,
+    fontFamily: typography.regular,
+    color: colors.text,
+    lineHeight: 16,
+  },
 });
