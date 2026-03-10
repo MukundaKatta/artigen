@@ -312,6 +312,16 @@ export default function SearchRoute() {
                   </View>
                   <Text style={styles.emptyText}>{getEmptyMessage()}</Text>
                   <Text style={styles.emptySubtext}>Try a different search term</Text>
+                  <AnimatedPressable
+                    style={styles.emptyAction}
+                    onPress={() => {
+                      clearSearch();
+                      inputRef.current?.focus();
+                    }}
+                    scaleValue={0.95}
+                  >
+                    <Text style={styles.emptyActionText}>Clear & try again</Text>
+                  </AnimatedPressable>
                 </View>
               }
               keyboardShouldPersistTaps="handled"
@@ -551,5 +561,17 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontSize: fontSize.sm,
     marginTop: spacing.xs,
+  },
+  emptyAction: {
+    marginTop: spacing.lg,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.sm,
+    backgroundColor: colors.primary,
+    borderRadius: borderRadius.full,
+  },
+  emptyActionText: {
+    fontSize: fontSize.sm,
+    fontFamily: typography.semiBold,
+    color: '#fff',
   },
 });

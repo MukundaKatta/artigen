@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   FlatList,
   Pressable,
   Platform,
@@ -20,6 +19,7 @@ import Animated, {
   withSequence,
 } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
+import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { ActionSheet } from '@/components/ui/ActionSheet';
 import { Avatar } from '@/components/ui/Avatar';
 import { RichText } from '@/components/shared/RichText';
@@ -177,9 +177,10 @@ export const PostCard = React.memo(function PostCard({
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity
+        <AnimatedPressable
           style={styles.headerLeft}
           onPress={() => onUserPress(post.user.id)}
+          scaleValue={0.97}
         >
           <Avatar uri={post.user.avatar_url} size="sm" />
           <View style={styles.headerText}>
@@ -196,27 +197,28 @@ export const PostCard = React.memo(function PostCard({
               <LocationTag locationId={post.location_id} locationName={post.location} />
             ) : null}
           </View>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={handleMore} hitSlop={8}>
+        </AnimatedPressable>
+        <AnimatedPressable onPress={handleMore} hitSlop={8} scaleValue={0.9}>
           <Ionicons
             name="ellipsis-horizontal"
             size={20}
             color={colors.text}
           />
-        </TouchableOpacity>
+        </AnimatedPressable>
       </View>
 
       {/* Remix badge */}
       {post.remixOf && (
-        <TouchableOpacity
+        <AnimatedPressable
           style={styles.remixBadge}
           onPress={() => onPostPress(post.remixOf!.id)}
+          scaleValue={0.97}
         >
           <Ionicons name="git-branch-outline" size={12} color="#8B5CF6" />
           <Text style={styles.remixBadgeText}>
             Remixed from <Text style={styles.remixBadgeUsername}>@{post.remixOf.user.username}</Text>
           </Text>
-        </TouchableOpacity>
+        </AnimatedPressable>
       )}
 
       {/* Image / Carousel */}
@@ -287,7 +289,7 @@ export const PostCard = React.memo(function PostCard({
       {/* Actions */}
       <View style={styles.actions}>
         <View style={styles.actionsLeft}>
-          <TouchableOpacity
+          <AnimatedPressable
             onPress={handleLike}
             onLongPress={handleLongPressLike}
             hitSlop={8}
@@ -295,6 +297,7 @@ export const PostCard = React.memo(function PostCard({
             accessibilityRole="button"
             accessibilityLabel={post.isLiked ? 'Unlike' : 'Like'}
             accessibilityState={{ selected: post.isLiked }}
+            scaleValue={0.85}
           >
             <Animated.View style={likeButtonStyle}>
               <Ionicons
@@ -303,35 +306,55 @@ export const PostCard = React.memo(function PostCard({
                 color={post.isLiked ? colors.like : colors.text}
               />
             </Animated.View>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => onComment(post.id)}
+          </AnimatedPressable>
+          <AnimatedPressable
+            onPress={() => {
+              if (Platform.OS !== 'web') Haptics.selectionAsync();
+              onComment(post.id);
+            }}
             hitSlop={8}
             style={styles.actionButton}
             accessibilityRole="button"
             accessibilityLabel={`${post.comments_count} comments`}
+            scaleValue={0.85}
           >
             <Ionicons
               name="chatbubble-outline"
               size={24}
               color={colors.text}
             />
-          </TouchableOpacity>
-          <TouchableOpacity hitSlop={8} style={styles.actionButton} onPress={() => onShare?.(post.id)}>
+          </AnimatedPressable>
+          <AnimatedPressable
+            hitSlop={8}
+            style={styles.actionButton}
+            onPress={() => {
+              if (Platform.OS !== 'web') Haptics.selectionAsync();
+              onShare?.(post.id);
+            }}
+            scaleValue={0.85}
+          >
             <Ionicons
               name="paper-plane-outline"
               size={24}
               color={colors.text}
             />
-          </TouchableOpacity>
+          </AnimatedPressable>
           {post.ai_metadata && onRemix && (
-            <TouchableOpacity hitSlop={8} style={styles.actionButton} onPress={() => onRemix(post.id)}>
+            <AnimatedPressable
+              hitSlop={8}
+              style={styles.actionButton}
+              onPress={() => {
+                if (Platform.OS !== 'web') Haptics.selectionAsync();
+                onRemix(post.id);
+              }}
+              scaleValue={0.85}
+            >
               <Ionicons
                 name="git-branch-outline"
                 size={24}
                 color="#8B5CF6"
               />
-            </TouchableOpacity>
+            </AnimatedPressable>
           )}
           {onTip && post.user_id !== currentUserId && (
             <TipButton onPress={() => onTip(post.id, post.user_id)} />
@@ -341,13 +364,14 @@ export const PostCard = React.memo(function PostCard({
           {post.has_provenance && (
             <ProvenanceBadge onPress={() => router.push(`/(screens)/provenance/${post.id}`)} />
           )}
-          <TouchableOpacity
+          <AnimatedPressable
             onPress={handleSave}
             onLongPress={handleLongPressSave}
             hitSlop={8}
             accessibilityRole="button"
             accessibilityLabel={post.isSaved ? 'Unsave' : 'Save'}
             accessibilityState={{ selected: post.isSaved }}
+            scaleValue={0.85}
           >
             <Animated.View style={saveButtonStyle}>
               <Ionicons
@@ -356,7 +380,7 @@ export const PostCard = React.memo(function PostCard({
                 color={colors.text}
               />
             </Animated.View>
-          </TouchableOpacity>
+          </AnimatedPressable>
         </View>
       </View>
 
@@ -371,15 +395,16 @@ export const PostCard = React.memo(function PostCard({
 
       {/* Remix count */}
       {post.remixCount != null && post.remixCount > 0 && (
-        <TouchableOpacity
+        <AnimatedPressable
           onPress={() => router.push(`/(screens)/remixes/${post.id}`)}
           style={styles.remixCountRow}
+          scaleValue={0.97}
         >
           <Ionicons name="git-branch-outline" size={14} color="#8B5CF6" />
           <Text style={styles.remixCountText}>
             {post.remixCount} {post.remixCount === 1 ? 'remix' : 'remixes'}
           </Text>
-        </TouchableOpacity>
+        </AnimatedPressable>
       )}
 
       {/* Post Insights (own posts only) */}
@@ -392,9 +417,8 @@ export const PostCard = React.memo(function PostCard({
 
       {/* Caption */}
       {post.caption ? (
-        <TouchableOpacity
+        <Pressable
           onPress={() => setCaptionExpanded(!captionExpanded)}
-          activeOpacity={0.8}
         >
           <RichText
             style={styles.captionText}
@@ -403,21 +427,21 @@ export const PostCard = React.memo(function PostCard({
           >
             {post.caption}
           </RichText>
-        </TouchableOpacity>
+        </Pressable>
       ) : null}
 
       {/* AI Details */}
       {post.ai_metadata && (
-        <TouchableOpacity
+        <AnimatedPressable
           onPress={() => setShowAiDetails(!showAiDetails)}
           style={styles.aiDetailsToggle}
-          activeOpacity={0.7}
+          scaleValue={0.97}
         >
           <Ionicons name="sparkles-outline" size={14} color="#8B5CF6" />
           <Text style={styles.aiDetailsToggleText}>
             {showAiDetails ? 'Hide' : 'View'} AI Details
           </Text>
-        </TouchableOpacity>
+        </AnimatedPressable>
       )}
 
       {showAiDetails && post.ai_metadata && (
@@ -466,11 +490,11 @@ export const PostCard = React.memo(function PostCard({
 
       {/* View comments link */}
       {post.comments_count > 0 && (
-        <TouchableOpacity onPress={() => onComment(post.id)}>
+        <Pressable onPress={() => onComment(post.id)}>
           <Text style={styles.viewComments}>
             View all {formatNumber(post.comments_count)} comments
           </Text>
-        </TouchableOpacity>
+        </Pressable>
       )}
 
       {/* Timestamp */}

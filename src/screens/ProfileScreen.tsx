@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,6 +14,7 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useCollections } from '@/hooks/useCollections';
 import { supabase } from '@/lib/supabase';
+import { useScrollToTopOnTabPress } from '@/app/(tabs)/_layout';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
 import type { Post, PostMedia } from '@/types/database';
 
@@ -49,6 +50,22 @@ export function ProfileScreen() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<Tab>('posts');
   const { collections, loading: collectionsLoading } = useCollections(user?.id);
+  const flatListRef = useRef<FlatList>(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const scrollToTop = useCallback(() => {
+    flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+  }, []);
+
+  useScrollToTopOnTabPress('profile', scrollToTop);
+
+  const handleRefresh = useCallback(async () => {
+    if (Platform.OS !== 'web') Haptics.selectionAsync();
+    setRefreshing(true);
+    await fetchUserPosts();
+    setRefreshing(false);
+    if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  }, [user?.id]);
 
   useEffect(() => {
     if (user?.id) {
@@ -103,9 +120,12 @@ export function ProfileScreen() {
 
   return (
     <FlatList
+      ref={flatListRef}
       data={[]}
       renderItem={null}
       style={styles.container}
+      refreshing={refreshing}
+      onRefresh={handleRefresh}
       ListHeaderComponent={
         <>
           <ProfileHeader
