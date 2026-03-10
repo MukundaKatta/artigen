@@ -70,7 +70,35 @@ export const AI_MODELS: AiModel[] = [
     defaultSettings: { steps: 1, cfg_scale: 0, width: 1024, height: 1024 },
     maxSteps: 1,
   },
+  // ── Google Imagen 4 (Premium) ────────────────────────
+  {
+    id: 'imagen-4',
+    name: 'Imagen 4',
+    description: 'Google — next-gen photorealism, superior detail — 35 credits',
+    category: 'image',
+    provider: 'gemini',
+    defaultSettings: { steps: 1, cfg_scale: 0, width: 1024, height: 1024 },
+    maxSteps: 1,
+  },
   // ── Replicate (Paid) ─────────────────────────────────
+  {
+    id: 'black-forest-labs/flux-2-schnell',
+    name: 'FLUX.2 Schnell',
+    description: 'Next-gen fast generation, improved coherence — 8 credits',
+    category: 'image',
+    provider: 'replicate',
+    defaultSettings: { steps: 4, cfg_scale: 0, width: 1024, height: 1024 },
+    maxSteps: 4,
+  },
+  {
+    id: 'black-forest-labs/flux-2-dev',
+    name: 'FLUX.2 Dev',
+    description: 'Highest quality FLUX model, stunning detail — 40 credits',
+    category: 'image',
+    provider: 'replicate',
+    defaultSettings: { steps: 28, cfg_scale: 3.5, width: 1024, height: 1024 },
+    maxSteps: 50,
+  },
   {
     id: 'black-forest-labs/flux-schnell',
     name: 'Flux Schnell',

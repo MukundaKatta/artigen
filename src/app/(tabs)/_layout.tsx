@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useRef } from 'react';
+import React, { useCallback, useContext, useEffect, useRef } from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
 import { Tabs, Slot } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -11,6 +11,8 @@ import { FeatureErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { DesktopLayout } from '@/components/layout/DesktopLayout';
 import { useResponsive } from '@/hooks/useResponsive';
 import { useTheme } from '@/providers/ThemeProvider';
+import { useAuth } from '@/providers/AuthProvider';
+import { claimDailyLogin } from '@/services/engagement-rewards.service';
 
 // Context for scroll-to-top on tab re-tap
 type ScrollToTopFn = () => void;
@@ -97,6 +99,16 @@ function TabBarBackground({ isDark }: { isDark: boolean }) {
 export default function TabLayout() {
   const { isMobile } = useResponsive();
   const { isDark, themeColors } = useTheme();
+  const { user } = useAuth();
+
+  // Claim daily login reward (fire-and-forget on mount)
+  const dailyLoginClaimed = useRef(false);
+  useEffect(() => {
+    if (user && !dailyLoginClaimed.current) {
+      dailyLoginClaimed.current = true;
+      claimDailyLogin().catch((err) => console.warn('Daily login reward claim failed:', err));
+    }
+  }, [user]);
 
   // Scroll-to-top registry
   const registryRef = useRef<Record<string, ScrollToTopFn>>({});

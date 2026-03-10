@@ -18,6 +18,9 @@ const MODEL_CREDITS: Record<string, number> = {
   'dall-e-3-standard': 40,
   'dall-e-3-hd': 80,
   'imagen-3': 25,
+  'imagen-4': 35,
+  'black-forest-labs/flux-2-schnell': 8,
+  'black-forest-labs/flux-2-dev': 40,
 };
 
 const REPLICATE_MODELS: Record<string, { version: string; name: string }> = {
@@ -28,6 +31,8 @@ const REPLICATE_MODELS: Record<string, { version: string; name: string }> = {
     name: 'SDXL 1.0',
   },
   'stability-ai/stable-diffusion-3': { version: 'latest', name: 'Stable Diffusion 3' },
+  'black-forest-labs/flux-2-schnell': { version: 'latest', name: 'FLUX.2 Schnell' },
+  'black-forest-labs/flux-2-dev': { version: 'latest', name: 'FLUX.2 Dev' },
 };
 
 const HF_MODELS: Record<string, { name: string }> = {
@@ -98,7 +103,8 @@ async function generateWithHuggingFace(
 async function generateWithReplicate(
   modelId: string, prompt: string, negativePrompt?: string,
   width?: number, height?: number, steps?: number, cfgScale?: number,
-  seed?: number, scheduler?: string,
+  seed?: number, scheduler?: string, styleImageUrl?: string,
+  img2imgStrength?: number, numOutputs?: number,
 ) {
   const replicateToken = Deno.env.get('REPLICATE_API_TOKEN');
   if (!replicateToken) throw new Error('Replicate API token not configured');
@@ -113,6 +119,11 @@ async function generateWithReplicate(
   if (cfgScale) input.guidance_scale = cfgScale;
   if (seed) input.seed = seed;
   if (scheduler) input.scheduler = scheduler;
+  if (styleImageUrl) {
+    input.image = styleImageUrl;
+    input.prompt_strength = img2imgStrength ?? 0.65;
+  }
+  if (numOutputs && numOutputs > 1) input.num_outputs = numOutputs;
 
   const startTime = Date.now();
   let replicateUrl: string;
@@ -144,16 +155,17 @@ async function generateWithReplicate(
 
   if (prediction.status === 'failed') throw new Error(prediction.error || 'Generation failed');
   const output = prediction.output;
-  const imageUrl = Array.isArray(output) ? output[0] : typeof output === 'string' ? output : null;
-  if (!imageUrl) throw new Error('Unexpected output format');
+  const imageUrls = Array.isArray(output) ? output : typeof output === 'string' ? [output] : [];
+  if (imageUrls.length === 0) throw new Error('Unexpected output format');
 
   return {
-    image_url: imageUrl,
+    image_url: imageUrls[0],
+    ...(imageUrls.length > 1 ? { image_urls: imageUrls } : {}),
     prediction_id: prediction.id,
     generation_time_ms: Date.now() - startTime,
     model_id: modelId,
     model_name: model.name,
-    settings: { steps, cfg_scale: cfgScale, seed, width, height, scheduler },
+    settings: { steps, cfg_scale: cfgScale, seed, width, height, scheduler, num_outputs: numOutputs },
   };
 }
 
@@ -240,6 +252,50 @@ async function generateWithImagen(prompt: string, width?: number, height?: numbe
   };
 }
 
+// ── Gemini Imagen 4 ───────────────────────────────────────────
+async function generateWithImagen4(prompt: string, width?: number, height?: number) {
+  const apiKey = Deno.env.get('GOOGLE_AI_API_KEY');
+  if (!apiKey) throw new Error('Google AI API key not configured');
+
+  const aspectRatio = (() => {
+    if (!width || !height) return '1:1';
+    const r = width / height;
+    if (r > 1.4) return '16:9';
+    if (r < 0.75) return '9:16';
+    if (r > 1.1) return '4:3';
+    if (r < 0.9) return '3:4';
+    return '1:1';
+  })();
+
+  const startTime = Date.now();
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ instances: [{ prompt }], parameters: { sampleCount: 1, aspectRatio } }),
+    }
+  );
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error?.message || `Imagen 4 API error: ${res.status}`);
+  }
+
+  const data = await res.json();
+  const b64 = data.predictions?.[0]?.bytesBase64Encoded;
+  if (!b64) throw new Error('No image returned by Imagen 4');
+
+  return {
+    image_url: `data:image/png;base64,${b64}`,
+    prediction_id: `imagen4_${Date.now()}`,
+    generation_time_ms: Date.now() - startTime,
+    model_id: 'imagen-4',
+    model_name: 'Imagen 4',
+    settings: { aspectRatio, width, height },
+  };
+}
+
 // ── Main Handler ──────────────────────────────────────────────
 serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
@@ -273,6 +329,9 @@ serve(async (req: Request) => {
     const cfg_scale = body.cfg_scale;
     const seed = body.seed;
     const scheduler = body.scheduler;
+    const style_image_url = body.style_image_url;
+    const img2img_strength = body.img2img_strength;
+    const num_outputs = body.num_outputs;
 
     if (!model_id || typeof model_id !== 'string') return jsonResponse({ error: 'model_id is required' }, 400);
     if (!prompt || typeof prompt !== 'string') return jsonResponse({ error: 'prompt is required' }, 400);
@@ -292,9 +351,16 @@ serve(async (req: Request) => {
     if (cfg_scale != null && (typeof cfg_scale !== 'number' || cfg_scale < 0 || cfg_scale > 30)) {
       return jsonResponse({ error: 'cfg_scale must be between 0 and 30' }, 400);
     }
+    if (num_outputs != null && (typeof num_outputs !== 'number' || num_outputs < 1 || num_outputs > 4)) {
+      return jsonResponse({ error: 'num_outputs must be between 1 and 4' }, 400);
+    }
+    if (img2img_strength != null && (typeof img2img_strength !== 'number' || img2img_strength < 0.1 || img2img_strength > 1)) {
+      return jsonResponse({ error: 'img2img_strength must be between 0.1 and 1' }, 400);
+    }
 
     // Deduct credits for paid models
-    const creditCost = MODEL_CREDITS[model_id] ?? 10;
+    const baseCreditCost = MODEL_CREDITS[model_id] ?? 10;
+    const creditCost = baseCreditCost * (num_outputs ?? 1);
     if (creditCost > 0) {
       const { error: deductErr } = await supabaseClient.rpc('deduct_generation_credits', {
         p_user_id: user.id,
@@ -315,9 +381,11 @@ serve(async (req: Request) => {
       } else if (provider === 'openai') {
         result = await generateWithDallE(model_id, prompt, width, height);
       } else if (provider === 'gemini') {
-        result = await generateWithImagen(prompt, width, height);
+        result = model_id === 'imagen-4'
+          ? await generateWithImagen4(prompt, width, height)
+          : await generateWithImagen(prompt, width, height);
       } else {
-        result = await generateWithReplicate(model_id, prompt, negative_prompt, width, height, steps, cfg_scale, seed, scheduler);
+        result = await generateWithReplicate(model_id, prompt, negative_prompt, width, height, steps, cfg_scale, seed, scheduler, style_image_url, img2img_strength, num_outputs);
       }
     } catch (genErr: any) {
       if (creditCost > 0) {

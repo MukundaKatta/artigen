@@ -35,6 +35,7 @@ import { showAlert } from '@/utils/alert';
 import { colors, spacing, fontSize, typography, borderRadius, shadows } from '@/lib/theme';
 import type { AiModel } from '@/types';
 import Slider from '@react-native-community/slider';
+import * as ImagePicker from 'expo-image-picker';
 import { createPrompt } from '@/services/prompt-library.service';
 import { enhancePrompt, describeToPrompt } from '@/services/text-ai.service';
 import { MODEL_CREDITS } from '@/services/credits.service';
@@ -160,6 +161,28 @@ export default function GenerateRoute() {
   const [seed, setSeed] = useState('');
   const [enhancing, setEnhancing] = useState(false);
   const [describeMode, setDescribeMode] = useState(false);
+  const [styleImageUri, setStyleImageUri] = useState<string | null>(null);
+  const [img2imgStrength, setImg2imgStrength] = useState(0.65);
+  const [batchCount, setBatchCount] = useState(1);
+
+  async function pickStyleImage() {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      quality: 0.8,
+      base64: true,
+      allowsEditing: true,
+    });
+    if (!result.canceled && result.assets[0]) {
+      const asset = result.assets[0];
+      if (asset.base64) {
+        setStyleImageUri(`data:image/jpeg;base64,${asset.base64}`);
+      } else {
+        setStyleImageUri(asset.uri);
+      }
+    }
+  }
+
+  const supportsStyleRef = ['replicate'].includes(selectedModel.provider);
 
   const filteredModels = models.filter(
     (m) => m.category === 'image' && m.provider === providerTab
@@ -206,6 +229,8 @@ export default function GenerateRoute() {
       steps,
       cfg_scale: cfgScale || undefined,
       seed: seed ? Number(seed) : undefined,
+      ...(styleImageUri ? { style_image_url: styleImageUri, img2img_strength: img2imgStrength } : {}),
+      ...(batchCount > 1 ? { num_outputs: batchCount } : {}),
     });
 
     if (genError) {
@@ -542,6 +567,73 @@ export default function GenerateRoute() {
           </Pressable>
         </View>
 
+        {/* Style Reference Image */}
+        {supportsStyleRef && (
+          <View style={styles.styleRefSection}>
+            <Text style={styles.label}>Style Reference (optional)</Text>
+            {styleImageUri ? (
+              <View style={styles.styleRefPreview}>
+                <Image source={{ uri: styleImageUri }} style={styles.styleRefImage} contentFit="cover" />
+                <View style={styles.styleRefOverlay}>
+                  <Pressable
+                    style={styles.styleRefRemove}
+                    onPress={() => setStyleImageUri(null)}
+                    accessibilityLabel="Remove style reference"
+                  >
+                    <Ionicons name="close-circle" size={24} color="#fff" />
+                  </Pressable>
+                </View>
+                <View style={styles.sliderRow}>
+                  <Text style={styles.label}>Influence: {Math.round(img2imgStrength * 100)}%</Text>
+                  <Slider
+                    style={styles.slider}
+                    minimumValue={0.1}
+                    maximumValue={0.95}
+                    step={0.05}
+                    value={img2imgStrength}
+                    onValueChange={setImg2imgStrength}
+                    minimumTrackTintColor={colors.primary}
+                    maximumTrackTintColor={colors.border}
+                    thumbTintColor={colors.primary}
+                    accessibilityLabel={`Style influence: ${Math.round(img2imgStrength * 100)}%`}
+                  />
+                </View>
+              </View>
+            ) : (
+              <Pressable style={styles.styleRefPicker} onPress={pickStyleImage}>
+                <Ionicons name="image-outline" size={24} color={colors.textSecondary} />
+                <Text style={styles.styleRefPickerText}>Add a reference image</Text>
+                <Text style={styles.styleRefPickerHint}>The AI will use this as a style guide</Text>
+              </Pressable>
+            )}
+          </View>
+        )}
+
+        {/* Batch Generation */}
+        {selectedModel.provider === 'replicate' && (
+          <View style={styles.batchSection}>
+            <Text style={styles.label}>Variations</Text>
+            <View style={styles.batchRow}>
+              {[1, 2, 3, 4].map((count) => (
+                <Pressable
+                  key={count}
+                  style={[styles.batchChip, batchCount === count && styles.batchChipActive]}
+                  onPress={() => setBatchCount(count)}
+                >
+                  <Text style={[styles.batchChipText, batchCount === count && styles.batchChipTextActive]}>
+                    {count === 1 ? '1x' : `${count}x`}
+                  </Text>
+                </Pressable>
+              ))}
+              {batchCount > 1 && (
+                <Text style={styles.batchCostText}>
+                  {(MODEL_CREDITS[selectedModel.id] ?? 0) * batchCount} credits total
+                </Text>
+              )}
+            </View>
+          </View>
+        )}
+
         {/* Prompt Suggestions */}
         {!prompt.trim() && (
           <View style={styles.suggestionsContainer}>
@@ -680,7 +772,7 @@ export default function GenerateRoute() {
         )}
 
         <Button
-          title={`Generate${MODEL_CREDITS[selectedModel.id] ? ` · ${MODEL_CREDITS[selectedModel.id]} credits` : ''}`}
+          title={`Generate${MODEL_CREDITS[selectedModel.id] ? ` · ${(MODEL_CREDITS[selectedModel.id] ?? 0) * batchCount} credits` : ''}${batchCount > 1 ? ` (${batchCount}x)` : ''}`}
           onPress={handleGenerate}
           size="lg"
           style={styles.generateButton}
@@ -1108,5 +1200,82 @@ const styles = StyleSheet.create({
     fontFamily: typography.regular,
     color: colors.text,
     lineHeight: 16,
+  },
+  // Style reference
+  styleRefSection: {
+    marginBottom: spacing.md,
+  },
+  styleRefPicker: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderStyle: 'dashed',
+    borderRadius: borderRadius.md,
+    padding: spacing.lg,
+    alignItems: 'center',
+    gap: spacing.xs,
+    backgroundColor: colors.backgroundSecondary,
+  },
+  styleRefPickerText: {
+    fontSize: fontSize.sm,
+    fontFamily: typography.medium,
+    color: colors.text,
+  },
+  styleRefPickerHint: {
+    fontSize: fontSize.xs,
+    fontFamily: typography.regular,
+    color: colors.textSecondary,
+  },
+  styleRefPreview: {
+    borderRadius: borderRadius.md,
+    overflow: 'hidden',
+  },
+  styleRefImage: {
+    width: '100%',
+    height: 150,
+    borderRadius: borderRadius.md,
+  },
+  styleRefOverlay: {
+    position: 'absolute',
+    top: spacing.xs,
+    right: spacing.xs,
+  },
+  styleRefRemove: {
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: 12,
+  },
+  // Batch generation
+  batchSection: {
+    marginBottom: spacing.md,
+  },
+  batchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  batchChip: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.full,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.backgroundSecondary,
+  },
+  batchChipActive: {
+    borderColor: colors.primary,
+    backgroundColor: 'rgba(0, 149, 246, 0.1)',
+  },
+  batchChipText: {
+    fontSize: fontSize.sm,
+    fontFamily: typography.medium,
+    color: colors.textSecondary,
+  },
+  batchChipTextActive: {
+    color: colors.primary,
+  },
+  batchCostText: {
+    fontSize: fontSize.xs,
+    fontFamily: typography.regular,
+    color: colors.textSecondary,
+    marginLeft: spacing.xs,
   },
 });
