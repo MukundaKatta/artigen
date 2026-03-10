@@ -1,16 +1,25 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { Text, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
 
 type Props = { priceCents: number; onPress: () => void };
 
 export function BuyButton({ priceCents, onPress }: Props) {
   return (
-    <TouchableOpacity style={styles.btn} onPress={onPress}>
+    <AnimatedPressable
+      style={styles.btn}
+      onPress={() => {
+        if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        onPress();
+      }}
+      scaleValue={0.92}
+    >
       <Ionicons name="cart-outline" size={14} color="#fff" />
       <Text style={styles.text}>${(priceCents / 100).toFixed(2)}</Text>
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
 }
 

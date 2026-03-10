@@ -1,8 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as Haptics from 'expo-haptics';
+import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
 import type { DailyChallenge } from '@/types';
 
@@ -14,10 +16,13 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
   const router = useRouter();
 
   return (
-    <TouchableOpacity
+    <AnimatedPressable
       style={styles.container}
-      activeOpacity={0.85}
-      onPress={() => router.push('/(screens)/challenge')}
+      onPress={() => {
+        if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        router.push('/(screens)/challenge');
+      }}
+      scaleValue={0.97}
     >
       <LinearGradient
         colors={['#7C3AED', '#A855F7', '#C084FC'] as [string, string, ...string[]]}
@@ -44,16 +49,19 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
               {challenge.prompt_theme}
             </Text>
           </View>
-          <TouchableOpacity
+          <AnimatedPressable
             style={styles.joinButton}
-            onPress={() => router.push('/(screens)/challenge')}
-            activeOpacity={0.8}
+            onPress={() => {
+              if (Platform.OS !== 'web') Haptics.selectionAsync();
+              router.push('/(screens)/challenge');
+            }}
+            scaleValue={0.9}
           >
             <Text style={styles.joinButtonText}>Join</Text>
-          </TouchableOpacity>
+          </AnimatedPressable>
         </View>
       </LinearGradient>
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
 }
 

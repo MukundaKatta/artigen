@@ -4,14 +4,17 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   Alert,
   Modal,
   Dimensions,
+  Platform,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import * as Haptics from 'expo-haptics';
+import Animated, { FadeInUp } from 'react-native-reanimated';
+import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { useAuth } from '@/providers/AuthProvider';
 import { useAvatarGenerator } from '@/hooks/useAvatarGenerator';
 import { AvatarStylePicker } from '@/components/avatars/AvatarStylePicker';
@@ -119,40 +122,53 @@ export default function AvatarGeneratorScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Section: Select Photos */}
-      <Text style={styles.heading}>AI Avatar Generator</Text>
-      <Text style={styles.subtitle}>
-        Upload 1-3 selfies and choose a style to generate unique AI avatars.
-      </Text>
+      <Animated.View entering={FadeInUp.duration(400)}>
+        <Text style={styles.heading}>AI Avatar Generator</Text>
+        <Text style={styles.subtitle}>
+          Upload 1-3 selfies and choose a style to generate unique AI avatars.
+        </Text>
+      </Animated.View>
 
       {/* Photo picker */}
-      <View style={styles.photoSection}>
+      <Animated.View entering={FadeInUp.delay(100).duration(400)} style={styles.photoSection}>
         <Text style={styles.sectionTitle}>Your Photos</Text>
         <View style={styles.photoRow}>
           {selectedPhotos.map((uri, index) => (
             <View key={index} style={styles.photoThumb}>
-              <Image source={{ uri }} style={styles.photoImage} contentFit="cover" />
-              <TouchableOpacity
+              <Image source={{ uri }} style={styles.photoImage} contentFit="cover" transition={200} />
+              <AnimatedPressable
                 style={styles.removePhotoBtn}
-                onPress={() => removePhoto(index)}
+                onPress={() => {
+                  if (Platform.OS !== 'web') Haptics.selectionAsync();
+                  removePhoto(index);
+                }}
+                scaleValue={0.85}
               >
                 <Ionicons name="close-circle" size={22} color={colors.error} />
-              </TouchableOpacity>
+              </AnimatedPressable>
             </View>
           ))}
           {selectedPhotos.length < 3 && (
-            <TouchableOpacity style={styles.addPhotoBtn} onPress={pickPhotos} activeOpacity={0.7}>
+            <AnimatedPressable
+              style={styles.addPhotoBtn}
+              onPress={() => {
+                if (Platform.OS !== 'web') Haptics.selectionAsync();
+                pickPhotos();
+              }}
+              scaleValue={0.9}
+            >
               <Ionicons name="add" size={28} color={colors.textSecondary} />
               <Text style={styles.addPhotoText}>Add</Text>
-            </TouchableOpacity>
+            </AnimatedPressable>
           )}
         </View>
-      </View>
+      </Animated.View>
 
       {/* Style picker */}
       <AvatarStylePicker selectedStyle={selectedStyle} onSelect={setSelectedStyle} />
 
       {/* Generate button */}
-      <View style={styles.generateSection}>
+      <Animated.View entering={FadeInUp.delay(200).duration(400)} style={styles.generateSection}>
         <Button
           title={loading ? 'Generating...' : 'Generate Avatars'}
           onPress={handleGenerate}
@@ -162,7 +178,7 @@ export default function AvatarGeneratorScreen() {
           disabled={selectedPhotos.length === 0 || loading}
           style={styles.generateButton}
         />
-      </View>
+      </Animated.View>
 
       {/* Job progress / results */}
       {job && (
@@ -199,14 +215,17 @@ export default function AvatarGeneratorScreen() {
                       contentFit="cover"
                       transition={200}
                     />
-                    <TouchableOpacity
+                    <AnimatedPressable
                       style={styles.saveResultBtn}
-                      onPress={() => handleSaveFromResult(url)}
-                      activeOpacity={0.7}
+                      onPress={() => {
+                        if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                        handleSaveFromResult(url);
+                      }}
+                      scaleValue={0.95}
                     >
                       <Ionicons name="download-outline" size={16} color="#fff" />
                       <Text style={styles.saveResultText}>Save</Text>
-                    </TouchableOpacity>
+                    </AnimatedPressable>
                   </View>
                 ))}
               </View>

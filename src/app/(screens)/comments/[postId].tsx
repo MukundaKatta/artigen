@@ -6,7 +6,6 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
-  TouchableOpacity,
   Text,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -15,6 +14,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import Animated, { FadeIn } from 'react-native-reanimated';
+import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { useAuth } from '@/providers/AuthProvider';
 import { useComments } from '@/hooks/useComments';
 import { CommentItem } from '@/components/comments/CommentItem';
@@ -162,9 +162,9 @@ export default function CommentsRoute() {
           <Text style={styles.replyingText}>
             Replying to <Text style={styles.replyingUsername}>@{replyingTo.username}</Text>
           </Text>
-          <TouchableOpacity onPress={cancelReply} hitSlop={8}>
+          <AnimatedPressable onPress={cancelReply} scaleValue={0.85}>
             <Ionicons name="close" size={18} color={colors.textSecondary} />
-          </TouchableOpacity>
+          </AnimatedPressable>
         </View>
       )}
 
@@ -186,12 +186,12 @@ export default function CommentsRoute() {
             />
           )}
         />
-        <TouchableOpacity
+        <AnimatedPressable
           onPress={() => {
             if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             handleSubmit(onSubmit)();
           }}
-          disabled={submitting}
+          scaleValue={0.9}
         >
           <Text
             style={[
@@ -201,7 +201,7 @@ export default function CommentsRoute() {
           >
             Post
           </Text>
-        </TouchableOpacity>
+        </AnimatedPressable>
       </View>
     </KeyboardAvoidingView>
   );

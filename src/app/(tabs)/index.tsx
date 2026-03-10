@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { FlatList, View, Text, StyleSheet, TouchableOpacity, ViewabilityConfig, Platform, NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
+import { FlatList, View, Text, StyleSheet, ViewabilityConfig, Platform, NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
   useSharedValue,
@@ -10,6 +10,8 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
+import * as Haptics from 'expo-haptics';
+import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { useAuth } from '@/providers/AuthProvider';
 import { useFeed } from '@/hooks/useFeed';
 import { PostCard } from '@/components/feed/PostCard';
@@ -73,10 +75,17 @@ function FeedError({ message, onRetry }: { message: string; onRetry: () => void 
       </View>
       <Text style={styles.errorTitle}>Couldn't load your feed</Text>
       <Text style={styles.errorMessage}>{message}</Text>
-      <TouchableOpacity style={styles.retryButton} onPress={onRetry} activeOpacity={0.7}>
+      <AnimatedPressable
+        style={styles.retryButton}
+        onPress={() => {
+          if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+          onRetry();
+        }}
+        scaleValue={0.95}
+      >
         <Ionicons name="refresh" size={16} color="#fff" />
         <Text style={styles.retryText}>Retry</Text>
-      </TouchableOpacity>
+      </AnimatedPressable>
     </View>
   );
 }
@@ -186,13 +195,16 @@ export default function HomeRoute() {
       contentContainerStyle={{ paddingBottom: 80 }}
     />
     {showScrollTop && (
-      <TouchableOpacity
+      <AnimatedPressable
         style={styles.scrollTopButton}
-        onPress={scrollToTop}
-        activeOpacity={0.8}
+        onPress={() => {
+          if (Platform.OS !== 'web') Haptics.selectionAsync();
+          scrollToTop();
+        }}
+        scaleValue={0.9}
       >
         <Ionicons name="chevron-up" size={20} color="#fff" />
-      </TouchableOpacity>
+      </AnimatedPressable>
     )}
     </ResponsiveContainer>
   );

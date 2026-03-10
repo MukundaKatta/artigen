@@ -1,8 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
 import type { Tutorial, UserTutorialProgress } from '@/services/tutorial.service';
 
@@ -39,7 +41,14 @@ export function TutorialCard({ tutorial, progress, totalLessons }: Props) {
   const progressPercent = progress?.is_completed ? 1 : completedCount / Math.max(total, 1);
 
   return (
-    <TouchableOpacity style={styles.card} onPress={handlePress} activeOpacity={0.7}>
+    <AnimatedPressable
+      style={styles.card}
+      onPress={() => {
+        if (Platform.OS !== 'web') Haptics.selectionAsync();
+        handlePress();
+      }}
+      scaleValue={0.97}
+    >
       {tutorial.cover_image_url ? (
         <Image
           source={{ uri: tutorial.cover_image_url }}
@@ -99,7 +108,7 @@ export function TutorialCard({ tutorial, progress, totalLessons }: Props) {
           </View>
         )}
       </View>
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
 }
 

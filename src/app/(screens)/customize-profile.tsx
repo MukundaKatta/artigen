@@ -5,10 +5,13 @@ import {
   StyleSheet,
   ScrollView,
   TextInput,
-  TouchableOpacity,
+  Platform,
 } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import Animated, { FadeInUp } from 'react-native-reanimated';
+import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { useAuth } from '@/providers/AuthProvider';
 import {
   updateProfileTheme,
@@ -61,18 +64,25 @@ export default function CustomizeProfileRoute() {
       <Stack.Screen options={{ title: 'Customize Profile' }} />
 
       {/* Accent Color */}
-      <Text style={styles.sectionTitle}>Accent Color</Text>
-      <View style={styles.colorGrid}>
-        {ACCENT_COLORS.map((c) => (
-          <TouchableOpacity
-            key={c}
-            style={[styles.colorDot, { backgroundColor: c }, accentColor === c && styles.colorSelected]}
-            onPress={() => setAccentColor(c)}
-          />
-        ))}
-      </View>
+      <Animated.View entering={FadeInUp.duration(400)}>
+        <Text style={styles.sectionTitle}>Accent Color</Text>
+        <View style={styles.colorGrid}>
+          {ACCENT_COLORS.map((c) => (
+            <AnimatedPressable
+              key={c}
+              style={[styles.colorDot, { backgroundColor: c }, accentColor === c && styles.colorSelected]}
+              onPress={() => {
+                if (Platform.OS !== 'web') Haptics.selectionAsync();
+                setAccentColor(c);
+              }}
+              scaleValue={0.85}
+            />
+          ))}
+        </View>
+      </Animated.View>
 
       {/* Profile Music */}
+      <Animated.View entering={FadeInUp.delay(100).duration(400)}>
       <Text style={styles.sectionTitle}>Profile Music</Text>
       <TextInput
         style={styles.input}
@@ -89,7 +99,10 @@ export default function CustomizeProfileRoute() {
         onChangeText={setMusicArtist}
       />
 
+      </Animated.View>
+
       {/* Interest Tags */}
+      <Animated.View entering={FadeInUp.delay(200).duration(400)}>
       <Text style={styles.sectionTitle}>Interest Tags</Text>
       <TextInput
         style={[styles.input, { height: 60 }]}
@@ -100,6 +113,7 @@ export default function CustomizeProfileRoute() {
         multiline
       />
       <Text style={styles.hint}>Comma-separated</Text>
+      </Animated.View>
 
       <Button
         title="Save Changes"
