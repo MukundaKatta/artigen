@@ -5,13 +5,16 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useAuth } from '@/providers/AuthProvider';
 import { useMentorship } from '@/hooks/useMentorship';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
 import type { MentorshipWithProfiles } from '@/services/mentorship.service';
 
@@ -22,6 +25,24 @@ const STATUS_COLORS: Record<string, string> = {
   cancelled: colors.textSecondary,
 };
 
+function MentorshipSkeleton() {
+  return (
+    <View style={styles.skeletonContainer}>
+      <Skeleton width="100%" height={48} borderRadius={borderRadius.md} />
+      <Skeleton width={140} height={18} style={{ marginTop: spacing.lg }} />
+      {[...Array(3)].map((_, i) => (
+        <View key={i} style={styles.skeletonCard}>
+          <Skeleton width={44} height={44} borderRadius={22} />
+          <View style={{ flex: 1, marginLeft: spacing.md }}>
+            <Skeleton width={120} height={14} />
+            <Skeleton width={80} height={10} style={{ marginTop: 4 }} />
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+}
+
 export default function MentorshipRoute() {
   const router = useRouter();
   const { user } = useAuth();
@@ -30,64 +51,76 @@ export default function MentorshipRoute() {
   const asMentor = mentorships.filter((m) => m.mentor_id === user?.id);
   const asMentee = mentorships.filter((m) => m.mentee_id === user?.id);
 
-  function renderMentorship({ item }: { item: MentorshipWithProfiles }) {
+  function renderMentorship({ item, index }: { item: MentorshipWithProfiles; index: number }) {
     const isMentor = item.mentor_id === user?.id;
     const otherUser = isMentor ? item.mentee : item.mentor;
     const isPending = item.status === 'pending' && isMentor;
 
     return (
-      <TouchableOpacity
-        style={styles.card}
-        onPress={() => router.push(`/(screens)/mentorship/${item.id}`)}
-        activeOpacity={0.7}
-      >
-        <Image
-          source={
-            otherUser.avatar_url
-              ? { uri: otherUser.avatar_url }
-              : require('../../../assets/images/default-avatar.png')
-          }
-          style={styles.avatar}
-          contentFit="cover"
-        />
-        <View style={styles.cardInfo}>
-          <Text style={styles.cardName} numberOfLines={1}>
-            {otherUser.username}
-          </Text>
-          <View style={styles.cardMeta}>
-            <View style={[styles.statusBadge, { backgroundColor: STATUS_COLORS[item.status] + '15' }]}>
-              <Text style={[styles.statusText, { color: STATUS_COLORS[item.status] }]}>
-                {item.status}
-              </Text>
-            </View>
-            <Text style={styles.roleText}>{isMentor ? 'Mentee' : 'Mentor'}</Text>
-          </View>
-          {item.focus_areas.length > 0 && (
-            <Text style={styles.focusAreas} numberOfLines={1}>
-              {item.focus_areas.join(', ')}
+      <Animated.View entering={FadeIn.delay(Math.min(index, 8) * 40).duration(300)}>
+        <TouchableOpacity
+          style={styles.card}
+          onPress={() => {
+            if (Platform.OS !== 'web') Haptics.selectionAsync();
+            router.push(`/(screens)/mentorship/${item.id}`);
+          }}
+          activeOpacity={0.7}
+        >
+          <Image
+            source={
+              otherUser.avatar_url
+                ? { uri: otherUser.avatar_url }
+                : require('../../../assets/images/default-avatar.png')
+            }
+            style={styles.avatar}
+            contentFit="cover"
+            transition={200}
+          />
+          <View style={styles.cardInfo}>
+            <Text style={styles.cardName} numberOfLines={1}>
+              {otherUser.username}
             </Text>
-          )}
-        </View>
-
-        {isPending ? (
-          <View style={styles.pendingActions}>
-            <TouchableOpacity
-              style={styles.acceptBtn}
-              onPress={() => respond(item.id, true)}
-            >
-              <Ionicons name="checkmark" size={18} color={colors.textLight} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.declineBtn}
-              onPress={() => respond(item.id, false)}
-            >
-              <Ionicons name="close" size={18} color={colors.like} />
-            </TouchableOpacity>
+            <View style={styles.cardMeta}>
+              <View style={[styles.statusBadge, { backgroundColor: STATUS_COLORS[item.status] + '15' }]}>
+                <Text style={[styles.statusText, { color: STATUS_COLORS[item.status] }]}>
+                  {item.status}
+                </Text>
+              </View>
+              <Text style={styles.roleText}>{isMentor ? 'Mentee' : 'Mentor'}</Text>
+            </View>
+            {item.focus_areas.length > 0 && (
+              <Text style={styles.focusAreas} numberOfLines={1}>
+                {item.focus_areas.join(', ')}
+              </Text>
+            )}
           </View>
-        ) : (
-          <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
-        )}
-      </TouchableOpacity>
+
+          {isPending ? (
+            <View style={styles.pendingActions}>
+              <TouchableOpacity
+                style={styles.acceptBtn}
+                onPress={() => {
+                  if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                  respond(item.id, true);
+                }}
+              >
+                <Ionicons name="checkmark" size={18} color={colors.textLight} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.declineBtn}
+                onPress={() => {
+                  if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+                  respond(item.id, false);
+                }}
+              >
+                <Ionicons name="close" size={18} color={colors.like} />
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
+          )}
+        </TouchableOpacity>
+      </Animated.View>
     );
   }
 
@@ -95,7 +128,9 @@ export default function MentorshipRoute() {
     return (
       <View style={styles.container}>
         <Stack.Screen options={{ title: 'Mentorship' }} />
-        <ActivityIndicator style={{ flex: 1 }} color={colors.primary} />
+        <View style={styles.list}>
+          <MentorshipSkeleton />
+        </View>
       </View>
     );
   }
@@ -110,14 +145,19 @@ export default function MentorshipRoute() {
         contentContainerStyle={styles.list}
         ListHeaderComponent={
           <View>
-            <TouchableOpacity
-              style={styles.findButton}
-              onPress={() => router.push('/(screens)/mentorship/find')}
-              activeOpacity={0.7}
-            >
-              <Ionicons name="search" size={20} color={colors.textLight} />
-              <Text style={styles.findButtonText}>Find a Mentor</Text>
-            </TouchableOpacity>
+            <Animated.View entering={FadeInUp.duration(400)}>
+              <TouchableOpacity
+                style={styles.findButton}
+                onPress={() => {
+                  if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  router.push('/(screens)/mentorship/find');
+                }}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="search" size={20} color={colors.textLight} />
+                <Text style={styles.findButtonText}>Find a Mentor</Text>
+              </TouchableOpacity>
+            </Animated.View>
 
             {asMentor.length > 0 && (
               <Text style={styles.sectionTitle}>As Mentor ({asMentor.length})</Text>
@@ -126,9 +166,11 @@ export default function MentorshipRoute() {
         }
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Ionicons name="people-outline" size={48} color={colors.border} />
-            <Text style={styles.emptyText}>No mentorships yet</Text>
-            <Text style={styles.emptyHint}>Find a mentor to get started</Text>
+            <View style={styles.emptyIconCircle}>
+              <Ionicons name="people-outline" size={32} color={colors.textSecondary} />
+            </View>
+            <Text style={styles.emptyTitle}>No mentorships yet</Text>
+            <Text style={styles.emptySubtitle}>Find a mentor to get started</Text>
           </View>
         }
       />
@@ -144,6 +186,16 @@ const styles = StyleSheet.create({
   list: {
     padding: spacing.lg,
     paddingBottom: spacing.xxxl,
+  },
+  skeletonContainer: {
+    gap: spacing.sm,
+  },
+  skeletonCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.md,
+    backgroundColor: colors.backgroundSecondary,
+    borderRadius: borderRadius.lg,
   },
   findButton: {
     flexDirection: 'row',
@@ -240,14 +292,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing.xxxl,
   },
-  emptyText: {
-    fontSize: fontSize.md,
-    fontFamily: typography.medium,
-    color: colors.textSecondary,
-    marginTop: spacing.md,
+  emptyIconCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: colors.backgroundSecondary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.lg,
   },
-  emptyHint: {
-    fontSize: fontSize.sm,
+  emptyTitle: {
+    fontSize: fontSize.lg,
+    fontFamily: typography.semiBold,
+    color: colors.text,
+  },
+  emptySubtitle: {
+    fontSize: fontSize.md,
     fontFamily: typography.regular,
     color: colors.textSecondary,
     marginTop: spacing.xs,

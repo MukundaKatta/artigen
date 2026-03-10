@@ -1,11 +1,12 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
 
 type PollOption = {
@@ -79,7 +80,12 @@ export function PollCard({ question, options, userVoteOptionId, endsAt, onVote }
               styles.optionRow,
               isSelected && styles.optionRowSelected,
             ]}
-            onPress={() => canVote && onVote(option.id)}
+            onPress={() => {
+              if (canVote) {
+                if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                onVote(option.id);
+              }
+            }}
             activeOpacity={canVote ? 0.7 : 1}
             disabled={!canVote}
           >

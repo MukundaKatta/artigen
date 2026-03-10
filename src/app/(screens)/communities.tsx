@@ -6,13 +6,17 @@ import {
   FlatList,
   TouchableOpacity,
   TextInput,
-  ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useAuth } from '@/providers/AuthProvider';
 import { useCommunities } from '@/hooks/useCommunities';
 import { CommunityCard } from '@/components/community/CommunityCard';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
 import type { Community } from '@/types';
 
@@ -34,8 +38,12 @@ export default function CommunitiesRoute() {
   const isSearching = searchQuery.trim().length > 0;
   const displayData = isSearching ? searchResults : discover;
 
-  function renderCommunity({ item }: { item: Community }) {
-    return <CommunityCard community={item} />;
+  function renderCommunity({ item, index }: { item: Community; index: number }) {
+    return (
+      <Animated.View entering={FadeIn.delay(Math.min(index, 8) * 40).duration(300)}>
+        <CommunityCard community={item} />
+      </Animated.View>
+    );
   }
 
   function renderHeader() {
@@ -65,7 +73,10 @@ export default function CommunitiesRoute() {
               <Text style={styles.sectionTitle}>Your Communities</Text>
               <TouchableOpacity
                 style={styles.createButton}
-                onPress={() => router.push('/(screens)/community/create')}
+                onPress={() => {
+                  if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  router.push('/(screens)/community/create');
+                }}
               >
                 <Ionicons name="add" size={18} color={colors.textLight} />
                 <Text style={styles.createButtonText}>Create</Text>
@@ -73,11 +84,18 @@ export default function CommunitiesRoute() {
             </View>
 
             {loading ? (
-              <ActivityIndicator style={styles.sectionLoader} color={colors.primary} />
+              <View style={styles.sectionLoader}>
+                <Skeleton width="100%" height={64} borderRadius={borderRadius.lg} />
+                <Skeleton width="100%" height={64} borderRadius={borderRadius.lg} style={{ marginTop: spacing.sm }} />
+              </View>
             ) : userCommunities.length === 0 ? (
               <View style={styles.emptySectionContainer}>
+                <View style={styles.emptyIconCircle}>
+                  <Ionicons name="people-outline" size={24} color={colors.textSecondary} />
+                </View>
+                <Text style={styles.emptySectionTitle}>No communities yet</Text>
                 <Text style={styles.emptySectionText}>
-                  You haven't joined any communities yet
+                  Join or create a community to get started
                 </Text>
               </View>
             ) : (
@@ -116,19 +134,28 @@ export default function CommunitiesRoute() {
         onEndReachedThreshold={0.5}
         ListEmptyComponent={
           discoverLoading ? (
-            <ActivityIndicator style={styles.loader} size="large" color={colors.primary} />
+            <View style={styles.loaderContainer}>
+              {[...Array(3)].map((_, i) => (
+                <Skeleton key={i} width="100%" height={72} borderRadius={borderRadius.lg} style={{ marginBottom: spacing.sm }} />
+              ))}
+            </View>
           ) : (
             <View style={styles.empty}>
-              <Ionicons name="people-outline" size={48} color={colors.border} />
-              <Text style={styles.emptyText}>
+              <View style={styles.emptyIconCircle}>
+                <Ionicons name="people-outline" size={32} color={colors.textSecondary} />
+              </View>
+              <Text style={styles.emptyTitle}>
                 {isSearching ? 'No communities found' : 'No communities to discover yet'}
+              </Text>
+              <Text style={styles.emptySubtitle}>
+                {isSearching ? 'Try a different search term' : 'Check back later'}
               </Text>
             </View>
           )
         }
         ListFooterComponent={
           !discoverLoading && hasMoreDiscover && !isSearching ? (
-            <ActivityIndicator style={styles.footer} color={colors.primary} />
+            <View style={styles.footer}><LoadingSpinner /></View>
           ) : null
         }
       />
@@ -191,36 +218,57 @@ const styles = StyleSheet.create({
     color: colors.textLight,
   },
   sectionLoader: {
-    paddingVertical: spacing.lg,
+    paddingVertical: spacing.sm,
   },
   emptySectionContainer: {
     paddingVertical: spacing.lg,
     alignItems: 'center',
   },
+  emptyIconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: colors.backgroundSecondary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  emptySectionTitle: {
+    fontSize: fontSize.md,
+    fontFamily: typography.semiBold,
+    color: colors.text,
+  },
   emptySectionText: {
     fontSize: fontSize.sm,
     fontFamily: typography.regular,
     color: colors.textSecondary,
+    marginTop: spacing.xs,
   },
   discoverHeader: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
     paddingBottom: spacing.sm,
-    borderTopWidth: 1,
+    borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.border,
   },
-  loader: {
-    paddingVertical: spacing.xxxl,
+  loaderContainer: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.lg,
   },
   empty: {
     alignItems: 'center',
     paddingVertical: spacing.xxxl,
   },
-  emptyText: {
+  emptyTitle: {
+    fontSize: fontSize.lg,
+    fontFamily: typography.semiBold,
+    color: colors.text,
+  },
+  emptySubtitle: {
     fontSize: fontSize.md,
     fontFamily: typography.regular,
     color: colors.textSecondary,
-    marginTop: spacing.md,
+    marginTop: spacing.xs,
   },
   footer: {
     paddingVertical: spacing.lg,

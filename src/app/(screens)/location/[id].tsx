@@ -1,12 +1,34 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Platform } from 'react-native';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { getLocation, getLocationPosts } from '@/services/location.service';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
 import { POST_GRID_SIZE, POST_GRID_GAP } from '@/lib/constants';
 import type { Location } from '@/types';
+
+function LocationSkeleton() {
+  return (
+    <View>
+      <View style={styles.skeletonHeader}>
+        <Skeleton width={56} height={56} borderRadius={28} />
+        <View style={{ flex: 1, marginLeft: spacing.md }}>
+          <Skeleton width={160} height={18} />
+          <Skeleton width={100} height={12} style={{ marginTop: 4 }} />
+        </View>
+      </View>
+      <View style={styles.skeletonGrid}>
+        {[...Array(9)].map((_, i) => (
+          <Skeleton key={i} width="32%" height={120} borderRadius={2} style={{ flexGrow: 1 }} />
+        ))}
+      </View>
+    </View>
+  );
+}
 
 export default function LocationRoute() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -32,7 +54,7 @@ export default function LocationRoute() {
     return (
       <View style={styles.container}>
         <Stack.Screen options={{ title: 'Location' }} />
-        <ActivityIndicator style={{ marginTop: 100 }} color={colors.textSecondary} />
+        <LocationSkeleton />
       </View>
     );
   }
@@ -43,7 +65,7 @@ export default function LocationRoute() {
 
       {/* Location Header */}
       {location && (
-        <View style={styles.header}>
+        <Animated.View entering={FadeInUp.duration(400)} style={styles.header}>
           <View style={styles.iconCircle}>
             <Ionicons name="location" size={24} color={colors.primary} />
           </View>
@@ -54,7 +76,7 @@ export default function LocationRoute() {
             )}
             <Text style={styles.postCount}>{location.post_count} posts</Text>
           </View>
-        </View>
+        </Animated.View>
       )}
 
       {/* Posts Grid */}
@@ -62,23 +84,34 @@ export default function LocationRoute() {
         data={posts}
         keyExtractor={(item: any) => item.id}
         numColumns={3}
-        renderItem={({ item }: { item: any }) => {
+        columnWrapperStyle={styles.gridRow}
+        renderItem={({ item, index }: { item: any; index: number }) => {
           const media = (item.media || []).sort((a: any, b: any) => a.sort_order - b.sort_order);
           const firstMedia = media[0];
           return (
-            <TouchableOpacity
-              style={styles.gridItem}
-              onPress={() => router.push(`/(screens)/post/${item.id}`)}
-            >
-              {firstMedia && (
-                <Image source={{ uri: firstMedia.media_url }} style={styles.gridImage} contentFit="cover" />
-              )}
-            </TouchableOpacity>
+            <Animated.View entering={FadeIn.delay(Math.min(index, 8) * 30).duration(250)}>
+              <TouchableOpacity
+                style={styles.gridItem}
+                onPress={() => {
+                  if (Platform.OS !== 'web') Haptics.selectionAsync();
+                  router.push(`/(screens)/post/${item.id}`);
+                }}
+                activeOpacity={0.8}
+              >
+                {firstMedia && (
+                  <Image source={{ uri: firstMedia.media_url }} style={styles.gridImage} contentFit="cover" transition={200} />
+                )}
+              </TouchableOpacity>
+            </Animated.View>
           );
         }}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Text style={styles.emptyText}>No posts at this location yet</Text>
+            <View style={styles.emptyIconCircle}>
+              <Ionicons name="location-outline" size={32} color={colors.textSecondary} />
+            </View>
+            <Text style={styles.emptyTitle}>No posts at this location</Text>
+            <Text style={styles.emptySubtitle}>Be the first to share from here</Text>
           </View>
         }
       />
@@ -90,6 +123,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  skeletonHeader: {
+    flexDirection: 'row',
+    padding: spacing.lg,
+    alignItems: 'center',
+  },
+  skeletonGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 2,
+    padding: 1,
   },
   header: {
     flexDirection: 'row',
@@ -128,22 +172,41 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: 4,
   },
+  gridRow: {
+    gap: POST_GRID_GAP,
+  },
   gridItem: {
     width: POST_GRID_SIZE,
     height: POST_GRID_SIZE,
-    marginRight: POST_GRID_GAP,
     marginBottom: POST_GRID_GAP,
   },
   gridImage: {
     width: '100%',
     height: '100%',
+    backgroundColor: colors.backgroundSecondary,
   },
   empty: {
     alignItems: 'center',
-    paddingTop: 100,
+    paddingVertical: spacing.xxxl,
   },
-  emptyText: {
+  emptyIconCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: colors.backgroundSecondary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
+  emptyTitle: {
+    fontSize: fontSize.lg,
+    fontFamily: typography.semiBold,
+    color: colors.text,
+  },
+  emptySubtitle: {
     fontSize: fontSize.md,
+    fontFamily: typography.regular,
     color: colors.textSecondary,
+    marginTop: spacing.xs,
   },
 });

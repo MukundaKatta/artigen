@@ -6,12 +6,16 @@ import {
   FlatList,
   TouchableOpacity,
   TextInput,
-  ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { useAuth } from '@/providers/AuthProvider';
 import { Avatar } from '@/components/ui/Avatar';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { usePromptLibrary } from '@/hooks/usePromptLibrary';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
 import type { PromptLibraryItem } from '@/types';
@@ -44,6 +48,7 @@ export default function PromptLibraryRoute() {
   );
 
   function handleUsePrompt(prompt: PromptWithUser) {
+    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     router.push({
       pathname: '/(camera)/generate',
       params: {
@@ -55,71 +60,80 @@ export default function PromptLibraryRoute() {
     });
   }
 
-  function renderPromptCard({ item }: { item: PromptWithUser }) {
+  function renderPromptCard({ item, index }: { item: PromptWithUser; index: number }) {
     const isSaved = savedPromptIds.has(item.id);
 
     return (
-      <View style={styles.card}>
-        <View style={styles.cardHeader}>
-          <TouchableOpacity
-            style={styles.cardUser}
-            onPress={() => router.push(`/(screens)/user/${item.user.id}`)}
-          >
-            <Avatar uri={item.user.avatar_url} size="sm" />
-            <Text style={styles.cardUsername}>{item.user.username}</Text>
-          </TouchableOpacity>
-          <View style={styles.cardActions}>
-            {user && user.id === item.user.id && (
+      <Animated.View entering={FadeIn.delay(Math.min(index, 8) * 40).duration(300)}>
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <TouchableOpacity
+              style={styles.cardUser}
+              onPress={() => router.push(`/(screens)/user/${item.user.id}`)}
+            >
+              <Avatar uri={item.user.avatar_url} size="sm" />
+              <Text style={styles.cardUsername}>{item.user.username}</Text>
+            </TouchableOpacity>
+            <View style={styles.cardActions}>
+              {user && user.id === item.user.id && (
+                <TouchableOpacity
+                  onPress={() => router.push(`/(screens)/prompt-library/edit/${item.id}`)}
+                  hitSlop={8}
+                  style={styles.actionIcon}
+                >
+                  <Ionicons name="pencil" size={18} color={colors.textSecondary} />
+                </TouchableOpacity>
+              )}
               <TouchableOpacity
-                onPress={() => router.push(`/(screens)/prompt-library/edit/${item.id}`)}
+                onPress={() => {
+                  if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  toggleSave(item.id);
+                }}
                 hitSlop={8}
                 style={styles.actionIcon}
               >
-                <Ionicons name="pencil" size={18} color={colors.textSecondary} />
+                <Ionicons
+                  name={isSaved ? 'bookmark' : 'bookmark-outline'}
+                  size={20}
+                  color={isSaved ? colors.primary : colors.textSecondary}
+                />
               </TouchableOpacity>
-            )}
-            <TouchableOpacity onPress={() => toggleSave(item.id)} hitSlop={8} style={styles.actionIcon}>
-              <Ionicons
-                name={isSaved ? 'bookmark' : 'bookmark-outline'}
-                size={20}
-                color={isSaved ? colors.primary : colors.textSecondary}
-              />
+            </View>
+          </View>
+
+          <Text style={styles.cardTitle}>{item.title}</Text>
+          <Text style={styles.cardPrompt} numberOfLines={3}>
+            {item.prompt}
+          </Text>
+
+          {item.style_tags.length > 0 && (
+            <View style={styles.tagsRow}>
+              {item.style_tags.slice(0, 4).map((tag) => (
+                <View key={tag} style={styles.tag}>
+                  <Text style={styles.tagText}>{tag}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+
+          <View style={styles.cardFooter}>
+            <View style={styles.cardStats}>
+              {item.model_name && (
+                <Text style={styles.cardStat}>
+                  <Ionicons name="sparkles" size={10} color="#8B5CF6" /> {item.model_name}
+                </Text>
+              )}
+              <Text style={styles.cardStat}>
+                {item.save_count} {item.save_count === 1 ? 'save' : 'saves'}
+              </Text>
+            </View>
+            <TouchableOpacity style={styles.useButton} onPress={() => handleUsePrompt(item)}>
+              <Ionicons name="flash" size={14} color="#fff" />
+              <Text style={styles.useButtonText}>Use</Text>
             </TouchableOpacity>
           </View>
         </View>
-
-        <Text style={styles.cardTitle}>{item.title}</Text>
-        <Text style={styles.cardPrompt} numberOfLines={3}>
-          {item.prompt}
-        </Text>
-
-        {item.style_tags.length > 0 && (
-          <View style={styles.tagsRow}>
-            {item.style_tags.slice(0, 4).map((tag) => (
-              <View key={tag} style={styles.tag}>
-                <Text style={styles.tagText}>{tag}</Text>
-              </View>
-            ))}
-          </View>
-        )}
-
-        <View style={styles.cardFooter}>
-          <View style={styles.cardStats}>
-            {item.model_name && (
-              <Text style={styles.cardStat}>
-                <Ionicons name="sparkles" size={10} color="#8B5CF6" /> {item.model_name}
-              </Text>
-            )}
-            <Text style={styles.cardStat}>
-              {item.save_count} {item.save_count === 1 ? 'save' : 'saves'}
-            </Text>
-          </View>
-          <TouchableOpacity style={styles.useButton} onPress={() => handleUsePrompt(item)}>
-            <Ionicons name="flash" size={14} color="#fff" />
-            <Text style={styles.useButtonText}>Use</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+      </Animated.View>
     );
   }
 
@@ -142,7 +156,10 @@ export default function PromptLibraryRoute() {
         )}
         {user && (
           <TouchableOpacity
-            onPress={() => router.push('/(screens)/prompt-library/edit')}
+            onPress={() => {
+              if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              router.push('/(screens)/prompt-library/edit');
+            }}
             hitSlop={8}
             style={styles.addButton}
           >
@@ -160,19 +177,28 @@ export default function PromptLibraryRoute() {
         onEndReachedThreshold={0.5}
         ListEmptyComponent={
           loading ? (
-            <ActivityIndicator style={styles.loader} size="large" color={colors.primary} />
+            <View style={styles.loaderContainer}>
+              {[...Array(3)].map((_, i) => (
+                <Skeleton key={i} width="100%" height={120} borderRadius={borderRadius.lg} style={{ marginBottom: spacing.md }} />
+              ))}
+            </View>
           ) : (
             <View style={styles.empty}>
-              <Ionicons name="document-text-outline" size={48} color={colors.border} />
-              <Text style={styles.emptyText}>
+              <View style={styles.emptyIconCircle}>
+                <Ionicons name="document-text-outline" size={32} color={colors.textSecondary} />
+              </View>
+              <Text style={styles.emptyTitle}>
                 {searchQuery ? 'No prompts found' : 'No prompts shared yet'}
+              </Text>
+              <Text style={styles.emptySubtitle}>
+                {searchQuery ? 'Try a different search term' : 'Share your first prompt'}
               </Text>
             </View>
           )
         }
         ListFooterComponent={
           !loading && hasMore ? (
-            <ActivityIndicator style={styles.footer} color={colors.primary} />
+            <View style={styles.footer}><LoadingSpinner /></View>
           ) : null
         }
       />
@@ -208,6 +234,9 @@ const styles = StyleSheet.create({
   list: {
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.xxxl,
+  },
+  loaderContainer: {
+    paddingVertical: spacing.md,
   },
   card: {
     backgroundColor: colors.backgroundSecondary,
@@ -296,18 +325,29 @@ const styles = StyleSheet.create({
     fontFamily: typography.semiBold,
     color: '#fff',
   },
-  loader: {
-    paddingVertical: spacing.xxxl,
-  },
   empty: {
     alignItems: 'center',
     paddingVertical: spacing.xxxl,
   },
-  emptyText: {
+  emptyIconCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: colors.backgroundSecondary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
+  emptyTitle: {
+    fontSize: fontSize.lg,
+    fontFamily: typography.semiBold,
+    color: colors.text,
+  },
+  emptySubtitle: {
     fontSize: fontSize.md,
     fontFamily: typography.regular,
     color: colors.textSecondary,
-    marginTop: spacing.md,
+    marginTop: spacing.xs,
   },
   footer: {
     paddingVertical: spacing.lg,

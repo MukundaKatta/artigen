@@ -4,15 +4,32 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  ActivityIndicator,
   TouchableOpacity,
 } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useAuth } from '@/providers/AuthProvider';
 import { usePortfolio } from '@/hooks/usePortfolio';
 import { PortfolioSection } from '@/components/portfolio/PortfolioSection';
-import { colors, spacing, fontSize, typography } from '@/lib/theme';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
+
+function PortfolioSkeleton() {
+  return (
+    <View style={styles.skeletonContainer}>
+      <View style={{ padding: spacing.lg }}>
+        <Skeleton width="100%" height={60} borderRadius={borderRadius.md} />
+      </View>
+      <Skeleton width={140} height={18} style={{ marginLeft: spacing.lg }} />
+      <View style={styles.skeletonGrid}>
+        {[...Array(4)].map((_, i) => (
+          <Skeleton key={i} width="47%" height={160} borderRadius={borderRadius.md} />
+        ))}
+      </View>
+    </View>
+  );
+}
 
 export default function PortfolioViewRoute() {
   const router = useRouter();
@@ -27,9 +44,9 @@ export default function PortfolioViewRoute() {
 
   if (loading) {
     return (
-      <View style={styles.center}>
+      <View style={styles.container}>
         <Stack.Screen options={{ title: 'Portfolio' }} />
-        <ActivityIndicator color={colors.primary} size="large" />
+        <PortfolioSkeleton />
       </View>
     );
   }
@@ -38,8 +55,11 @@ export default function PortfolioViewRoute() {
     return (
       <View style={styles.center}>
         <Stack.Screen options={{ title: 'Portfolio' }} />
-        <Ionicons name="images-outline" size={48} color={colors.textSecondary} />
-        <Text style={styles.emptyText}>No portfolio sections yet</Text>
+        <View style={styles.emptyIconCircle}>
+          <Ionicons name="images-outline" size={32} color={colors.textSecondary} />
+        </View>
+        <Text style={styles.emptyTitle}>No portfolio sections yet</Text>
+        <Text style={styles.emptySubtitle}>Showcase your best work</Text>
         {isOwner && (
           <TouchableOpacity
             style={styles.setupButton}
@@ -69,24 +89,25 @@ export default function PortfolioViewRoute() {
 
       {/* Bio Section */}
       {portfolioBio ? (
-        <View style={styles.bioSection}>
+        <Animated.View entering={FadeInUp.duration(400)} style={styles.bioSection}>
           <Text style={styles.bioText}>{portfolioBio}</Text>
           {portfolioEmail ? (
             <Text style={styles.contactEmail}>{portfolioEmail}</Text>
           ) : null}
-        </View>
+        </Animated.View>
       ) : null}
 
       {/* Portfolio Sections */}
-      {sections.map((section) => (
-        <PortfolioSection
-          key={section.id}
-          section={section}
-          items={section.items || []}
-          onItemPress={(item) =>
-            router.push(`/(screens)/post/${item.post_id}`)
-          }
-        />
+      {sections.map((section, index) => (
+        <Animated.View key={section.id} entering={FadeIn.delay(index * 100).duration(300)}>
+          <PortfolioSection
+            section={section}
+            items={section.items || []}
+            onItemPress={(item) =>
+              router.push(`/(screens)/post/${item.post_id}`)
+            }
+          />
+        </Animated.View>
       ))}
 
       <View style={styles.footer} />
@@ -99,14 +120,37 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  skeletonContainer: {
+    flex: 1,
+  },
+  skeletonGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.md,
+    padding: spacing.lg,
+  },
   center: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    gap: spacing.md,
+    gap: spacing.xs,
     backgroundColor: colors.background,
   },
-  emptyText: {
+  emptyIconCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: colors.backgroundSecondary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  emptyTitle: {
+    fontSize: fontSize.lg,
+    fontFamily: typography.semiBold,
+    color: colors.text,
+  },
+  emptySubtitle: {
     fontSize: fontSize.md,
     fontFamily: typography.regular,
     color: colors.textSecondary,
@@ -116,7 +160,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.xl,
-    borderRadius: 8,
+    borderRadius: borderRadius.md,
   },
   setupButtonText: {
     color: '#FFFFFF',

@@ -8,12 +8,13 @@ import {
   Platform,
   TouchableOpacity,
   Text,
-  ActivityIndicator,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { useAuth } from '@/providers/AuthProvider';
 import { useComments } from '@/hooks/useComments';
 import { CommentItem } from '@/components/comments/CommentItem';
@@ -115,34 +116,39 @@ export default function CommentsRoute() {
       <FlatList
         data={comments}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <CommentItem
-            comment={item}
-            currentUserId={user?.id || ''}
-            onUserPress={(userId) =>
-              router.push(`/(screens)/user/${userId}`)
-            }
-            onDelete={
-              item.user_id === user?.id
-                ? () => removeComment(item.id)
-                : undefined
-            }
-            onLike={() => user?.id && toggleCommentLike(user.id, item.id)}
-            onReply={handleReply}
-            onViewReplies={loadReplies}
-            replies={repliesMap[item.id]}
-            renderReply={renderReply}
-          />
+        renderItem={({ item, index }) => (
+          <Animated.View entering={FadeIn.delay(Math.min(index, 8) * 30).duration(250)}>
+            <CommentItem
+              comment={item}
+              currentUserId={user?.id || ''}
+              onUserPress={(userId) =>
+                router.push(`/(screens)/user/${userId}`)
+              }
+              onDelete={
+                item.user_id === user?.id
+                  ? () => removeComment(item.id)
+                  : undefined
+              }
+              onLike={() => user?.id && toggleCommentLike(user.id, item.id)}
+              onReply={handleReply}
+              onViewReplies={loadReplies}
+              replies={repliesMap[item.id]}
+              renderReply={renderReply}
+            />
+          </Animated.View>
         )}
         ListEmptyComponent={
-          <Text style={styles.empty}>No comments yet. Be the first!</Text>
+          <View style={styles.emptyContainer}>
+            <View style={styles.emptyIconCircle}>
+              <Ionicons name="chatbubble-outline" size={28} color={colors.textSecondary} />
+            </View>
+            <Text style={styles.emptyTitle}>No comments yet</Text>
+            <Text style={styles.emptySubtitle}>Be the first to comment!</Text>
+          </View>
         }
         ListFooterComponent={
           loadingMore ? (
-            <ActivityIndicator
-              style={{ padding: spacing.lg }}
-              color={colors.textSecondary}
-            />
+            <View style={{ padding: spacing.lg }}><LoadingSpinner /></View>
           ) : null
         }
         onEndReached={loadMore}
@@ -181,7 +187,10 @@ export default function CommentsRoute() {
           )}
         />
         <TouchableOpacity
-          onPress={handleSubmit(onSubmit)}
+          onPress={() => {
+            if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            handleSubmit(onSubmit)();
+          }}
           disabled={submitting}
         >
           <Text
@@ -207,11 +216,28 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingVertical: spacing.sm,
   },
-  empty: {
-    fontSize: fontSize.md,
-    color: colors.textSecondary,
-    textAlign: 'center',
+  emptyContainer: {
+    alignItems: 'center',
     paddingVertical: spacing.xxxl,
+  },
+  emptyIconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: colors.backgroundSecondary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  emptyTitle: {
+    fontSize: fontSize.md,
+    fontFamily: typography.semiBold,
+    color: colors.text,
+  },
+  emptySubtitle: {
+    fontSize: fontSize.sm,
+    color: colors.textSecondary,
+    marginTop: spacing.xs,
   },
   replyingBar: {
     flexDirection: 'row',
@@ -220,7 +246,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
     backgroundColor: colors.backgroundSecondary,
-    borderTopWidth: 0.5,
+    borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.border,
   },
   replyingText: {
@@ -237,7 +263,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
-    borderTopWidth: 0.5,
+    borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.border,
     backgroundColor: colors.background,
   },

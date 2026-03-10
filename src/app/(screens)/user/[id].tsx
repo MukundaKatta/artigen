@@ -6,12 +6,42 @@ import { useProfile } from '@/hooks/useProfile';
 import { useFollow } from '@/hooks/useFollow';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import { ProfilePostGrid } from '@/components/profile/ProfilePostGrid';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { supabase } from '@/lib/supabase';
-import { colors } from '@/lib/theme';
+import { colors, spacing } from '@/lib/theme';
 import type { Post, PostMedia } from '@/types/database';
 
 type GridPost = Post & { media: PostMedia[] };
+
+function ProfileSkeleton() {
+  return (
+    <View style={styles.skeletonContainer}>
+      {/* Avatar + stats row */}
+      <View style={styles.skeletonTopRow}>
+        <Skeleton width={80} height={80} borderRadius={40} />
+        <View style={styles.skeletonStats}>
+          <Skeleton width={50} height={14} />
+          <Skeleton width={50} height={14} />
+          <Skeleton width={50} height={14} />
+        </View>
+      </View>
+      {/* Name and bio */}
+      <View style={styles.skeletonBio}>
+        <Skeleton width={120} height={14} />
+        <Skeleton width={200} height={12} style={{ marginTop: 6 }} />
+        <Skeleton width={160} height={12} style={{ marginTop: 4 }} />
+      </View>
+      {/* Action button */}
+      <Skeleton width="100%" height={36} borderRadius={8} style={{ marginTop: spacing.md }} />
+      {/* Grid */}
+      <View style={styles.skeletonGrid}>
+        {[...Array(9)].map((_, i) => (
+          <Skeleton key={i} width="32%" height={120} borderRadius={2} style={{ flexGrow: 1 }} />
+        ))}
+      </View>
+    </View>
+  );
+}
 
 export default function UserProfileRoute() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -50,7 +80,11 @@ export default function UserProfileRoute() {
   }
 
   if (profileLoading || !profile) {
-    return <LoadingSpinner fullScreen />;
+    return (
+      <View style={styles.container}>
+        <ProfileSkeleton />
+      </View>
+    );
   }
 
   const isCurrentUser = user?.id === id;
@@ -73,7 +107,11 @@ export default function UserProfileRoute() {
             onFollowingPress={() => router.push(`/(screens)/following/${id}`)}
           />
           {postsLoading ? (
-            <LoadingSpinner />
+            <View style={styles.skeletonGrid}>
+              {[...Array(9)].map((_, i) => (
+                <Skeleton key={i} width="32%" height={120} borderRadius={2} style={{ flexGrow: 1 }} />
+              ))}
+            </View>
           ) : (
             <ProfilePostGrid
               posts={posts}
@@ -90,5 +128,28 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  skeletonContainer: {
+    padding: spacing.lg,
+  },
+  skeletonTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  skeletonStats: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginLeft: spacing.xl,
+  },
+  skeletonBio: {
+    marginTop: spacing.md,
+  },
+  skeletonGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 2,
+    padding: 1,
+    marginTop: spacing.md,
   },
 });
