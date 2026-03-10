@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 import { useRouter, usePathname } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { LogoText } from '@/components/ui/LogoText';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
 import { SIDEBAR_WIDTH, SIDEBAR_COLLAPSED_WIDTH } from '@/lib/constants';
@@ -52,15 +53,15 @@ export function DesktopSidebar({ collapsed = false }: Props) {
         {NAV_ITEMS.map((item) => {
           const active = isActive(item);
           return (
-            <TouchableOpacity
+            <AnimatedPressable
               key={item.label}
               style={[styles.navItem, active && styles.navItemActive]}
               onPress={() => router.push(item.path as any)}
-              activeOpacity={0.7}
+              scaleValue={0.97}
               {...(Platform.OS === 'web' ? {
                 // @ts-ignore - web hover styles
                 onMouseEnter: (e: any) => { e.currentTarget.style.backgroundColor = colors.backgroundSecondary; },
-                onMouseLeave: (e: any) => { e.currentTarget.style.backgroundColor = 'transparent'; },
+                onMouseLeave: (e: any) => { e.currentTarget.style.backgroundColor = active ? 'transparent' : 'transparent'; },
               } : {})}
             >
               <Ionicons
@@ -73,20 +74,20 @@ export function DesktopSidebar({ collapsed = false }: Props) {
                   {item.label}
                 </Text>
               )}
-            </TouchableOpacity>
+            </AnimatedPressable>
           );
         })}
       </View>
 
       <View style={styles.footer}>
-        <TouchableOpacity
+        <AnimatedPressable
           style={styles.navItem}
           onPress={() => router.push('/(screens)/settings' as any)}
-          activeOpacity={0.7}
+          scaleValue={0.97}
         >
           <Ionicons name="menu-outline" size={26} color={colors.text} />
           {!collapsed && <Text style={styles.navLabel}>More</Text>}
-        </TouchableOpacity>
+        </AnimatedPressable>
       </View>
     </View>
   );
