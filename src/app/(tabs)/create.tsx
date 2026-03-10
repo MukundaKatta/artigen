@@ -133,6 +133,7 @@ export default function CreateRoute() {
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
       <Text style={styles.title}>Create</Text>
       <Text style={styles.subtitle}>Share AI art with the world</Text>
+      <View style={styles.divider} />
 
       {TOOLS.map((tool, index) => (
         <ToolCard key={tool.title} {...tool} index={index} />
@@ -161,6 +162,11 @@ const styles = StyleSheet.create({
     fontSize: fontSize.md,
     fontFamily: typography.regular,
     color: colors.textSecondary,
+    marginBottom: spacing.md,
+  },
+  divider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: colors.border,
     marginBottom: spacing.xl,
   },
   card: {

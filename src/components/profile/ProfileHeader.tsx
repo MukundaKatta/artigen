@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
 import { HighlightCircle } from '@/components/profile/HighlightCircle';
@@ -65,7 +66,7 @@ export function ProfileHeader({
   return (
     <View style={[styles.container, accentColor && { borderBottomWidth: 2, borderBottomColor: accentColor }]}>
       {/* Top row: Avatar + Stats */}
-      <View style={styles.topRow}>
+      <Animated.View entering={FadeIn.duration(400)} style={styles.topRow}>
         <Avatar uri={profile.avatar_url} size="xl" />
         <View style={styles.stats}>
           <StatItem label="Posts" value={profile.posts_count} />
@@ -75,10 +76,10 @@ export function ProfileHeader({
             <StatItem label="Subscribers" value={profile.subscriber_count} />
           )}
         </View>
-      </View>
+      </Animated.View>
 
       {/* Name and Bio */}
-      <View style={styles.info}>
+      <Animated.View entering={FadeInDown.delay(100).duration(350)} style={styles.info}>
         <View style={styles.nameRow}>
           <Text style={styles.fullName}>{profile.full_name}</Text>
           {profile.is_private && (
@@ -98,7 +99,7 @@ export function ProfileHeader({
         {profile.website ? (
           <Text style={styles.website}>{profile.website}</Text>
         ) : null}
-      </View>
+      </Animated.View>
 
       {/* Interest Tags */}
       {interestTags && interestTags.length > 0 && (
@@ -116,7 +117,7 @@ export function ProfileHeader({
       )}
 
       {/* Action Button */}
-      <View style={styles.actionRow}>
+      <Animated.View entering={FadeInDown.delay(200).duration(350)} style={styles.actionRow}>
         {isCurrentUser ? (
           <Button
             title="Edit Profile"
@@ -143,7 +144,7 @@ export function ProfileHeader({
             </TouchableOpacity>
           </View>
         )}
-      </View>
+      </Animated.View>
 
       {/* Story Highlights */}
       {highlights.length > 0 && (
@@ -197,7 +198,16 @@ function StatItem({
   );
 
   if (onPress) {
-    return <TouchableOpacity onPress={onPress}>{content}</TouchableOpacity>;
+    return (
+      <TouchableOpacity
+        onPress={onPress}
+        activeOpacity={0.6}
+        accessibilityRole="button"
+        accessibilityLabel={`${formatNumber(value)} ${label}`}
+      >
+        {content}
+      </TouchableOpacity>
+    );
   }
 
   return content;

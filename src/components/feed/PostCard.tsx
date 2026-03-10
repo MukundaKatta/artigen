@@ -268,9 +268,12 @@ export const PostCard = React.memo(function PostCard({
       {sortedMedia.length > 1 && (
         <View style={styles.dotsContainer}>
           {sortedMedia.map((_, i) => (
-            <View
+            <Animated.View
               key={i}
-              style={[styles.dot, i === activeIndex && styles.activeDot]}
+              style={[
+                styles.dot,
+                i === activeIndex && styles.activeDot,
+              ]}
             />
           ))}
         </View>
@@ -593,13 +596,13 @@ const styles = StyleSheet.create({
     height: 6,
     borderRadius: 3,
     backgroundColor: colors.border,
-    marginHorizontal: 2,
+    marginHorizontal: 3,
   },
   activeDot: {
     backgroundColor: colors.primary,
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
   actions: {
     flexDirection: 'row',

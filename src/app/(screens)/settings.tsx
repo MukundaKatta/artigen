@@ -9,7 +9,7 @@ import { ActionSheet } from '@/components/ui/ActionSheet';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { updateProfile } from '@/services/profile.service';
 import { toggleActivityStatus } from '@/services/activity.service';
-import { colors, fontSize, spacing, typography, borderRadius } from '@/lib/theme';
+import { colors, fontSize, spacing, typography, borderRadius, shadows } from '@/lib/theme';
 
 type SettingRowProps = {
   icon: string;

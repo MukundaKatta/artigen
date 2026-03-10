@@ -130,7 +130,7 @@ function ReelItem({
 
       {/* Right side actions */}
       <View style={styles.actions}>
-        <TouchableOpacity style={styles.actionItem} onPress={handleLike}>
+        <TouchableOpacity style={styles.actionItem} onPress={handleLike} accessibilityRole="button" accessibilityLabel={item.isLiked ? 'Unlike' : 'Like'}>
           <Animated.View style={likeButtonStyle}>
             <Ionicons
               name={item.isLiked ? 'heart' : 'heart-outline'}
@@ -144,16 +144,18 @@ function ReelItem({
         <TouchableOpacity
           style={styles.actionItem}
           onPress={() => onComment(item.id)}
+          accessibilityRole="button"
+          accessibilityLabel={`${formatNumber(item.comments_count)} comments`}
         >
           <Ionicons name="chatbubble-outline" size={28} color="#fff" />
           <Text style={styles.actionCount}>{formatNumber(item.comments_count)}</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.actionItem}>
+        <TouchableOpacity style={styles.actionItem} accessibilityRole="button" accessibilityLabel="Share">
           <Ionicons name="paper-plane-outline" size={28} color="#fff" />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.actionItem} onPress={handleSave}>
+        <TouchableOpacity style={styles.actionItem} onPress={handleSave} accessibilityRole="button" accessibilityLabel={item.isSaved ? 'Unsave' : 'Save'}>
           <Ionicons
             name={item.isSaved ? 'bookmark' : 'bookmark-outline'}
             size={28}
@@ -162,7 +164,7 @@ function ReelItem({
         </TouchableOpacity>
 
         {item.ai_metadata && (
-          <View style={styles.aiIndicator}>
+          <View style={styles.aiIndicator} accessibilityLabel="AI generated">
             <Ionicons name="sparkles" size={14} color="#fff" />
           </View>
         )}

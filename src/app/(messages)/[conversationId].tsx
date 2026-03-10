@@ -8,8 +8,8 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  ActivityIndicator,
 } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -147,6 +147,7 @@ export default function ChatRoute() {
 
   function handleSend() {
     if (!text.trim()) return;
+    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     sendMessage(text);
     setText('');
   }
@@ -167,7 +168,7 @@ export default function ChatRoute() {
     return null;
   })();
 
-  function renderMessage({ item }: { item: MessageWithSender }) {
+  function renderMessage({ item, index }: { item: MessageWithSender; index: number }) {
     const isMine = item.sender_id === user?.id;
     const isPostShare = item.message_type === 'post_share' && item.shared_post_id;
     const isStoryReply = item.message_type === 'story_reply';
@@ -175,7 +176,14 @@ export default function ChatRoute() {
     const showSeen = item.id === lastSeenMessageId;
 
     return (
-      <View>
+      <Animated.View
+        entering={index < 10
+          ? (isMine
+            ? require('react-native-reanimated').FadeInRight.duration(250).delay(Math.min(index, 5) * 30)
+            : require('react-native-reanimated').FadeInLeft.duration(250).delay(Math.min(index, 5) * 30))
+          : undefined
+        }
+      >
         <View style={[styles.messageRow, isMine && styles.messageRowMine]}>
           {!isMine && <Avatar uri={item.sender?.avatar_url} size="sm" />}
           {isVoice && item.media_url ? (
@@ -209,7 +217,7 @@ export default function ChatRoute() {
         {showSeen && (
           <Text style={styles.seenText}>Seen</Text>
         )}
-      </View>
+      </Animated.View>
     );
   }
 
@@ -222,7 +230,13 @@ export default function ChatRoute() {
       <Stack.Screen options={{ title: 'Chat' }} />
 
       {loading ? (
-        <ActivityIndicator style={styles.loader} color={colors.textSecondary} />
+        <View style={styles.loader}>
+          <View style={styles.loadingBubbles}>
+            {[...Array(4)].map((_, i) => (
+              <View key={i} style={[styles.loadingBubble, i % 2 === 0 ? styles.loadingBubbleLeft : styles.loadingBubbleRight]} />
+            ))}
+          </View>
+        </View>
       ) : (
         <FlatList
           data={messages}
@@ -277,8 +291,11 @@ export default function ChatRoute() {
                 onPress={handleSend}
                 disabled={sending}
                 hitSlop={8}
+                style={styles.sendButton}
+                accessibilityRole="button"
+                accessibilityLabel="Send message"
               >
-                <Ionicons name="send" size={24} color={colors.primary} />
+                <Ionicons name="send" size={18} color="#fff" />
               </TouchableOpacity>
             ) : (
               <VoiceRecordButton
@@ -420,7 +437,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     paddingHorizontal: spacing.md,
     paddingTop: spacing.sm,
-    borderTopWidth: 1,
+    borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.border,
     backgroundColor: colors.background,
   },
@@ -437,8 +454,39 @@ const styles = StyleSheet.create({
     color: colors.text,
     marginRight: spacing.sm,
   },
+  sendButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...shadows.sm,
+  },
   loader: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingBubbles: {
+    width: '100%',
+    paddingHorizontal: spacing.md,
+    gap: spacing.sm,
+  },
+  loadingBubble: {
+    height: 40,
+    borderRadius: borderRadius.xl,
+    backgroundColor: colors.backgroundSecondary,
+    width: '55%',
+  },
+  loadingBubbleLeft: {
+    alignSelf: 'flex-start',
+    borderBottomLeftRadius: 4,
+  },
+  loadingBubbleRight: {
+    alignSelf: 'flex-end',
+    backgroundColor: 'rgba(0, 149, 246, 0.15)',
+    borderBottomRightRadius: 4,
   },
   emptyChat: {
     alignItems: 'center',

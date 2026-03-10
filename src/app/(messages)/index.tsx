@@ -5,10 +5,12 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import Animated, { FadeInRight } from 'react-native-reanimated';
 import { useAuth } from '@/providers/AuthProvider';
 import { useConversations } from '@/hooks/useConversations';
 import { useNotes } from '@/hooks/useNotes';
@@ -17,7 +19,7 @@ import { GroupAvatar } from '@/components/messages/GroupAvatar';
 import { NotesRow } from '@/components/messages/NotesRow';
 import { OnlineIndicator } from '@/components/ui/OnlineIndicator';
 import { timeAgo } from '@/utils/format-date';
-import { colors, spacing, fontSize, typography } from '@/lib/theme';
+import { colors, spacing, fontSize, typography, shadows } from '@/lib/theme';
 import { UserRowSkeleton } from '@/components/ui/Skeleton';
 import type { ConversationPreview } from '@/types';
 
@@ -31,7 +33,7 @@ export default function MessagesIndexRoute() {
     return conv.participants.find((p) => p.id !== user?.id) || conv.participants[0];
   }
 
-  function renderItem({ item }: { item: ConversationPreview }) {
+  function renderItem({ item, index }: { item: ConversationPreview; index: number }) {
     const isGroup = item.is_group;
     const other = getOtherParticipant(item);
 
@@ -51,31 +53,39 @@ export default function MessagesIndexRoute() {
     );
 
     return (
-      <TouchableOpacity
-        style={styles.row}
-        onPress={() => router.push(`/(messages)/${item.id}`)}
-      >
-        {avatarSection}
-        <View style={styles.info}>
-          <Text style={styles.username}>{displayName}</Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
-            {!isGroup && other?.show_activity_status && (
-              <OnlineIndicator lastActiveAt={other?.last_active_at} showText />
-            )}
-            {!(!isGroup && other?.show_activity_status && other?.last_active_at) && (
-              <Text style={styles.lastMessage} numberOfLines={1}>
-                {item.lastMessage?.content || 'No messages yet'}
-                {item.lastMessage ? ` · ${timeAgo(item.lastMessage.created_at)}` : ''}
-              </Text>
-            )}
+      <Animated.View entering={FadeInRight.delay(Math.min(index, 8) * 40).duration(300)}>
+        <TouchableOpacity
+          style={styles.row}
+          onPress={() => {
+            if (Platform.OS !== 'web') Haptics.selectionAsync();
+            router.push(`/(messages)/${item.id}`);
+          }}
+          activeOpacity={0.6}
+          accessibilityRole="button"
+          accessibilityLabel={`Chat with ${displayName}`}
+        >
+          {avatarSection}
+          <View style={styles.info}>
+            <Text style={[styles.username, item.unreadCount > 0 && styles.usernameUnread]}>{displayName}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
+              {!isGroup && other?.show_activity_status && (
+                <OnlineIndicator lastActiveAt={other?.last_active_at} showText />
+              )}
+              {!(!isGroup && other?.show_activity_status && other?.last_active_at) && (
+                <Text style={[styles.lastMessage, item.unreadCount > 0 && styles.lastMessageUnread]} numberOfLines={1}>
+                  {item.lastMessage?.content || 'No messages yet'}
+                  {item.lastMessage ? ` · ${timeAgo(item.lastMessage.created_at)}` : ''}
+                </Text>
+              )}
+            </View>
           </View>
-        </View>
-        {item.unreadCount > 0 && (
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{item.unreadCount}</Text>
-          </View>
-        )}
-      </TouchableOpacity>
+          {item.unreadCount > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{item.unreadCount}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+      </Animated.View>
     );
   }
 
@@ -86,10 +96,15 @@ export default function MessagesIndexRoute() {
           title: 'Messages',
           headerRight: () => (
             <TouchableOpacity
-              onPress={() => router.push('/(messages)/new')}
+              onPress={() => {
+                if (Platform.OS !== 'web') Haptics.selectionAsync();
+                router.push('/(messages)/new');
+              }}
               hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="New message"
             >
-              <Ionicons name="create-outline" size={24} color={colors.text} />
+              <Ionicons name="create-outline" size={24} color={colors.primary} />
             </TouchableOpacity>
           ),
         }}
@@ -145,6 +160,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: spacing.lg,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
   },
   info: {
     flex: 1,
@@ -162,6 +179,14 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: 2,
   },
+  usernameUnread: {
+    fontFamily: typography.bold,
+    fontWeight: '700',
+  },
+  lastMessageUnread: {
+    color: colors.text,
+    fontFamily: typography.medium,
+  },
   badge: {
     backgroundColor: colors.primary,
     borderRadius: 10,
@@ -170,15 +195,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 6,
+    ...shadows.sm,
   },
   badgeText: {
     color: colors.textLight,
     fontSize: fontSize.xs,
     fontFamily: typography.bold,
     fontWeight: '700',
-  },
-  loader: {
-    marginTop: spacing.xxxl,
   },
   empty: {
     alignItems: 'center',
