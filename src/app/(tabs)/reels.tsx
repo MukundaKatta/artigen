@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  TouchableOpacity,
   Dimensions,
   ViewToken,
   Platform,
@@ -23,6 +22,7 @@ import Animated, {
   withTiming,
   withSequence,
 } from 'react-native-reanimated';
+import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { useAuth } from '@/providers/AuthProvider';
 import { useReels } from '@/hooks/useReels';
 import { Avatar } from '@/components/ui/Avatar';
@@ -130,7 +130,7 @@ function ReelItem({
 
       {/* Right side actions */}
       <View style={styles.actions}>
-        <TouchableOpacity style={styles.actionItem} onPress={handleLike} accessibilityRole="button" accessibilityLabel={item.isLiked ? 'Unlike' : 'Like'}>
+        <AnimatedPressable style={styles.actionItem} onPress={handleLike} accessibilityRole="button" accessibilityLabel={item.isLiked ? 'Unlike' : 'Like'} scaleValue={0.85}>
           <Animated.View style={likeButtonStyle}>
             <Ionicons
               name={item.isLiked ? 'heart' : 'heart-outline'}
@@ -139,29 +139,33 @@ function ReelItem({
             />
           </Animated.View>
           <Text style={styles.actionCount}>{formatNumber(item.likes_count)}</Text>
-        </TouchableOpacity>
+        </AnimatedPressable>
 
-        <TouchableOpacity
+        <AnimatedPressable
           style={styles.actionItem}
-          onPress={() => onComment(item.id)}
+          onPress={() => {
+            if (Platform.OS !== 'web') Haptics.selectionAsync();
+            onComment(item.id);
+          }}
           accessibilityRole="button"
           accessibilityLabel={`${formatNumber(item.comments_count)} comments`}
+          scaleValue={0.85}
         >
           <Ionicons name="chatbubble-outline" size={28} color="#fff" />
           <Text style={styles.actionCount}>{formatNumber(item.comments_count)}</Text>
-        </TouchableOpacity>
+        </AnimatedPressable>
 
-        <TouchableOpacity style={styles.actionItem} accessibilityRole="button" accessibilityLabel="Share">
+        <AnimatedPressable style={styles.actionItem} accessibilityRole="button" accessibilityLabel="Share" scaleValue={0.85}>
           <Ionicons name="paper-plane-outline" size={28} color="#fff" />
-        </TouchableOpacity>
+        </AnimatedPressable>
 
-        <TouchableOpacity style={styles.actionItem} onPress={handleSave} accessibilityRole="button" accessibilityLabel={item.isSaved ? 'Unsave' : 'Save'}>
+        <AnimatedPressable style={styles.actionItem} onPress={handleSave} accessibilityRole="button" accessibilityLabel={item.isSaved ? 'Unsave' : 'Save'} scaleValue={0.85}>
           <Ionicons
             name={item.isSaved ? 'bookmark' : 'bookmark-outline'}
             size={28}
             color="#fff"
           />
-        </TouchableOpacity>
+        </AnimatedPressable>
 
         {item.ai_metadata && (
           <View style={styles.aiIndicator} accessibilityLabel="AI generated">
@@ -172,16 +176,20 @@ function ReelItem({
 
       {/* Bottom info */}
       <View style={styles.bottomInfo}>
-        <TouchableOpacity
+        <AnimatedPressable
           style={styles.userRow}
-          onPress={() => onUserPress(item.user.id)}
+          onPress={() => {
+            if (Platform.OS !== 'web') Haptics.selectionAsync();
+            onUserPress(item.user.id);
+          }}
+          scaleValue={0.97}
         >
           <Avatar uri={item.user.avatar_url} size="sm" />
           <Text style={styles.username}>{item.user.username}</Text>
           {item.user.is_verified && (
             <Ionicons name="checkmark-circle" size={14} color={colors.primary} style={{ marginLeft: 4 }} />
           )}
-        </TouchableOpacity>
+        </AnimatedPressable>
         {item.caption ? (
           <Text style={styles.caption} numberOfLines={2}>
             {item.caption}
@@ -215,6 +223,7 @@ export default function ReelsRoute() {
     ({ viewableItems }: { viewableItems: ViewToken[] }) => {
       if (viewableItems.length > 0 && viewableItems[0].index != null) {
         setActiveIndex(viewableItems[0].index);
+        if (Platform.OS !== 'web') Haptics.selectionAsync();
       }
     },
     []

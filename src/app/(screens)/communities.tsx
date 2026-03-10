@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  TouchableOpacity,
   TextInput,
   Platform,
 } from 'react-native';
@@ -12,6 +11,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
+import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { useAuth } from '@/providers/AuthProvider';
 import { useCommunities } from '@/hooks/useCommunities';
 import { CommunityCard } from '@/components/community/CommunityCard';
@@ -60,9 +60,9 @@ export default function CommunitiesRoute() {
             onChangeText={setSearchQuery}
           />
           {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => setSearchQuery('')}>
+            <AnimatedPressable onPress={() => setSearchQuery('')} scaleValue={0.85}>
               <Ionicons name="close-circle" size={18} color={colors.textSecondary} />
-            </TouchableOpacity>
+            </AnimatedPressable>
           )}
         </View>
 
@@ -71,8 +71,9 @@ export default function CommunitiesRoute() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Your Communities</Text>
-              <TouchableOpacity
+              <AnimatedPressable
                 style={styles.createButton}
+                scaleValue={0.95}
                 onPress={() => {
                   if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                   router.push('/(screens)/community/create');
@@ -80,7 +81,7 @@ export default function CommunitiesRoute() {
               >
                 <Ionicons name="add" size={18} color={colors.textLight} />
                 <Text style={styles.createButtonText}>Create</Text>
-              </TouchableOpacity>
+              </AnimatedPressable>
             </View>
 
             {loading ? (

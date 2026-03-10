@@ -1,9 +1,17 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, Platform } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { View, Text, StyleSheet, RefreshControl, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import Animated, { FadeInUp } from 'react-native-reanimated';
+import Animated, {
+  FadeInUp,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
+  interpolate,
+  Extrapolation,
+} from 'react-native-reanimated';
+import { Image } from 'expo-image';
 import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { useAuth } from '@/providers/AuthProvider';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
@@ -14,11 +22,14 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useCollections } from '@/hooks/useCollections';
 import { supabase } from '@/lib/supabase';
+import { useScrollToTopOnTabPress } from '@/app/(tabs)/_layout';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
 import type { Post, PostMedia } from '@/types/database';
 
 type GridPost = Post & { media: PostMedia[] };
 type Tab = 'posts' | 'saved';
+
+const PARALLAX_HEIGHT = 180;
 
 function PostGridSkeleton() {
   return (
@@ -49,6 +60,58 @@ export function ProfileScreen() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<Tab>('posts');
   const { collections, loading: collectionsLoading } = useCollections(user?.id);
+  const scrollRef = useRef<Animated.ScrollView>(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Parallax scroll tracking
+  const scrollY = useSharedValue(0);
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y;
+    },
+  });
+
+  const parallaxStyle = useAnimatedStyle(() => {
+    const translateY = interpolate(
+      scrollY.value,
+      [-PARALLAX_HEIGHT, 0, PARALLAX_HEIGHT],
+      [-PARALLAX_HEIGHT / 2, 0, PARALLAX_HEIGHT * 0.75],
+      Extrapolation.CLAMP,
+    );
+    const scale = interpolate(
+      scrollY.value,
+      [-PARALLAX_HEIGHT, 0],
+      [2, 1],
+      Extrapolation.CLAMP,
+    );
+    return {
+      transform: [{ translateY }, { scale }],
+    };
+  });
+
+  const overlayStyle = useAnimatedStyle(() => {
+    const opacity = interpolate(
+      scrollY.value,
+      [0, PARALLAX_HEIGHT * 0.6],
+      [0, 0.6],
+      Extrapolation.CLAMP,
+    );
+    return { opacity };
+  });
+
+  const scrollToTop = useCallback(() => {
+    scrollRef.current?.scrollTo({ y: 0, animated: true });
+  }, []);
+
+  useScrollToTopOnTabPress('profile', scrollToTop);
+
+  const handleRefresh = useCallback(async () => {
+    if (Platform.OS !== 'web') Haptics.selectionAsync();
+    setRefreshing(true);
+    await fetchUserPosts();
+    setRefreshing(false);
+    if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  }, [user?.id]);
 
   useEffect(() => {
     if (user?.id) {
@@ -74,6 +137,8 @@ export function ProfileScreen() {
   if (!profile) {
     return <LoadingSpinner fullScreen />;
   }
+
+  const coverUrl = (profile as Record<string, unknown>).cover_url as string | null;
 
   // Build tabs with icons
   const tabs = [
@@ -102,89 +167,112 @@ export function ProfileScreen() {
   ];
 
   return (
-    <FlatList
-      data={[]}
-      renderItem={null}
-      style={styles.container}
-      ListHeaderComponent={
-        <>
-          <ProfileHeader
-            profile={profile}
-            isCurrentUser={true}
-            isFollowing={false}
-            followLoading={false}
-            onFollowPress={() => {}}
-            onEditPress={() => router.push('/(screens)/edit-profile')}
-            onFollowersPress={() => router.push(`/(screens)/followers/${user?.id}`)}
-            onFollowingPress={() => router.push(`/(screens)/following/${user?.id}`)}
-          />
-
-          {/* Animated Tab Bar */}
-          <AnimatedTabBar
-            tabs={tabs}
-            activeKey={activeTab}
-            onTabPress={(key) => setActiveTab(key as Tab)}
-          />
-
-          {/* Content */}
-          {activeTab === 'posts' ? (
-            loading ? (
-              <PostGridSkeleton />
-            ) : posts.length === 0 ? (
-              <View style={styles.emptyContainer}>
-                <View style={styles.emptyIconCircle}>
-                  <Ionicons name="camera-outline" size={32} color={colors.textSecondary} />
-                </View>
-                <Text style={styles.emptyTitle}>No posts yet</Text>
-                <Text style={styles.emptySubtext}>
-                  Tap the + button to create your first AI artwork
-                </Text>
-              </View>
-            ) : (
-              <ProfilePostGrid
-                posts={posts}
-                onPostPress={(postId) => router.push(`/(screens)/post/${postId}`)}
+    <View style={styles.container}>
+      <Animated.ScrollView
+        ref={scrollRef}
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
+      >
+        {/* Parallax Cover Photo */}
+        <View style={styles.parallaxWrapper}>
+          <Animated.View style={[styles.parallaxContainer, parallaxStyle]}>
+            {coverUrl ? (
+              <Image
+                source={{ uri: coverUrl }}
+                style={styles.coverImage}
+                contentFit="cover"
+                transition={300}
               />
-            )
-          ) : collectionsLoading ? (
+            ) : (
+              <View style={styles.coverGradient}>
+                <Ionicons name="sparkles" size={32} color="rgba(255,255,255,0.3)" />
+              </View>
+            )}
+          </Animated.View>
+          <Animated.View style={[styles.coverOverlay, overlayStyle]} />
+        </View>
+
+        {/* Profile Header */}
+        <ProfileHeader
+          profile={profile}
+          isCurrentUser={true}
+          isFollowing={false}
+          followLoading={false}
+          onFollowPress={() => {}}
+          onEditPress={() => router.push('/(screens)/edit-profile')}
+          onFollowersPress={() => router.push(`/(screens)/followers/${user?.id}`)}
+          onFollowingPress={() => router.push(`/(screens)/following/${user?.id}`)}
+        />
+
+        {/* Animated Tab Bar */}
+        <AnimatedTabBar
+          tabs={tabs}
+          activeKey={activeTab}
+          onTabPress={(key) => setActiveTab(key as Tab)}
+        />
+
+        {/* Content */}
+        {activeTab === 'posts' ? (
+          loading ? (
             <PostGridSkeleton />
-          ) : collections.length === 0 ? (
+          ) : posts.length === 0 ? (
             <View style={styles.emptyContainer}>
               <View style={styles.emptyIconCircle}>
-                <Ionicons name="bookmark-outline" size={32} color={colors.textSecondary} />
+                <Ionicons name="camera-outline" size={32} color={colors.textSecondary} />
               </View>
-              <Text style={styles.emptyTitle}>No saved posts</Text>
+              <Text style={styles.emptyTitle}>No posts yet</Text>
               <Text style={styles.emptySubtext}>
-                Save posts you love to find them here
+                Tap the + button to create your first AI artwork
               </Text>
             </View>
           ) : (
-            <CollectionGrid
-              collections={collections}
-              onCreateNew={() => {}}
+            <ProfilePostGrid
+              posts={posts}
+              onPostPress={(postId) => router.push(`/(screens)/post/${postId}`)}
             />
-          )}
+          )
+        ) : collectionsLoading ? (
+          <PostGridSkeleton />
+        ) : collections.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <View style={styles.emptyIconCircle}>
+              <Ionicons name="bookmark-outline" size={32} color={colors.textSecondary} />
+            </View>
+            <Text style={styles.emptyTitle}>No saved posts</Text>
+            <Text style={styles.emptySubtext}>
+              Save posts you love to find them here
+            </Text>
+          </View>
+        ) : (
+          <CollectionGrid
+            collections={collections}
+            onCreateNew={() => {}}
+          />
+        )}
 
-          {/* Insights Link */}
-          <Animated.View entering={FadeInUp.delay(200).duration(400)}>
-            <AnimatedPressable
-              style={styles.insightsRow}
-              onPress={() => {
-                if (Platform.OS !== 'web') Haptics.selectionAsync();
-                router.push('/(screens)/scheduled-posts');
-              }}
-              scaleValue={0.97}
-              accessibilityLabel="View scheduled posts and insights"
-              accessibilityRole="button"
-            >
-              <Ionicons name="bar-chart-outline" size={18} color={colors.primary} />
-              <Text style={styles.insightsText}>Scheduled Posts & Insights</Text>
-              <Ionicons name="chevron-forward" size={16} color={colors.primary} />
-            </AnimatedPressable>
-          </Animated.View>
-        </>
-      }
-    />
+        {/* Insights Link */}
+        <Animated.View entering={FadeInUp.delay(200).duration(400)}>
+          <AnimatedPressable
+            style={styles.insightsRow}
+            onPress={() => {
+              if (Platform.OS !== 'web') Haptics.selectionAsync();
+              router.push('/(screens)/scheduled-posts');
+            }}
+            scaleValue={0.97}
+            accessibilityLabel="View scheduled posts and insights"
+            accessibilityRole="button"
+          >
+            <Ionicons name="bar-chart-outline" size={18} color={colors.primary} />
+            <Text style={styles.insightsText}>Scheduled Posts & Insights</Text>
+            <Ionicons name="chevron-forward" size={16} color={colors.primary} />
+          </AnimatedPressable>
+        </Animated.View>
+      </Animated.ScrollView>
+    </View>
   );
 }
 
@@ -192,6 +280,29 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  parallaxWrapper: {
+    height: PARALLAX_HEIGHT,
+    overflow: 'hidden',
+  },
+  parallaxContainer: {
+    height: PARALLAX_HEIGHT,
+    width: '100%',
+  },
+  coverImage: {
+    width: '100%',
+    height: '100%',
+  },
+  coverGradient: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  coverOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#000',
   },
   emptyContainer: {
     justifyContent: 'center',

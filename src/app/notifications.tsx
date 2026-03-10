@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   SectionList,
-  TouchableOpacity,
   Platform,
 } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
@@ -13,6 +12,7 @@ import * as Haptics from 'expo-haptics';
 import Animated, { FadeInRight } from 'react-native-reanimated';
 import { useAuth } from '@/providers/AuthProvider';
 import { useNotifications } from '@/hooks/useNotifications';
+import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { Avatar } from '@/components/ui/Avatar';
 import { UserRowSkeleton } from '@/components/ui/Skeleton';
 import { timeAgo } from '@/utils/format-date';
@@ -127,10 +127,10 @@ export default function NotificationsRoute() {
 
     return (
       <Animated.View entering={FadeInRight.delay(Math.min(index, 9) * 30).duration(250)}>
-        <TouchableOpacity
+        <AnimatedPressable
           style={[styles.row, !item.is_read && styles.unreadRow]}
           onPress={() => handlePress(item)}
-          activeOpacity={0.6}
+          scaleValue={0.98}
           accessibilityRole="button"
           accessibilityLabel={`${item.sender?.username} ${getNotificationText(item)}`}
         >
@@ -149,7 +149,7 @@ export default function NotificationsRoute() {
             <Text style={styles.time}>{timeAgo(item.created_at)}</Text>
           </View>
           {!item.is_read && <View style={styles.unreadDot} />}
-        </TouchableOpacity>
+        </AnimatedPressable>
       </Animated.View>
     );
   }
@@ -171,9 +171,9 @@ export default function NotificationsRoute() {
           headerTitleStyle: { fontFamily: typography.semiBold },
           headerRight: () =>
             notifications.some((n) => !n.is_read) ? (
-              <TouchableOpacity onPress={markAll} hitSlop={8} accessibilityRole="button" accessibilityLabel="Mark all as read">
+              <AnimatedPressable onPress={markAll} hitSlop={8} accessibilityRole="button" accessibilityLabel="Mark all as read" scaleValue={0.9}>
                 <Text style={styles.markAll}>Mark all read</Text>
-              </TouchableOpacity>
+              </AnimatedPressable>
             ) : null,
         }}
       />

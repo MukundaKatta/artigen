@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Switch, Platform } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { useAuth } from '@/providers/AuthProvider';
 import { useTheme } from '@/providers/ThemeProvider';
 import { ActionSheet } from '@/components/ui/ActionSheet';
@@ -23,7 +24,7 @@ type SettingRowProps = {
 
 function SettingRow({ icon, iconColor, label, onPress, value, destructive, rightElement }: SettingRowProps) {
   return (
-    <TouchableOpacity
+    <AnimatedPressable
       style={styles.row}
       onPress={() => {
         if (onPress) {
@@ -32,7 +33,7 @@ function SettingRow({ icon, iconColor, label, onPress, value, destructive, right
         }
       }}
       disabled={!onPress && !rightElement}
-      activeOpacity={0.6}
+      scaleValue={0.98}
       accessibilityRole="button"
       accessibilityLabel={label}
     >
@@ -51,7 +52,7 @@ function SettingRow({ icon, iconColor, label, onPress, value, destructive, right
           <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
         )}
       </View>
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
 }
 

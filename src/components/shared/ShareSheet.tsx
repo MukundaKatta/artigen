@@ -4,7 +4,6 @@ import {
   Text,
   Modal,
   StyleSheet,
-  TouchableOpacity,
   TextInput,
   FlatList,
   ActivityIndicator,
@@ -12,7 +11,9 @@ import {
   Share,
   Platform,
 } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
+import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Avatar } from '@/components/ui/Avatar';
 import { colors, fontSize, spacing, typography, borderRadius } from '@/lib/theme';
@@ -127,10 +128,14 @@ export function ShareSheet({
                     <Text style={styles.username}>{item.username}</Text>
                     <Text style={styles.fullName}>{item.full_name}</Text>
                   </View>
-                  <TouchableOpacity
+                  <AnimatedPressable
                     style={[styles.sendButton, isSent && styles.sentButton]}
-                    onPress={() => handleSend(item.id)}
+                    onPress={() => {
+                      if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      handleSend(item.id);
+                    }}
                     disabled={isSent || isSending}
+                    scaleValue={0.92}
                   >
                     {isSending ? (
                       <ActivityIndicator size="small" color="#fff" />
@@ -139,7 +144,7 @@ export function ShareSheet({
                         {isSent ? 'Sent' : 'Send'}
                       </Text>
                     )}
-                  </TouchableOpacity>
+                  </AnimatedPressable>
                 </View>
               );
             }}
@@ -151,10 +156,13 @@ export function ShareSheet({
           />
 
           {/* External share option */}
-          <TouchableOpacity style={styles.externalShare} onPress={handleExternalShare}>
+          <AnimatedPressable style={styles.externalShare} onPress={() => {
+            if (Platform.OS !== 'web') Haptics.selectionAsync();
+            handleExternalShare();
+          }} scaleValue={0.97}>
             <Ionicons name="share-outline" size={22} color={colors.text} />
             <Text style={styles.externalShareText}>Share externally...</Text>
-          </TouchableOpacity>
+          </AnimatedPressable>
         </Pressable>
       </Pressable>
     </Modal>

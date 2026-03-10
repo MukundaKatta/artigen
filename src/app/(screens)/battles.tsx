@@ -4,13 +4,13 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  TouchableOpacity,
   Platform,
 } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
+import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { useAuth } from '@/providers/AuthProvider';
 import { useBattles } from '@/hooks/useBattles';
 import { BattleCard } from '@/components/battles/BattleCard';
@@ -82,17 +82,17 @@ export default function BattlesScreen() {
         removeClippedSubviews
         ListHeaderComponent={
           <Animated.View entering={FadeInUp.duration(400)}>
-            <TouchableOpacity
+            <AnimatedPressable
               style={styles.createButton}
               onPress={() => {
                 if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                 router.push('/(screens)/battle/create');
               }}
-              activeOpacity={0.7}
+              scaleValue={0.97}
             >
               <Ionicons name="flash" size={20} color="#fff" />
               <Text style={styles.createButtonText}>Start a Battle</Text>
-            </TouchableOpacity>
+            </AnimatedPressable>
           </Animated.View>
         }
         ListEmptyComponent={

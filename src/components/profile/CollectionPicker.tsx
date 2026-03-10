@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput, Modal } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TextInput, Modal, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
 import type { Collection } from '@/types';
 
@@ -29,29 +31,35 @@ export function CollectionPicker({ visible, onClose, collections, onSelect, onCr
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>Save to Collection</Text>
-          <TouchableOpacity onPress={onClose}>
+          <AnimatedPressable onPress={onClose} scaleValue={0.85}>
             <Ionicons name="close" size={24} color={colors.text} />
-          </TouchableOpacity>
+          </AnimatedPressable>
         </View>
 
         {/* All Saved (unsorted) */}
-        <TouchableOpacity style={styles.row} onPress={() => { onSelect(null); onClose(); }}>
+        <AnimatedPressable style={styles.row} onPress={() => {
+          if (Platform.OS !== 'web') Haptics.selectionAsync();
+          onSelect(null); onClose();
+        }} scaleValue={0.98}>
           <Ionicons name="bookmark-outline" size={24} color={colors.text} />
           <Text style={styles.rowText}>All Saved</Text>
-        </TouchableOpacity>
+        </AnimatedPressable>
 
         {/* Collections */}
         <FlatList
           data={collections}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <TouchableOpacity style={styles.row} onPress={() => { onSelect(item.id); onClose(); }}>
+            <AnimatedPressable style={styles.row} onPress={() => {
+              if (Platform.OS !== 'web') Haptics.selectionAsync();
+              onSelect(item.id); onClose();
+            }} scaleValue={0.98}>
               <Ionicons name="folder-outline" size={24} color={colors.text} />
               <View style={{ flex: 1 }}>
                 <Text style={styles.rowText}>{item.name}</Text>
                 <Text style={styles.rowCount}>{item.post_count} posts</Text>
               </View>
-            </TouchableOpacity>
+            </AnimatedPressable>
           )}
         />
 
@@ -66,15 +74,21 @@ export function CollectionPicker({ visible, onClose, collections, onSelect, onCr
               onChangeText={setNewName}
               autoFocus
             />
-            <TouchableOpacity onPress={handleCreate} disabled={!newName.trim()}>
-              <Text style={[styles.createButton, !newName.trim() && { opacity: 0.5 }]}>Create</Text>
-            </TouchableOpacity>
+            <AnimatedPressable onPress={() => {
+              if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              handleCreate();
+            }} disabled={!newName.trim()} scaleValue={0.9}>
+              <Text style={[styles.createButtonText, !newName.trim() && { opacity: 0.5 }]}>Create</Text>
+            </AnimatedPressable>
           </View>
         ) : (
-          <TouchableOpacity style={styles.row} onPress={() => setShowCreate(true)}>
+          <AnimatedPressable style={styles.row} onPress={() => {
+            if (Platform.OS !== 'web') Haptics.selectionAsync();
+            setShowCreate(true);
+          }} scaleValue={0.98}>
             <Ionicons name="add-circle-outline" size={24} color={colors.primary} />
             <Text style={[styles.rowText, { color: colors.primary }]}>New Collection</Text>
-          </TouchableOpacity>
+          </AnimatedPressable>
         )}
       </View>
     </Modal>
@@ -133,7 +147,7 @@ const styles = StyleSheet.create({
     fontFamily: typography.regular,
     color: colors.text,
   },
-  createButton: {
+  createButtonText: {
     fontSize: fontSize.md,
     fontFamily: typography.semiBold,
     fontWeight: '600',

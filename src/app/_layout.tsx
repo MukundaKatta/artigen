@@ -3,6 +3,7 @@ import { Platform, View, Text } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import * as Linking from 'expo-linking';
 import {
   useFonts,
   Inter_400Regular,
@@ -19,6 +20,7 @@ import { ToastContainer } from '@/components/ui/Toast';
 import { NetworkStatusBanner } from '@/components/ui/NetworkStatusBanner';
 import { useActivityStatus } from '@/hooks/useActivityStatus';
 import { useWebNotifications } from '@/hooks/useWebNotifications';
+import { navigateFromDeepLink } from '@/lib/deep-linking';
 
 if (Platform.OS !== 'web') {
   SplashScreen.preventAutoHideAsync();
@@ -58,6 +60,21 @@ function AppContent() {
       requestPermission();
     }
   }, [user, requestPermission]);
+
+  // Handle deep links
+  useEffect(() => {
+    // Handle URL that launched the app
+    Linking.getInitialURL().then((url) => {
+      if (url) navigateFromDeepLink(url);
+    });
+
+    // Listen for incoming deep links while app is open
+    const subscription = Linking.addEventListener('url', ({ url }) => {
+      navigateFromDeepLink(url);
+    });
+
+    return () => subscription.remove();
+  }, []);
 
   return (
     <>
