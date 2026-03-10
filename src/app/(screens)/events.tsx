@@ -6,12 +6,15 @@ import {
   FlatList,
   TouchableOpacity,
   ScrollView,
-  ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useEvents } from '@/hooks/useEvents';
 import { EventCard } from '@/components/events/EventCard';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
 
 const STATUS_FILTERS = [
@@ -19,6 +22,22 @@ const STATUS_FILTERS = [
   { key: 'live', label: 'Live' },
   { key: 'completed', label: 'Past' },
 ] as const;
+
+function EventsSkeleton() {
+  return (
+    <View style={styles.skeletonContainer}>
+      <Skeleton width="100%" height={48} borderRadius={borderRadius.md} />
+      <View style={styles.skeletonFilters}>
+        <Skeleton width={80} height={32} borderRadius={borderRadius.full} />
+        <Skeleton width={60} height={32} borderRadius={borderRadius.full} />
+        <Skeleton width={60} height={32} borderRadius={borderRadius.full} />
+      </View>
+      {[...Array(3)].map((_, i) => (
+        <Skeleton key={i} width="100%" height={120} borderRadius={borderRadius.md} style={{ marginTop: spacing.md }} />
+      ))}
+    </View>
+  );
+}
 
 export default function EventsRoute() {
   const router = useRouter();
@@ -28,7 +47,9 @@ export default function EventsRoute() {
     return (
       <View style={styles.container}>
         <Stack.Screen options={{ title: 'Events' }} />
-        <ActivityIndicator style={{ flex: 1 }} color={colors.primary} />
+        <View style={styles.list}>
+          <EventsSkeleton />
+        </View>
       </View>
     );
   }
@@ -39,19 +60,28 @@ export default function EventsRoute() {
       <FlatList
         data={events}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <EventCard event={item} />}
+        renderItem={({ item, index }) => (
+          <Animated.View entering={FadeIn.delay(Math.min(index, 8) * 40).duration(300)}>
+            <EventCard event={item} />
+          </Animated.View>
+        )}
         contentContainerStyle={styles.list}
         ListHeaderComponent={
           <View>
             {/* Create button */}
-            <TouchableOpacity
-              style={styles.createButton}
-              onPress={() => router.push('/(screens)/event/create')}
-              activeOpacity={0.7}
-            >
-              <Ionicons name="add" size={20} color={colors.textLight} />
-              <Text style={styles.createButtonText}>Create Event</Text>
-            </TouchableOpacity>
+            <Animated.View entering={FadeInUp.duration(400)}>
+              <TouchableOpacity
+                style={styles.createButton}
+                onPress={() => {
+                  if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  router.push('/(screens)/event/create');
+                }}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="add" size={20} color={colors.textLight} />
+                <Text style={styles.createButtonText}>Create Event</Text>
+              </TouchableOpacity>
+            </Animated.View>
 
             {/* Filter */}
             <ScrollView
@@ -67,7 +97,10 @@ export default function EventsRoute() {
                     styles.filterChip,
                     statusFilter === f.key && styles.filterChipActive,
                   ]}
-                  onPress={() => filter(f.key as string | undefined)}
+                  onPress={() => {
+                    if (Platform.OS !== 'web') Haptics.selectionAsync();
+                    filter(f.key as string | undefined);
+                  }}
                   activeOpacity={0.7}
                 >
                   <Text
@@ -85,8 +118,11 @@ export default function EventsRoute() {
         }
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Ionicons name="calendar-outline" size={48} color={colors.border} />
-            <Text style={styles.emptyText}>No events found</Text>
+            <View style={styles.emptyIconCircle}>
+              <Ionicons name="calendar-outline" size={32} color={colors.textSecondary} />
+            </View>
+            <Text style={styles.emptyTitle}>No events found</Text>
+            <Text style={styles.emptySubtitle}>Check back later or create one</Text>
           </View>
         }
       />
@@ -102,6 +138,14 @@ const styles = StyleSheet.create({
   list: {
     padding: spacing.lg,
     paddingBottom: spacing.xxxl,
+  },
+  skeletonContainer: {
+    gap: spacing.sm,
+  },
+  skeletonFilters: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginVertical: spacing.sm,
   },
   createButton: {
     flexDirection: 'row',
@@ -148,10 +192,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing.xxxl,
   },
-  emptyText: {
+  emptyIconCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: colors.backgroundSecondary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
+  emptyTitle: {
+    fontSize: fontSize.xl,
+    fontFamily: typography.semiBold,
+    color: colors.text,
+  },
+  emptySubtitle: {
     fontSize: fontSize.md,
     fontFamily: typography.regular,
     color: colors.textSecondary,
-    marginTop: spacing.md,
+    marginTop: spacing.xs,
   },
 });

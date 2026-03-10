@@ -5,17 +5,47 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { useAuth } from '@/providers/AuthProvider';
 import { useCommunity } from '@/hooks/useCommunity';
 import { CommunityHeader } from '@/components/community/CommunityHeader';
-import { colors, spacing, fontSize, typography } from '@/lib/theme';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
 import { POST_GRID_SIZE, POST_GRID_GAP } from '@/lib/constants';
 import type { PostWithUser } from '@/types';
+
+function CommunitySkeleton() {
+  return (
+    <View style={styles.skeletonContainer}>
+      {/* Banner */}
+      <Skeleton width="100%" height={140} borderRadius={0} />
+      {/* Avatar + info */}
+      <View style={styles.skeletonInfo}>
+        <Skeleton width={72} height={72} borderRadius={36} />
+        <Skeleton width={180} height={18} style={{ marginTop: spacing.sm }} />
+        <Skeleton width={240} height={12} style={{ marginTop: spacing.xs }} />
+        <Skeleton width={120} height={12} style={{ marginTop: spacing.xs }} />
+      </View>
+      {/* Join button */}
+      <View style={styles.skeletonActions}>
+        <Skeleton width="100%" height={40} borderRadius={borderRadius.md} />
+      </View>
+      {/* Grid placeholders */}
+      <View style={styles.skeletonGrid}>
+        {[...Array(9)].map((_, i) => (
+          <Skeleton key={i} width="32%" height={120} borderRadius={2} style={{ flexGrow: 1 }} />
+        ))}
+      </View>
+    </View>
+  );
+}
 
 export default function CommunityDetailRoute() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -41,7 +71,7 @@ export default function CommunityDetailRoute() {
     return (
       <View style={styles.container}>
         <Stack.Screen options={{ title: '' }} />
-        <ActivityIndicator style={styles.loader} size="large" color={colors.primary} />
+        <CommunitySkeleton />
       </View>
     );
   }
@@ -51,8 +81,11 @@ export default function CommunityDetailRoute() {
       <View style={styles.container}>
         <Stack.Screen options={{ title: '' }} />
         <View style={styles.empty}>
-          <Ionicons name="people-outline" size={48} color={colors.border} />
-          <Text style={styles.emptyText}>Community not found</Text>
+          <View style={styles.emptyIconCircle}>
+            <Ionicons name="people-outline" size={32} color={colors.textSecondary} />
+          </View>
+          <Text style={styles.emptyTitle}>Community not found</Text>
+          <Text style={styles.emptySubtitle}>It may have been removed or doesn't exist</Text>
         </View>
       </View>
     );
@@ -61,33 +94,37 @@ export default function CommunityDetailRoute() {
   const isOwner = role === 'owner';
 
   function handlePostPress(postId: string) {
+    if (Platform.OS !== 'web') Haptics.selectionAsync();
     router.push(`/(screens)/post/${postId}`);
   }
 
-  function renderPost({ item }: { item: PostWithUser }) {
+  function renderPost({ item, index }: { item: PostWithUser; index: number }) {
     const firstMedia = item.media?.[0];
     const isVideo = item.post_type === 'video' || item.post_type === 'reel';
     const isCarousel = (item.media?.length || 0) > 1;
 
     return (
-      <TouchableOpacity onPress={() => handlePostPress(item.id)} activeOpacity={0.8}>
-        <View style={styles.gridItem}>
-          <Image
-            source={{ uri: firstMedia?.media_url }}
-            style={styles.gridImage}
-            contentFit="cover"
-          />
-          {(isCarousel || isVideo) && (
-            <View style={styles.typeIcon}>
-              <Ionicons
-                name={isVideo ? 'play' : 'copy-outline'}
-                size={16}
-                color={colors.textLight}
-              />
-            </View>
-          )}
-        </View>
-      </TouchableOpacity>
+      <Animated.View entering={FadeIn.delay(Math.min(index, 8) * 30).duration(250)}>
+        <TouchableOpacity onPress={() => handlePostPress(item.id)} activeOpacity={0.8}>
+          <View style={styles.gridItem}>
+            <Image
+              source={{ uri: firstMedia?.media_url }}
+              style={styles.gridImage}
+              contentFit="cover"
+              transition={200}
+            />
+            {(isCarousel || isVideo) && (
+              <View style={styles.typeIcon}>
+                <Ionicons
+                  name={isVideo ? 'play' : 'copy-outline'}
+                  size={16}
+                  color={colors.textLight}
+                />
+              </View>
+            )}
+          </View>
+        </TouchableOpacity>
+      </Animated.View>
     );
   }
 
@@ -107,7 +144,10 @@ export default function CommunityDetailRoute() {
           <View style={styles.rulesSection}>
             <TouchableOpacity
               style={styles.rulesHeader}
-              onPress={() => setRulesExpanded(!rulesExpanded)}
+              onPress={() => {
+                if (Platform.OS !== 'web') Haptics.selectionAsync();
+                setRulesExpanded(!rulesExpanded);
+              }}
               activeOpacity={0.7}
             >
               <Text style={styles.rulesSectionTitle}>Community Rules</Text>
@@ -118,14 +158,14 @@ export default function CommunityDetailRoute() {
               />
             </TouchableOpacity>
             {rulesExpanded && (
-              <View style={styles.rulesList}>
+              <Animated.View entering={FadeIn.duration(200)} style={styles.rulesList}>
                 {community!.rules.map((rule, index) => (
                   <View key={index} style={styles.ruleItem}>
                     <Text style={styles.ruleNumber}>{index + 1}.</Text>
                     <Text style={styles.ruleText}>{rule}</Text>
                   </View>
                 ))}
-              </View>
+              </Animated.View>
             )}
           </View>
         )}
@@ -138,7 +178,10 @@ export default function CommunityDetailRoute() {
               {members.slice(0, 5).map((member) => (
                 <TouchableOpacity
                   key={member.id}
-                  onPress={() => router.push(`/(screens)/user/${member.user.id}`)}
+                  onPress={() => {
+                    if (Platform.OS !== 'web') Haptics.selectionAsync();
+                    router.push(`/(screens)/user/${member.user.id}`);
+                  }}
                 >
                   <Image
                     source={
@@ -148,6 +191,7 @@ export default function CommunityDetailRoute() {
                     }
                     style={styles.memberAvatar}
                     contentFit="cover"
+                    transition={200}
                   />
                 </TouchableOpacity>
               ))}
@@ -182,17 +226,24 @@ export default function CommunityDetailRoute() {
         onEndReachedThreshold={0.5}
         ListEmptyComponent={
           feedLoading ? (
-            <ActivityIndicator style={styles.feedLoader} color={colors.primary} />
+            <View style={styles.skeletonGrid}>
+              {[...Array(9)].map((_, i) => (
+                <Skeleton key={i} width="32%" height={120} borderRadius={2} style={{ flexGrow: 1 }} />
+              ))}
+            </View>
           ) : (
             <View style={styles.empty}>
-              <Ionicons name="images-outline" size={48} color={colors.border} />
-              <Text style={styles.emptyText}>No posts yet</Text>
+              <View style={styles.emptyIconCircle}>
+                <Ionicons name="images-outline" size={32} color={colors.textSecondary} />
+              </View>
+              <Text style={styles.emptyTitle}>No posts yet</Text>
+              <Text style={styles.emptySubtitle}>Be the first to share something</Text>
             </View>
           )
         }
         ListFooterComponent={
           !feedLoading && hasMoreFeed ? (
-            <ActivityIndicator style={styles.footerLoader} color={colors.primary} />
+            <View style={styles.footerLoader}><LoadingSpinner /></View>
           ) : null
         }
       />
@@ -205,21 +256,51 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  loader: {
-    paddingVertical: spacing.xxxl,
+  skeletonContainer: {
+    flex: 1,
+  },
+  skeletonInfo: {
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+  },
+  skeletonActions: {
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.md,
+  },
+  skeletonGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 2,
+    padding: 1,
+    marginTop: spacing.md,
   },
   empty: {
     alignItems: 'center',
+    justifyContent: 'center',
     paddingVertical: spacing.xxxl,
   },
-  emptyText: {
+  emptyIconCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: colors.backgroundSecondary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
+  emptyTitle: {
+    fontSize: fontSize.lg,
+    fontFamily: typography.semiBold,
+    color: colors.text,
+  },
+  emptySubtitle: {
     fontSize: fontSize.md,
     fontFamily: typography.regular,
     color: colors.textSecondary,
-    marginTop: spacing.md,
+    marginTop: spacing.xs,
   },
   rulesSection: {
-    borderTopWidth: 1,
+    borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.border,
     marginHorizontal: spacing.lg,
     paddingVertical: spacing.md,
@@ -257,7 +338,7 @@ const styles = StyleSheet.create({
   membersSection: {
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
-    borderTopWidth: 1,
+    borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.border,
   },
   sectionTitle: {
@@ -294,7 +375,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
     paddingBottom: spacing.sm,
-    borderTopWidth: 1,
+    borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.border,
   },
   gridRow: {
@@ -315,9 +396,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 6,
     right: 6,
-  },
-  feedLoader: {
-    paddingVertical: spacing.xxxl,
   },
   footerLoader: {
     paddingVertical: spacing.lg,
