@@ -68,18 +68,23 @@ export function useExplore() {
 
     setSearching(true);
     debounceRef.current = setTimeout(async () => {
-      const [usersResult, postsResult, hashtagsResult, promptsResult] = await Promise.all([
-        searchUsers(text.trim()),
-        searchPosts(text.trim()),
-        searchHashtags(text.trim()),
-        searchByPrompt(text.trim()),
-      ]);
+      try {
+        const [usersResult, postsResult, hashtagsResult, promptsResult] = await Promise.all([
+          searchUsers(text.trim()),
+          searchPosts(text.trim()),
+          searchHashtags(text.trim()),
+          searchByPrompt(text.trim()),
+        ]);
 
-      setSearchResultUsers(usersResult.data || []);
-      setSearchResultPosts(postsResult.data || []);
-      setSearchResultHashtags((hashtagsResult.data || []) as Hashtag[]);
-      setSearchResultPrompts(promptsResult.data || []);
-      setSearching(false);
+        setSearchResultUsers(usersResult.data || []);
+        setSearchResultPosts(postsResult.data || []);
+        setSearchResultHashtags((hashtagsResult.data || []) as Hashtag[]);
+        setSearchResultPrompts(promptsResult.data || []);
+      } catch (err) {
+        console.warn('Search failed:', err);
+      } finally {
+        setSearching(false);
+      }
     }, 400);
   }, []);
 

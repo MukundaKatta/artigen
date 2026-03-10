@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { NOTIFICATIONS_PAGE_SIZE } from '@/lib/constants';
 import {
   getNotifications,
@@ -11,8 +11,15 @@ export function useNotifications(userId: string | undefined) {
   const [notifications, setNotifications] = useState<NotificationWithSender[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
 
   const fetchNotifications = useCallback(async () => {
     if (!userId) {
@@ -20,7 +27,12 @@ export function useNotifications(userId: string | undefined) {
       return;
     }
     setLoading(true);
-    const { data } = await getNotifications(userId, 0);
+    setError(null);
+    const { data, error: fetchError } = await getNotifications(userId, 0);
+    if (!mountedRef.current) return;
+    if (fetchError) {
+      setError(fetchError.message || 'Failed to load notifications');
+    }
     setNotifications(data);
     setPage(0);
     setHasMore(data.length >= NOTIFICATIONS_PAGE_SIZE);
@@ -68,6 +80,7 @@ export function useNotifications(userId: string | undefined) {
     loading,
     loadingMore,
     hasMore,
+    error,
     refresh,
     loadMore,
     markRead,

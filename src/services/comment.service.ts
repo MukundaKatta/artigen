@@ -65,7 +65,7 @@ export async function addComment(
     .select('*, user:profiles!user_id(*)')
     .single();
 
-  // Create notification (fire-and-forget)
+  // Background notification with proper error handling
   if (data && !error) {
     supabase
       .from('posts')
@@ -73,16 +73,18 @@ export async function addComment(
       .eq('id', postId)
       .single()
       .then(({ data: post }) => {
-        if (post && (post as any).user_id !== userId) {
+        if (post && post.user_id !== userId) {
           createNotification({
             type: 'comment',
             senderId: userId,
-            recipientId: (post as any).user_id,
+            recipientId: post.user_id,
             postId,
-            commentId: (data as any).id,
-          });
+            commentId: data.id,
+          })
+            .catch((err) => console.warn('Failed to create comment notification:', err));
         }
-      });
+      })
+      .catch((err) => console.warn('Failed to fetch post owner for notification:', err));
   }
 
   return { data: data as unknown as CommentWithUser | null, error };
