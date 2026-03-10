@@ -10,6 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import Animated, { ZoomIn, FadeInUp } from 'react-native-reanimated';
 import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
+import { ConfettiOverlay } from '@/components/ui/ConfettiOverlay';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
 
 type Badge = {
@@ -37,6 +38,7 @@ export function BadgeUnlockModal({ visible, badge, onClose }: Props) {
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
+        <ConfettiOverlay visible={visible} />
         <Animated.View entering={ZoomIn.springify().damping(12)} style={styles.card}>
           <Animated.View entering={ZoomIn.delay(200).springify().damping(8)} style={styles.iconContainer}>
             <Ionicons

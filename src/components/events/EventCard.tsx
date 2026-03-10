@@ -53,6 +53,8 @@ export function EventCard({ event }: Props) {
         handlePress();
       }}
       scaleValue={0.97}
+      accessibilityLabel={`${event.title} - ${event.status} event by ${event.host.username}`}
+      accessibilityRole="button"
     >
       {/* Left: date */}
       <View style={styles.dateColumn}>

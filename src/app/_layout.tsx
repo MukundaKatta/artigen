@@ -16,6 +16,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { AuthProvider, useAuth } from '@/providers/AuthProvider';
 import { ThemeProvider } from '@/providers/ThemeProvider';
 import { ToastContainer } from '@/components/ui/Toast';
+import { NetworkStatusBanner } from '@/components/ui/NetworkStatusBanner';
 import { useActivityStatus } from '@/hooks/useActivityStatus';
 import { useWebNotifications } from '@/hooks/useWebNotifications';
 
@@ -118,6 +119,7 @@ export default function RootLayout() {
         <ThemeProvider>
           <AuthProvider>
             <AppContent />
+            <NetworkStatusBanner />
             <ToastContainer />
           </AuthProvider>
         </ThemeProvider>

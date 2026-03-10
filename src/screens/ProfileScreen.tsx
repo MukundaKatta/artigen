@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import Animated, { FadeInUp } from 'react-native-reanimated';
+import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { useAuth } from '@/providers/AuthProvider';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import { ProfilePostGrid } from '@/components/profile/ProfilePostGrid';
@@ -164,18 +166,22 @@ export function ProfileScreen() {
           )}
 
           {/* Insights Link */}
-          <TouchableOpacity
-            style={styles.insightsRow}
-            onPress={() => {
-              if (Platform.OS !== 'web') Haptics.selectionAsync();
-              router.push('/(screens)/scheduled-posts');
-            }}
-            activeOpacity={0.6}
-          >
-            <Ionicons name="bar-chart-outline" size={18} color={colors.primary} />
-            <Text style={styles.insightsText}>Scheduled Posts & Insights</Text>
-            <Ionicons name="chevron-forward" size={16} color={colors.primary} />
-          </TouchableOpacity>
+          <Animated.View entering={FadeInUp.delay(200).duration(400)}>
+            <AnimatedPressable
+              style={styles.insightsRow}
+              onPress={() => {
+                if (Platform.OS !== 'web') Haptics.selectionAsync();
+                router.push('/(screens)/scheduled-posts');
+              }}
+              scaleValue={0.97}
+              accessibilityLabel="View scheduled posts and insights"
+              accessibilityRole="button"
+            >
+              <Ionicons name="bar-chart-outline" size={18} color={colors.primary} />
+              <Text style={styles.insightsText}>Scheduled Posts & Insights</Text>
+              <Ionicons name="chevron-forward" size={16} color={colors.primary} />
+            </AnimatedPressable>
+          </Animated.View>
         </>
       }
     />

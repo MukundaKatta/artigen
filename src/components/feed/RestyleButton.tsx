@@ -16,6 +16,8 @@ export function RestyleButton({ onPress }: Props) {
         onPress();
       }}
       scaleValue={0.9}
+      accessibilityLabel="Restyle this artwork"
+      accessibilityRole="button"
     >
       <Ionicons name="color-palette-outline" size={22} color={colors.text} />
     </AnimatedPressable>

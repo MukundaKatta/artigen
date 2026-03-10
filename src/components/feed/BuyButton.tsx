@@ -16,6 +16,8 @@ export function BuyButton({ priceCents, onPress }: Props) {
         onPress();
       }}
       scaleValue={0.92}
+      accessibilityLabel={`Buy for $${(priceCents / 100).toFixed(2)}`}
+      accessibilityRole="button"
     >
       <Ionicons name="cart-outline" size={14} color="#fff" />
       <Text style={styles.text}>${(priceCents / 100).toFixed(2)}</Text>
