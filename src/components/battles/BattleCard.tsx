@@ -1,8 +1,17 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withTiming,
+  withSequence,
+} from 'react-native-reanimated';
 import { Avatar } from '@/components/ui/Avatar';
+import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
 import { formatNumber } from '@/utils/format-number';
 import type { BattleWithUsers } from '@/services/battle.service';
@@ -18,21 +27,48 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; icon: string
   completed: { label: 'DONE', color: colors.success, icon: 'checkmark-circle-outline' },
 };
 
+function PulseBadge({ config }: { config: { label: string; color: string; icon: string } }) {
+  const opacity = useSharedValue(1);
+
+  useEffect(() => {
+    if (config.label === 'LIVE') {
+      opacity.value = withRepeat(
+        withSequence(
+          withTiming(0.4, { duration: 600 }),
+          withTiming(1, { duration: 600 }),
+        ),
+        -1,
+      );
+    }
+  }, [config.label, opacity]);
+
+  const animStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+  }));
+
+  return (
+    <Animated.View style={[styles.statusBadge, { backgroundColor: config.color }, animStyle]}>
+      <Ionicons name={config.icon as any} size={10} color="#fff" />
+      <Text style={styles.statusText}>{config.label}</Text>
+    </Animated.View>
+  );
+}
+
 export function BattleCard({ battle }: Props) {
   const router = useRouter();
   const config = STATUS_CONFIG[battle.status] || STATUS_CONFIG.waiting;
 
   return (
-    <TouchableOpacity
+    <AnimatedPressable
       style={styles.card}
-      onPress={() => router.push(`/(screens)/battle/${battle.id}`)}
-      activeOpacity={0.7}
+      onPress={() => {
+        if (Platform.OS !== 'web') Haptics.selectionAsync();
+        router.push(`/(screens)/battle/${battle.id}`);
+      }}
+      scaleValue={0.97}
     >
       {/* Status badge */}
-      <View style={[styles.statusBadge, { backgroundColor: config.color }]}>
-        <Ionicons name={config.icon as any} size={10} color="#fff" />
-        <Text style={styles.statusText}>{config.label}</Text>
-      </View>
+      <PulseBadge config={config} />
 
       {/* Theme + title */}
       <Text style={styles.title} numberOfLines={1}>{battle.title}</Text>
@@ -75,7 +111,7 @@ export function BattleCard({ battle }: Props) {
         <Ionicons name="time-outline" size={12} color={colors.textSecondary} />
         <Text style={styles.metaText}>{battle.time_limit_minutes}m limit</Text>
       </View>
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
 }
 

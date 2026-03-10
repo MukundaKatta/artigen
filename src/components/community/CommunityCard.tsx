@@ -1,8 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
 import { formatNumber } from '@/utils/format-number';
 import type { Community } from '@/types';
@@ -15,11 +17,12 @@ export function CommunityCard({ community }: Props) {
   const router = useRouter();
 
   function handlePress() {
+    if (Platform.OS !== 'web') Haptics.selectionAsync();
     router.push(`/(screens)/community/${community.id}`);
   }
 
   return (
-    <TouchableOpacity style={styles.card} onPress={handlePress} activeOpacity={0.7}>
+    <AnimatedPressable style={styles.card} onPress={handlePress} scaleValue={0.97}>
       <Image
         source={
           community.avatar_url
@@ -28,6 +31,7 @@ export function CommunityCard({ community }: Props) {
         }
         style={styles.avatar}
         contentFit="cover"
+        transition={200}
       />
       <View style={styles.info}>
         <Text style={styles.name} numberOfLines={1}>
@@ -49,7 +53,7 @@ export function CommunityCard({ community }: Props) {
       {community.is_private && (
         <Ionicons name="lock-closed" size={14} color={colors.textSecondary} style={styles.lockIcon} />
       )}
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
 }
 

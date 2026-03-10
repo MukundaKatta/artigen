@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, ScrollView, Text, StyleSheet } from 'react-native';
+import { View, ScrollView, Text, StyleSheet, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Image } from 'expo-image';
 import { useAuth } from '@/providers/AuthProvider';
@@ -29,6 +30,7 @@ export function StoryBar() {
   }
 
   function handleMyStoryPress() {
+    if (Platform.OS !== 'web') Haptics.selectionAsync();
     if (myStories && myStories.stories.length > 0) {
       router.push(`/(stories)/${user?.id}`);
     } else {
@@ -37,6 +39,7 @@ export function StoryBar() {
   }
 
   function handleStoryPress(userId: string) {
+    if (Platform.OS !== 'web') Haptics.selectionAsync();
     router.push(`/(stories)/${userId}`);
   }
 

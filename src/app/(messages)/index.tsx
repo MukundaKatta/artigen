@@ -10,7 +10,7 @@ import {
 import { useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import Animated, { FadeInRight } from 'react-native-reanimated';
+import Animated, { FadeInRight, ZoomIn } from 'react-native-reanimated';
 import { useAuth } from '@/providers/AuthProvider';
 import { useConversations } from '@/hooks/useConversations';
 import { useNotes } from '@/hooks/useNotes';
@@ -80,9 +80,9 @@ export default function MessagesIndexRoute() {
             </View>
           </View>
           {item.unreadCount > 0 && (
-            <View style={styles.badge}>
+            <Animated.View entering={ZoomIn.springify()} style={styles.badge}>
               <Text style={styles.badgeText}>{item.unreadCount}</Text>
-            </View>
+            </Animated.View>
           )}
         </TouchableOpacity>
       </Animated.View>
@@ -138,7 +138,9 @@ export default function MessagesIndexRoute() {
           }
           ListEmptyComponent={
             <View style={styles.empty}>
-              <Ionicons name="chatbubbles-outline" size={48} color={colors.border} />
+              <View style={styles.emptyIconCircle}>
+                <Ionicons name="chatbubbles-outline" size={32} color={colors.textSecondary} />
+              </View>
               <Text style={styles.emptyTitle}>No messages yet</Text>
               <Text style={styles.emptyText}>
                 Start a conversation by tapping the compose button
@@ -208,12 +210,21 @@ const styles = StyleSheet.create({
     paddingTop: 100,
     paddingHorizontal: spacing.xxxl,
   },
+  emptyIconCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: colors.backgroundSecondary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
   emptyTitle: {
     fontSize: fontSize.xl,
     fontFamily: typography.semiBold,
     fontWeight: '600',
     color: colors.text,
-    marginTop: spacing.lg,
+    marginTop: spacing.md,
   },
   emptyText: {
     fontSize: fontSize.md,

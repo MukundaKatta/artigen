@@ -1,13 +1,18 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ImageBackground } from 'react-native';
+import { View, Text, StyleSheet, ImageBackground, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
 
 type Props = { challenge: any; onPress: () => void };
 
 export function DailyChallengeCard({ challenge, onPress }: Props) {
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress}>
+    <AnimatedPressable style={styles.card} onPress={() => {
+      if (Platform.OS !== 'web') Haptics.selectionAsync();
+      onPress();
+    }} scaleValue={0.97}>
       <ImageBackground source={challenge.cover_url ? { uri: challenge.cover_url } : undefined} style={styles.bg} imageStyle={styles.bgImage}>
         <View style={styles.overlay}>
           <View style={styles.badge}>
@@ -19,7 +24,7 @@ export function DailyChallengeCard({ challenge, onPress }: Props) {
           <Text style={styles.entries}>{challenge.entry_count || 0} entries</Text>
         </View>
       </ImageBackground>
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
 }
 

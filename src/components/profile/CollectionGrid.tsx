@@ -1,8 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Platform } from 'react-native';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
 import { POST_GRID_SIZE, POST_GRID_GAP } from '@/lib/constants';
 import type { Collection } from '@/types';
@@ -18,20 +20,27 @@ export function CollectionGrid({ collections, onCreateNew }: Props) {
   const renderItem = ({ item }: { item: Collection | 'add' }) => {
     if (item === 'add') {
       return (
-        <TouchableOpacity style={styles.addCard} onPress={onCreateNew}>
+        <AnimatedPressable style={styles.addCard} onPress={() => {
+          if (Platform.OS !== 'web') Haptics.selectionAsync();
+          onCreateNew();
+        }} scaleValue={0.95}>
           <Ionicons name="add" size={32} color={colors.textSecondary} />
           <Text style={styles.addText}>New</Text>
-        </TouchableOpacity>
+        </AnimatedPressable>
       );
     }
 
     return (
-      <TouchableOpacity
+      <AnimatedPressable
         style={styles.card}
-        onPress={() => router.push(`/(screens)/collection/${item.id}`)}
+        onPress={() => {
+          if (Platform.OS !== 'web') Haptics.selectionAsync();
+          router.push(`/(screens)/collection/${item.id}`);
+        }}
+        scaleValue={0.97}
       >
         {item.cover_url ? (
-          <Image source={{ uri: item.cover_url }} style={styles.cover} contentFit="cover" />
+          <Image source={{ uri: item.cover_url }} style={styles.cover} contentFit="cover" transition={200} />
         ) : (
           <View style={[styles.cover, styles.emptycover]}>
             <Ionicons name="bookmark" size={24} color={colors.border} />
@@ -39,7 +48,7 @@ export function CollectionGrid({ collections, onCreateNew }: Props) {
         )}
         <Text style={styles.name} numberOfLines={1}>{item.name}</Text>
         <Text style={styles.count}>{item.post_count} posts</Text>
-      </TouchableOpacity>
+      </AnimatedPressable>
     );
   };
 

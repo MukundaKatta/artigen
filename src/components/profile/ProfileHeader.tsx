@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
@@ -138,7 +139,10 @@ export function ProfileHeader({
             />
             <TouchableOpacity
               style={styles.moreButton}
-              onPress={() => setShowMoreSheet(true)}
+              onPress={() => {
+                if (Platform.OS !== 'web') Haptics.selectionAsync();
+                setShowMoreSheet(true);
+              }}
             >
               <Ionicons name="ellipsis-horizontal" size={18} color={colors.text} />
             </TouchableOpacity>
@@ -200,7 +204,10 @@ function StatItem({
   if (onPress) {
     return (
       <TouchableOpacity
-        onPress={onPress}
+        onPress={() => {
+          if (Platform.OS !== 'web') Haptics.selectionAsync();
+          onPress();
+        }}
         activeOpacity={0.6}
         accessibilityRole="button"
         accessibilityLabel={`${formatNumber(value)} ${label}`}
