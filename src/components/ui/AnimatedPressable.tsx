@@ -30,6 +30,7 @@ export function AnimatedPressable({
 
   return (
     <AnimatedPress
+      accessibilityRole="button"
       onPressIn={(e) => {
         scale.value = withSpring(scaleValue, { damping: 15, stiffness: 300 });
         onPressIn?.(e);

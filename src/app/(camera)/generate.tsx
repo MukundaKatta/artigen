@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,18 @@ import {
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withTiming,
+  withDelay,
+  withSpring,
+  Easing,
+  interpolate,
+} from 'react-native-reanimated';
+import * as Haptics from 'expo-haptics';
 import { useAuth } from '@/providers/AuthProvider';
 import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -26,7 +38,6 @@ import Slider from '@react-native-community/slider';
 import { createPrompt } from '@/services/prompt-library.service';
 import { enhancePrompt, describeToPrompt } from '@/services/text-ai.service';
 import { MODEL_CREDITS } from '@/services/credits.service';
-import { useRouter as _useRouter } from 'expo-router';
 
 type Phase = 'prompt' | 'generating' | 'result';
 type ProviderTab = 'huggingface' | 'replicate' | 'openai' | 'gemini';
@@ -50,6 +61,56 @@ function getAspectDimensions(ratio: AspectRatio, model: AiModel) {
   const w = Math.round((ratio.wRatio * scale) / 64) * 64;
   const h = Math.round((ratio.hRatio * scale) / 64) * 64;
   return { width: w, height: h };
+}
+
+function GeneratingView({ prompt, modelName }: { prompt: string; modelName: string }) {
+  const pulse = useSharedValue(0);
+  const shimmer = useSharedValue(0);
+
+  useEffect(() => {
+    pulse.value = withRepeat(withTiming(1, { duration: 2000, easing: Easing.inOut(Easing.ease) }), -1, true);
+    shimmer.value = withRepeat(withTiming(1, { duration: 1500, easing: Easing.linear }), -1, false);
+  }, [pulse, shimmer]);
+
+  const glowStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(pulse.value, [0, 1], [0.3, 0.8]),
+    transform: [{ scale: interpolate(pulse.value, [0, 1], [0.95, 1.05]) }],
+  }));
+
+  const shimmerStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: interpolate(shimmer.value, [0, 1], [-200, 200]) }],
+  }));
+
+  return (
+    <View style={styles.centerContainer}>
+      <Animated.View style={glowStyle}>
+        <LinearGradient
+          colors={['#8B5CF6', '#6D28D9', '#4C1D95']}
+          style={styles.generatingOrb}
+        >
+          <Ionicons name="sparkles" size={40} color="#fff" />
+        </LinearGradient>
+      </Animated.View>
+      <Text style={styles.generatingTitle}>Creating your art...</Text>
+      <Text style={styles.generatingPrompt} numberOfLines={3}>
+        "{prompt}"
+      </Text>
+      <View style={styles.generatingModelRow}>
+        <Ionicons name="sparkles" size={12} color="#8B5CF6" />
+        <Text style={styles.generatingModel}>{modelName}</Text>
+      </View>
+      <View style={styles.progressBar}>
+        <Animated.View style={[styles.progressShimmer, shimmerStyle]}>
+          <LinearGradient
+            colors={['transparent', 'rgba(139,92,246,0.5)', 'transparent']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={{ width: 200, height: '100%' }}
+          />
+        </Animated.View>
+      </View>
+    </View>
+  );
 }
 
 export default function GenerateRoute() {
@@ -159,6 +220,7 @@ export default function GenerateRoute() {
       }
     } else {
       setPhase('result');
+      if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
   }
 
@@ -268,16 +330,7 @@ export default function GenerateRoute() {
 
   // ── Generating Phase ─────────────────────────────────
   if (phase === 'generating') {
-    return (
-      <View style={styles.centerContainer}>
-        <LoadingSpinner />
-        <Text style={styles.generatingTitle}>Generating...</Text>
-        <Text style={styles.generatingPrompt} numberOfLines={3}>
-          "{prompt.trim()}"
-        </Text>
-        <Text style={styles.generatingModel}>{selectedModel.name}</Text>
-      </View>
-    );
+    return <GeneratingView prompt={prompt.trim()} modelName={selectedModel.name} />;
   }
 
   // ── Result Phase ─────────────────────────────────────
@@ -808,11 +861,18 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   // Generating phase
+  generatingOrb: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   generatingTitle: {
     fontSize: fontSize.xl,
-    fontFamily: typography.semiBold,
+    fontFamily: typography.bold,
     color: colors.text,
-    marginTop: spacing.lg,
+    marginTop: spacing.xl,
   },
   generatingPrompt: {
     fontSize: fontSize.md,
@@ -821,12 +881,32 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: spacing.sm,
     fontStyle: 'italic',
+    paddingHorizontal: spacing.xl,
+  },
+  generatingModelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginTop: spacing.md,
   },
   generatingModel: {
     fontSize: fontSize.sm,
     fontFamily: typography.medium,
-    color: colors.primary,
-    marginTop: spacing.sm,
+    color: '#8B5CF6',
+  },
+  progressBar: {
+    width: 200,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.border,
+    overflow: 'hidden',
+    marginTop: spacing.xl,
+  },
+  progressShimmer: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    width: 200,
   },
   // Result phase
   resultContainer: {

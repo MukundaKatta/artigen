@@ -4,12 +4,13 @@ import { Tabs, Slot } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
-import Animated, { useAnimatedStyle, withSpring, useSharedValue, withTiming } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, withSpring, useSharedValue } from 'react-native-reanimated';
 import { colors, shadows, typography } from '@/lib/theme';
 import { LogoText } from '@/components/ui/LogoText';
 import { FeatureErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { DesktopLayout } from '@/components/layout/DesktopLayout';
 import { useResponsive } from '@/hooks/useResponsive';
+import { useTheme } from '@/providers/ThemeProvider';
 
 function TabBarIcon({ name, focusedName, focused, color }: {
   name: string;
@@ -17,7 +18,6 @@ function TabBarIcon({ name, focusedName, focused, color }: {
   focused: boolean;
   color: string;
 }) {
-  const scale = useSharedValue(focused ? 1 : 1);
   const dotScale = useSharedValue(focused ? 1 : 0);
 
   React.useEffect(() => {
@@ -54,14 +54,21 @@ const tabIconStyles = StyleSheet.create({
   },
 });
 
-function TabBarBackground() {
+function TabBarBackground({ isDark }: { isDark: boolean }) {
   if (Platform.OS === 'web') {
-    return <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(255,255,255,0.95)' }]} />;
+    return (
+      <View
+        style={[
+          StyleSheet.absoluteFill,
+          { backgroundColor: isDark ? 'rgba(0,0,0,0.95)' : 'rgba(255,255,255,0.95)' },
+        ]}
+      />
+    );
   }
   return (
     <BlurView
       intensity={80}
-      tint="light"
+      tint={isDark ? 'dark' : 'light'}
       style={StyleSheet.absoluteFill}
     />
   );
@@ -69,6 +76,7 @@ function TabBarBackground() {
 
 export default function TabLayout() {
   const { isMobile } = useResponsive();
+  const { isDark, themeColors } = useTheme();
 
   // Desktop/tablet: use sidebar navigation instead of bottom tabs
   if (Platform.OS === 'web' && !isMobile) {
@@ -85,10 +93,10 @@ export default function TabLayout() {
     <FeatureErrorBoundary fallbackTitle="Something went wrong">
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: colors.text,
-        tabBarInactiveTintColor: colors.textSecondary,
+        tabBarActiveTintColor: themeColors.text,
+        tabBarInactiveTintColor: themeColors.textSecondary,
         tabBarShowLabel: false,
-        tabBarBackground: () => <TabBarBackground />,
+        tabBarBackground: () => <TabBarBackground isDark={isDark} />,
         tabBarStyle: {
           position: 'absolute',
           backgroundColor: 'transparent',
@@ -99,11 +107,11 @@ export default function TabLayout() {
           } : {}),
         },
         headerStyle: {
-          backgroundColor: colors.background,
+          backgroundColor: themeColors.background,
           ...shadows.sm,
         },
         headerTitleStyle: {
-          color: colors.text,
+          color: themeColors.text,
           fontFamily: typography.semiBold,
         },
       }}
