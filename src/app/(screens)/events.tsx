@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  TouchableOpacity,
   ScrollView,
   Platform,
 } from 'react-native';
@@ -12,6 +11,7 @@ import { useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
+import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { useEvents } from '@/hooks/useEvents';
 import { EventCard } from '@/components/events/EventCard';
 import { Skeleton } from '@/components/ui/Skeleton';
@@ -70,17 +70,17 @@ export default function EventsRoute() {
           <View>
             {/* Create button */}
             <Animated.View entering={FadeInUp.duration(400)}>
-              <TouchableOpacity
+              <AnimatedPressable
                 style={styles.createButton}
                 onPress={() => {
                   if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                   router.push('/(screens)/event/create');
                 }}
-                activeOpacity={0.7}
+                scaleValue={0.95}
               >
                 <Ionicons name="add" size={20} color={colors.textLight} />
                 <Text style={styles.createButtonText}>Create Event</Text>
-              </TouchableOpacity>
+              </AnimatedPressable>
             </Animated.View>
 
             {/* Filter */}
@@ -91,7 +91,7 @@ export default function EventsRoute() {
               style={styles.filters}
             >
               {STATUS_FILTERS.map((f) => (
-                <TouchableOpacity
+                <AnimatedPressable
                   key={f.label}
                   style={[
                     styles.filterChip,
@@ -101,7 +101,7 @@ export default function EventsRoute() {
                     if (Platform.OS !== 'web') Haptics.selectionAsync();
                     filter(f.key as string | undefined);
                   }}
-                  activeOpacity={0.7}
+                  scaleValue={0.95}
                 >
                   <Text
                     style={[
@@ -111,7 +111,7 @@ export default function EventsRoute() {
                   >
                     {f.label}
                   </Text>
-                </TouchableOpacity>
+                </AnimatedPressable>
               ))}
             </ScrollView>
           </View>
