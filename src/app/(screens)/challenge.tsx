@@ -131,7 +131,7 @@ export default function ChallengeScreen() {
             {/* Challenge theme card */}
             <View style={styles.challengeCard}>
               <View style={styles.challengeIconRow}>
-                <Ionicons name="sparkles" size={24} color="#8B5CF6" />
+                <Ionicons name="sparkles" size={24} color={colors.accent} />
                 <Text style={styles.challengeLabel}>Today's Challenge</Text>
               </View>
               <Text style={styles.challengeTheme}>
@@ -228,7 +228,7 @@ const styles = StyleSheet.create({
     fontSize: fontSize.sm,
     fontFamily: typography.semiBold,
     fontWeight: '600',
-    color: '#8B5CF6',
+    color: colors.accent,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.sm,
-    backgroundColor: '#8B5CF6',
+    backgroundColor: colors.accent,
     paddingVertical: spacing.md,
     borderRadius: borderRadius.md,
     marginTop: spacing.sm,

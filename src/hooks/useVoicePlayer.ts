@@ -78,7 +78,7 @@ export function useVoicePlayer() {
   useEffect(() => {
     return () => {
       if (soundRef.current) {
-        soundRef.current.unloadAsync().catch(() => {});
+        soundRef.current.unloadAsync().catch((err) => console.warn('Failed to unload sound:', err));
         soundRef.current = null;
       }
     };

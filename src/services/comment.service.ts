@@ -67,12 +67,13 @@ export async function addComment(
 
   // Create notification (fire-and-forget)
   if (data && !error) {
-    supabase
-      .from('posts')
-      .select('user_id')
-      .eq('id', postId)
-      .single()
-      .then(({ data: post }) => {
+    Promise.resolve(
+      supabase
+        .from('posts')
+        .select('user_id')
+        .eq('id', postId)
+        .single()
+    ).then(({ data: post }) => {
         if (post && (post as any).user_id !== userId) {
           createNotification({
             type: 'comment',
@@ -82,7 +83,7 @@ export async function addComment(
             commentId: (data as any).id,
           });
         }
-      });
+      }).catch((err: unknown) => console.warn('Failed to create comment notification:', err));
   }
 
   return { data: data as unknown as CommentWithUser | null, error };

@@ -6,6 +6,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
 import { SCREEN_WIDTH } from '@/lib/constants';
 import { timeAgo } from '@/utils/format-date';
+import { sortMediaByOrder } from '@/utils/media';
 import type { FeedPost, Profile, PostMedia } from '@/types';
 
 type RepostCardProps = {
@@ -16,17 +17,16 @@ type RepostCardProps = {
   onPostPress: (postId: string) => void;
 };
 
-const PURPLE = '#8B5CF6';
+const PURPLE = colors.accent;
 
-export function RepostCard({
+export const RepostCard = React.memo(function RepostCard({
   reposter,
   quoteText,
   post,
   onUserPress,
   onPostPress,
 }: RepostCardProps) {
-  const firstMedia: PostMedia | undefined = [...(post.media || [])]
-    .sort((a, b) => a.sort_order - b.sort_order)[0];
+  const firstMedia: PostMedia | undefined = sortMediaByOrder(post.media)[0];
 
   return (
     <View style={styles.container}>
@@ -83,7 +83,7 @@ export function RepostCard({
       </TouchableOpacity>
     </View>
   );
-}
+});
 
 const NESTED_IMAGE_WIDTH = SCREEN_WIDTH - spacing.lg * 2 - spacing.md * 2;
 

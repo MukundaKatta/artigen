@@ -210,35 +210,53 @@ export async function createPost({
 // ── Hashtags (private) ────────────────────────────────────────────
 
 async function linkHashtags(postId: string, tags: string[]) {
-  await Promise.all(tags.map(async (tag) => {
-    let { data: existing } = await supabase
+  if (tags.length === 0) return;
+
+  // Batch fetch existing hashtags in a single query (avoids N+1)
+  const { data: existingTags } = await supabase
+    .from('hashtags')
+    .select('id, name, post_count')
+    .in('name', tags);
+
+  const existingMap = new Map(
+    (existingTags ?? []).map((t: any) => [t.name as string, t])
+  );
+
+  // Upsert missing hashtags in a single batch
+  const missingTags = tags.filter((t) => !existingMap.has(t));
+  if (missingTags.length > 0) {
+    const { data: created } = await supabase
       .from('hashtags')
-      .select('id, post_count')
-      .eq('name', tag)
-      .maybeSingle();
+      .upsert(
+        missingTags.map((name) => ({ name, post_count: 1 })),
+        { onConflict: 'name' }
+      )
+      .select('id, name, post_count');
+    (created ?? []).forEach((t: any) => existingMap.set(t.name as string, t));
+  }
 
-    if (!existing) {
-      const { data: created } = await supabase
+  // Increment counts for pre-existing hashtags
+  const toIncrement = tags.filter((t) => !missingTags.includes(t));
+  if (toIncrement.length > 0) {
+    await Promise.all(toIncrement.map((t) => {
+      const ht = existingMap.get(t);
+      if (!ht) return Promise.resolve();
+      return supabase
         .from('hashtags')
-        .insert({ name: tag, post_count: 1 })
-        .select('id')
-        .single();
-      if (created) {
-        existing = { ...created, post_count: 1 };
-      }
-    } else {
-      await supabase
-        .from('hashtags')
-        .update({ post_count: existing.post_count + 1 })
-        .eq('id', existing.id);
-    }
+        .update({ post_count: (ht.post_count ?? 0) + 1 })
+        .eq('id', ht.id);
+    }));
+  }
 
-    if (existing) {
-      await supabase
-        .from('post_hashtags')
-        .insert({ post_id: postId, hashtag_id: existing.id });
-    }
-  }));
+  // Batch insert all post_hashtags in a single query
+  const junctionRows = tags
+    .map((t) => existingMap.get(t))
+    .filter(Boolean)
+    .map((ht: any) => ({ post_id: postId, hashtag_id: ht.id }));
+
+  if (junctionRows.length > 0) {
+    await supabase.from('post_hashtags').insert(junctionRows);
+  }
 }
 
 // ── Delete ────────────────────────────────────────────────────────

@@ -5,6 +5,10 @@ module.exports = {
   roots: ['<rootDir>/src'],
   testMatch: ['**/__tests__/**/*.test.ts', '**/__tests__/**/*.test.tsx'],
   moduleNameMapper: {
+    '^@/lib/supabase$': '<rootDir>/src/__mocks__/lib/supabase.ts',
+    '^react-native$': '<rootDir>/src/__mocks__/react-native.ts',
+    '^expo-file-system$': '<rootDir>/src/__mocks__/expo-file-system.ts',
+    '^expo-modules-core$': '<rootDir>/src/__mocks__/expo-modules-core.ts',
     '^@/(.*)$': '<rootDir>/src/$1',
   },
   transform: {
@@ -22,6 +26,7 @@ module.exports = {
   collectCoverageFrom: [
     'src/utils/**/*.ts',
     'src/lib/**/*.ts',
+    'src/services/**/*.ts',
     '!src/**/*.d.ts',
   ],
   coverageDirectory: 'coverage',

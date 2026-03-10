@@ -3,14 +3,12 @@ import {
   View,
   Text,
   StyleSheet,
-  FlatList,
   Pressable,
   Platform,
 } from 'react-native';
-import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import Animated, {
+import {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
@@ -21,20 +19,19 @@ import Animated, {
 import { useRouter } from 'expo-router';
 import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { ActionSheet } from '@/components/ui/ActionSheet';
-import { Avatar } from '@/components/ui/Avatar';
 import { RichText } from '@/components/shared/RichText';
 import { ReactionPicker } from '@/components/feed/ReactionPicker';
 import { ReactionSummary } from '@/components/feed/ReactionSummary';
 import { CollaboratorAvatars } from '@/components/feed/CollaboratorAvatars';
 import { PostInsightsButton } from '@/components/feed/PostInsights';
-import { LocationTag } from '@/components/feed/LocationTag';
-import { TipButton } from '@/components/feed/TipButton';
-import { ProvenanceBadge } from '@/components/feed/ProvenanceBadge';
-import { SCREEN_WIDTH } from '@/lib/constants';
+import { PostCardHeader } from '@/components/feed/PostCardHeader';
+import { PostCardMedia } from '@/components/feed/PostCardMedia';
+import { PostCardActions } from '@/components/feed/PostCardActions';
+import { PostCardAiDetails } from '@/components/feed/PostCardAiDetails';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
-import { timeAgo } from '@/utils/format-date';
 import { formatNumber } from '@/utils/format-number';
-import type { FeedPost, PostMedia, ReactionType } from '@/types';
+import { timeAgo } from '@/utils/format-date';
+import type { FeedPost, ReactionType } from '@/types';
 
 type PostCardProps = {
   post: FeedPost;
@@ -83,7 +80,6 @@ export const PostCard = React.memo(function PostCard({
 }: PostCardProps) {
   const router = useRouter();
   const [captionExpanded, setCaptionExpanded] = useState(false);
-  const [activeIndex, setActiveIndex] = useState(0);
   const [showActionSheet, setShowActionSheet] = useState(false);
   const [showAiDetails, setShowAiDetails] = useState(false);
   const [showReactionPicker, setShowReactionPicker] = useState(false);
@@ -169,6 +165,10 @@ export const PostCard = React.memo(function PostCard({
     setShowActionSheet(true);
   }, []);
 
+  const handleToggleAiDetails = useCallback(() => {
+    setShowAiDetails((prev) => !prev);
+  }, []);
+
   const sortedMedia = useMemo(
     () => [...(post.media || [])].sort((a, b) => a.sort_order - b.sort_order),
     [post.media]
@@ -177,36 +177,11 @@ export const PostCard = React.memo(function PostCard({
   return (
     <View style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
-        <AnimatedPressable
-          style={styles.headerLeft}
-          onPress={() => onUserPress(post.user.id)}
-          scaleValue={0.97}
-        >
-          <Avatar uri={post.user.avatar_url} size="sm" />
-          <View style={styles.headerText}>
-            <View style={styles.usernameRow}>
-              <Text style={styles.username}>{post.user.username}</Text>
-              {post.ai_metadata && (
-                <View style={styles.aiBadge}>
-                  <Ionicons name="sparkles" size={10} color="#fff" />
-                  <Text style={styles.aiBadgeText}>AI</Text>
-                </View>
-              )}
-            </View>
-            {post.location ? (
-              <LocationTag locationId={post.location_id} locationName={post.location} />
-            ) : null}
-          </View>
-        </AnimatedPressable>
-        <AnimatedPressable onPress={handleMore} hitSlop={8} scaleValue={0.9} accessibilityRole="button" accessibilityLabel="More options">
-          <Ionicons
-            name="ellipsis-horizontal"
-            size={20}
-            color={colors.text}
-          />
-        </AnimatedPressable>
-      </View>
+      <PostCardHeader
+        post={post}
+        onUserPress={onUserPress}
+        onMore={handleMore}
+      />
 
       {/* Remix badge */}
       {post.remixOf && (
@@ -215,7 +190,7 @@ export const PostCard = React.memo(function PostCard({
           onPress={() => onPostPress(post.remixOf!.id)}
           scaleValue={0.97}
         >
-          <Ionicons name="git-branch-outline" size={12} color="#8B5CF6" />
+          <Ionicons name="git-branch-outline" size={12} color={colors.accent} />
           <Text style={styles.remixBadgeText}>
             Remixed from <Text style={styles.remixBadgeUsername}>@{post.remixOf.user.username}</Text>
           </Text>
@@ -223,66 +198,11 @@ export const PostCard = React.memo(function PostCard({
       )}
 
       {/* Image / Carousel */}
-      <Pressable onPress={handleDoubleTap}>
-        <View>
-          {sortedMedia.length === 1 ? (
-            <Image
-              source={{ uri: sortedMedia[0]?.media_url }}
-              placeholder={sortedMedia[0]?.blurhash ? { blurhash: sortedMedia[0].blurhash } : undefined}
-              style={styles.postImage}
-              contentFit="cover"
-              cachePolicy="memory-disk"
-              transition={300}
-              recyclingKey={sortedMedia[0]?.id}
-            />
-          ) : (
-            <FlatList
-              data={sortedMedia}
-              horizontal
-              pagingEnabled
-              showsHorizontalScrollIndicator={false}
-              keyExtractor={(item) => item.id}
-              onMomentumScrollEnd={(e) => {
-                const index = Math.round(
-                  e.nativeEvent.contentOffset.x / SCREEN_WIDTH
-                );
-                setActiveIndex(index);
-              }}
-              renderItem={({ item }: { item: PostMedia }) => (
-                <Image
-                  source={{ uri: item.media_url }}
-                  placeholder={item.blurhash ? { blurhash: item.blurhash } : undefined}
-                  style={styles.postImage}
-                  contentFit="cover"
-                  cachePolicy="memory-disk"
-                  transition={300}
-                  recyclingKey={item.id}
-                />
-              )}
-            />
-          )}
-
-          {/* Heart animation overlay */}
-          <Animated.View style={[styles.heartOverlay, heartStyle]}>
-            <Ionicons name="heart" size={80} color="#fff" />
-          </Animated.View>
-        </View>
-      </Pressable>
-
-      {/* Carousel dots */}
-      {sortedMedia.length > 1 && (
-        <View style={styles.dotsContainer}>
-          {sortedMedia.map((_, i) => (
-            <Animated.View
-              key={i}
-              style={[
-                styles.dot,
-                i === activeIndex && styles.activeDot,
-              ]}
-            />
-          ))}
-        </View>
-      )}
+      <PostCardMedia
+        media={sortedMedia}
+        onDoubleTap={handleDoubleTap}
+        heartStyle={heartStyle}
+      />
 
       {/* Collaborators */}
       {post.collaborators && post.collaborators.length > 0 && (
@@ -290,104 +210,22 @@ export const PostCard = React.memo(function PostCard({
       )}
 
       {/* Actions */}
-      <View style={styles.actions}>
-        <View style={styles.actionsLeft}>
-          <AnimatedPressable
-            onPress={handleLike}
-            onLongPress={handleLongPressLike}
-            hitSlop={12}
-            style={styles.actionButton}
-            accessibilityRole="button"
-            accessibilityLabel={post.isLiked ? 'Unlike post' : 'Like post'}
-            accessibilityState={{ selected: post.isLiked }}
-            scaleValue={0.85}
-          >
-            <Animated.View style={likeButtonStyle}>
-              <Ionicons
-                name={post.isLiked ? 'heart' : 'heart-outline'}
-                size={26}
-                color={post.isLiked ? colors.like : colors.text}
-              />
-            </Animated.View>
-          </AnimatedPressable>
-          <AnimatedPressable
-            onPress={() => {
-              if (Platform.OS !== 'web') Haptics.selectionAsync();
-              onComment(post.id);
-            }}
-            hitSlop={8}
-            style={styles.actionButton}
-            accessibilityRole="button"
-            accessibilityLabel={`Comment on post, ${post.comments_count} comments`}
-            scaleValue={0.85}
-          >
-            <Ionicons
-              name="chatbubble-outline"
-              size={24}
-              color={colors.text}
-            />
-          </AnimatedPressable>
-          <AnimatedPressable
-            hitSlop={8}
-            style={styles.actionButton}
-            onPress={() => {
-              if (Platform.OS !== 'web') Haptics.selectionAsync();
-              onShare?.(post.id);
-            }}
-            accessibilityRole="button"
-            accessibilityLabel="Share post"
-            scaleValue={0.85}
-          >
-            <Ionicons
-              name="paper-plane-outline"
-              size={24}
-              color={colors.text}
-            />
-          </AnimatedPressable>
-          {post.ai_metadata && onRemix && (
-            <AnimatedPressable
-              hitSlop={8}
-              style={styles.actionButton}
-              onPress={() => {
-                if (Platform.OS !== 'web') Haptics.selectionAsync();
-                onRemix(post.id);
-              }}
-              scaleValue={0.85}
-            >
-              <Ionicons
-                name="git-branch-outline"
-                size={24}
-                color="#8B5CF6"
-              />
-            </AnimatedPressable>
-          )}
-          {onTip && post.user_id !== currentUserId && (
-            <TipButton onPress={() => onTip(post.id, post.user_id)} />
-          )}
-        </View>
-        <View style={styles.actionsRight}>
-          {post.has_provenance && (
-            <ProvenanceBadge onPress={() => router.push(`/(screens)/provenance/${post.id}`)} />
-          )}
-          <AnimatedPressable
-            onPress={handleSave}
-            onLongPress={handleLongPressSave}
-            hitSlop={12}
-            accessibilityRole="button"
-            accessibilityLabel={post.isSaved ? 'Unsave post' : 'Save post'}
-            accessibilityState={{ selected: post.isSaved }}
-            scaleValue={0.85}
-          >
-            <Animated.View style={saveButtonStyle}>
-              <Ionicons
-                name={post.isSaved ? 'bookmark' : 'bookmark-outline'}
-                size={24}
-                color={colors.text}
-              />
-            </Animated.View>
-          </AnimatedPressable>
-        </View>
-      </View>
+      <PostCardActions
+        post={post}
+        currentUserId={currentUserId}
+        onLike={handleLike}
+        onComment={onComment}
+        onShare={onShare}
+        onRemix={onRemix}
+        onTip={onTip}
+        onSave={handleSave}
+        onSaveToCollection={onSaveToCollection}
+        likeButtonStyle={likeButtonStyle}
+        saveButtonStyle={saveButtonStyle}
+        onLongPressLike={handleLongPressLike}
+        onLongPressSave={handleLongPressSave}
+        router={router}
+      />
 
       {/* Reaction Summary or Likes */}
       {post.reactionSummary && post.reactionSummary.length > 0 ? (
@@ -405,7 +243,7 @@ export const PostCard = React.memo(function PostCard({
           style={styles.remixCountRow}
           scaleValue={0.97}
         >
-          <Ionicons name="git-branch-outline" size={14} color="#8B5CF6" />
+          <Ionicons name="git-branch-outline" size={14} color={colors.accent} />
           <Text style={styles.remixCountText}>
             {post.remixCount} {post.remixCount === 1 ? 'remix' : 'remixes'}
           </Text>
@@ -437,60 +275,13 @@ export const PostCard = React.memo(function PostCard({
 
       {/* AI Details */}
       {post.ai_metadata && (
-        <AnimatedPressable
-          onPress={() => setShowAiDetails(!showAiDetails)}
-          style={styles.aiDetailsToggle}
-          scaleValue={0.97}
-        >
-          <Ionicons name="sparkles-outline" size={14} color="#8B5CF6" />
-          <Text style={styles.aiDetailsToggleText}>
-            {showAiDetails ? 'Hide' : 'View'} AI Details
-          </Text>
-        </AnimatedPressable>
-      )}
-
-      {showAiDetails && post.ai_metadata && (
-        <View style={styles.aiDetailsContainer}>
-          <View style={styles.aiDetailRow}>
-            <Text style={styles.aiDetailLabel}>Model</Text>
-            <Text style={styles.aiDetailValue}>{post.ai_metadata.model_name}</Text>
-          </View>
-          <View style={styles.aiDetailRow}>
-            <Text style={styles.aiDetailLabel}>Prompt</Text>
-            <Text style={styles.aiDetailValue} selectable>{post.ai_metadata.prompt}</Text>
-          </View>
-          {post.ai_metadata.negative_prompt ? (
-            <View style={styles.aiDetailRow}>
-              <Text style={styles.aiDetailLabel}>Neg. Prompt</Text>
-              <Text style={styles.aiDetailValue}>{post.ai_metadata.negative_prompt}</Text>
-            </View>
-          ) : null}
-          {(post.ai_metadata.style_tags as string[])?.length > 0 && (
-            <View style={styles.aiTagsRow}>
-              {(post.ai_metadata.style_tags as string[]).map((tag: string) => (
-                <View key={tag} style={styles.aiTag}>
-                  <Text style={styles.aiTagText}>{tag}</Text>
-                </View>
-              ))}
-            </View>
-          )}
-          <View style={styles.aiSettingsRow}>
-            {(post.ai_metadata.settings as any)?.steps != null && (
-              <Text style={styles.aiSettingChip}>Steps: {(post.ai_metadata.settings as any).steps}</Text>
-            )}
-            {(post.ai_metadata.settings as any)?.cfg_scale != null && (
-              <Text style={styles.aiSettingChip}>CFG: {(post.ai_metadata.settings as any).cfg_scale}</Text>
-            )}
-            {(post.ai_metadata.settings as any)?.seed != null && (
-              <Text style={styles.aiSettingChip}>Seed: {(post.ai_metadata.settings as any).seed}</Text>
-            )}
-            {post.ai_metadata.generation_time_ms != null && (
-              <Text style={styles.aiSettingChip}>
-                {(post.ai_metadata.generation_time_ms / 1000).toFixed(1)}s
-              </Text>
-            )}
-          </View>
-        </View>
+        <PostCardAiDetails
+          aiMetadata={post.ai_metadata}
+          showDetails={showAiDetails}
+          onToggleDetails={handleToggleAiDetails}
+          onPromptRemix={onPromptRemix}
+          postId={post.id}
+        />
       )}
 
       {/* View comments link */}
@@ -573,86 +364,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0.5,
     borderBottomColor: colors.border,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  headerText: {
-    marginLeft: spacing.sm,
-    flex: 1,
-  },
-  username: {
-    fontSize: fontSize.md,
-    fontFamily: typography.semiBold,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  location: {
-    fontSize: fontSize.xs,
-    color: colors.textSecondary,
-    fontFamily: typography.regular,
-    marginTop: 1,
-  },
-  postImage: {
-    width: SCREEN_WIDTH,
-    height: SCREEN_WIDTH,
-  },
-  heartOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  dotsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: spacing.sm,
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.border,
-    marginHorizontal: 3,
-  },
-  activeDot: {
-    backgroundColor: colors.primary,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  actions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.sm,
-    paddingBottom: spacing.xs,
-  },
-  actionsLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  actionsRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-  },
-  actionButton: {
-    marginRight: spacing.lg,
-  },
   likesText: {
     fontSize: fontSize.md,
     fontFamily: typography.semiBold,
@@ -667,10 +378,6 @@ const styles = StyleSheet.create({
     color: colors.text,
     paddingHorizontal: spacing.lg,
     lineHeight: 20,
-  },
-  captionUsername: {
-    fontFamily: typography.semiBold,
-    fontWeight: '600',
   },
   viewComments: {
     fontSize: fontSize.md,
@@ -687,96 +394,6 @@ const styles = StyleSheet.create({
     paddingTop: spacing.xs,
     paddingBottom: spacing.md,
   },
-  // AI styles
-  usernameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  aiBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#8B5CF6',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-    gap: 2,
-  },
-  aiBadgeText: {
-    color: '#fff',
-    fontSize: 10,
-    fontFamily: typography.semiBold,
-    fontWeight: '600',
-  },
-  aiDetailsToggle: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.xs,
-    gap: 4,
-  },
-  aiDetailsToggleText: {
-    color: '#8B5CF6',
-    fontSize: fontSize.sm,
-    fontFamily: typography.medium,
-  },
-  aiDetailsContainer: {
-    marginHorizontal: spacing.lg,
-    marginBottom: spacing.sm,
-    padding: spacing.md,
-    backgroundColor: colors.backgroundSecondary,
-    borderRadius: 8,
-  },
-  aiDetailRow: {
-    flexDirection: 'row',
-    marginBottom: spacing.sm,
-  },
-  aiDetailLabel: {
-    fontSize: fontSize.xs,
-    fontFamily: typography.semiBold,
-    color: colors.textSecondary,
-    width: 70,
-  },
-  aiDetailValue: {
-    fontSize: fontSize.xs,
-    fontFamily: typography.regular,
-    color: colors.text,
-    flex: 1,
-    lineHeight: 16,
-  },
-  aiTagsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 4,
-    marginBottom: spacing.sm,
-  },
-  aiTag: {
-    backgroundColor: 'rgba(139, 92, 246, 0.12)',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 12,
-  },
-  aiTagText: {
-    fontSize: 10,
-    fontFamily: typography.medium,
-    color: '#8B5CF6',
-  },
-  aiSettingsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-  },
-  aiSettingChip: {
-    fontSize: 10,
-    fontFamily: typography.regular,
-    color: colors.textSecondary,
-    backgroundColor: colors.background,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  // Remix styles
   remixBadge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -791,7 +408,7 @@ const styles = StyleSheet.create({
   },
   remixBadgeUsername: {
     fontFamily: typography.semiBold,
-    color: '#8B5CF6',
+    color: colors.accent,
   },
   remixCountRow: {
     flexDirection: 'row',
@@ -803,6 +420,6 @@ const styles = StyleSheet.create({
   remixCountText: {
     fontSize: fontSize.sm,
     fontFamily: typography.medium,
-    color: '#8B5CF6',
+    color: colors.accent,
   },
 });

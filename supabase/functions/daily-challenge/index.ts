@@ -1,5 +1,12 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import {
+  corsHeaders,
+  jsonResponse,
+  requireAuth,
+  checkRateLimit,
+  rateLimitResponse,
+} from '../_shared/auth.ts';
 
 // ── Curated creative prompts ────────────────────────────────────
 
@@ -68,26 +75,18 @@ function hashDateToIndex(dateStr: string): number {
   return Math.abs(hash) % PROMPTS.length;
 }
 
-// ── CORS ────────────────────────────────────────────────────────
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-function jsonResponse(body: Record<string, unknown>, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { 'Content-Type': 'application/json', ...corsHeaders },
-  });
-}
-
 // ── Main Handler ────────────────────────────────────────────────
 
 serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
+  }
+
+  const authResult = await requireAuth(req);
+  if (authResult instanceof Response) return authResult;
+
+  if (!checkRateLimit(authResult.userId, 'daily-challenge', 20, 60)) {
+    return rateLimitResponse();
   }
 
   try {

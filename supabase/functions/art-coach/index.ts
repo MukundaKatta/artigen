@@ -1,17 +1,11 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-function jsonResponse(body: Record<string, unknown>, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { 'Content-Type': 'application/json', ...corsHeaders },
-  });
-}
+import {
+  corsHeaders,
+  jsonResponse,
+  requireAuth,
+  checkRateLimit,
+  rateLimitResponse,
+} from '../_shared/auth.ts';
 
 const CRITIQUE_PROMPT = `You are an expert AI art critic and coach with deep knowledge of visual composition, color theory, digital art, and AI image generation.
 
@@ -39,6 +33,13 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
   if (req.method !== 'POST') return jsonResponse({ error: 'Method not allowed' }, 405);
 
+  const authResult = await requireAuth(req);
+  if (authResult instanceof Response) return authResult;
+
+  if (!checkRateLimit(authResult.userId, 'art-coach', 10, 60)) {
+    return rateLimitResponse();
+  }
+
   const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
   if (!ANTHROPIC_API_KEY) return jsonResponse({ error: 'AI service not configured' }, 500);
 
@@ -53,7 +54,40 @@ serve(async (req) => {
     return jsonResponse({ error: 'Invalid request body' }, 400);
   }
 
-  if (!imageUrl) return jsonResponse({ error: 'imageUrl is required' }, 400);
+  if (!imageUrl || typeof imageUrl !== 'string') return jsonResponse({ error: 'imageUrl is required' }, 400);
+  if (imageUrl.length > 10000) return jsonResponse({ error: 'imageUrl too long' }, 400);
+
+  // URL validation: require HTTPS and allowed domains only (prevent SSRF)
+  if (!imageUrl.startsWith('https://')) {
+    return jsonResponse({ error: 'imageUrl must use HTTPS' }, 400);
+  }
+  const IMAGE_URL_ALLOWED_DOMAINS = [
+    'supabase.co',
+    'supabase.in',
+    'replicate.delivery',
+    'replicate.com',
+    'pbxt.replicate.delivery',
+    'oaidalleapiprodscus.blob.core.windows.net',
+    'githubusercontent.com',
+    'cloudflare.com',
+    'firebasestorage.googleapis.com',
+  ];
+  try {
+    const parsedUrl = new URL(imageUrl);
+    const hostname = parsedUrl.hostname;
+    // Block private/internal IPs
+    if (/^(localhost|127\.|10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|0\.|::1|fc|fd|fe80)/i.test(hostname)) {
+      return jsonResponse({ error: 'Internal URLs are not allowed' }, 400);
+    }
+    const domainAllowed = IMAGE_URL_ALLOWED_DOMAINS.some(d => hostname === d || hostname.endsWith('.' + d));
+    if (!domainAllowed) {
+      return jsonResponse({ error: 'Image URL domain not allowed' }, 400);
+    }
+  } catch {
+    return jsonResponse({ error: 'Invalid imageUrl' }, 400);
+  }
+
+  if (prompt && typeof prompt === 'string' && prompt.length > 4000) return jsonResponse({ error: 'prompt too long' }, 400);
 
   const userMessage: Record<string, unknown>[] = [
     {

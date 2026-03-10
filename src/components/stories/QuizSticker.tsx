@@ -51,7 +51,7 @@ export function QuizSticker({ sticker, onRespond }: Props) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#8B5CF6',
+    backgroundColor: colors.accent,
     borderRadius: borderRadius.lg,
     padding: spacing.md,
     width: 200,

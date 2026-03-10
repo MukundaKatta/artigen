@@ -9,6 +9,7 @@ import { getLocation, getLocationPosts } from '@/services/location.service';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
 import { POST_GRID_SIZE, POST_GRID_GAP } from '@/lib/constants';
+import { sortMediaByOrder } from '@/utils/media';
 import type { Location } from '@/types';
 
 function LocationSkeleton() {
@@ -86,7 +87,7 @@ export default function LocationRoute() {
         numColumns={3}
         columnWrapperStyle={styles.gridRow}
         renderItem={({ item, index }: { item: any; index: number }) => {
-          const media = (item.media || []).sort((a: any, b: any) => a.sort_order - b.sort_order);
+          const media = sortMediaByOrder(item.media);
           const firstMedia = media[0];
           return (
             <Animated.View entering={FadeIn.delay(Math.min(index, 8) * 30).duration(250)}>

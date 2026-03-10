@@ -52,6 +52,10 @@ export function LocationPicker({ visible, onClose, onSelect }: Props) {
         <FlatList
           data={results}
           keyExtractor={(item) => item.id}
+          removeClippedSubviews={true}
+          maxToRenderPerBatch={10}
+          windowSize={5}
+          initialNumToRender={10}
           renderItem={({ item }) => (
             <TouchableOpacity style={styles.row} onPress={() => handleSelect(item)}>
               <Ionicons name="location-outline" size={20} color={colors.textSecondary} />

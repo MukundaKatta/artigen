@@ -8,6 +8,7 @@ import { getPendingInvites, respondToInvite } from '@/services/collaboration.ser
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
+import { sortMediaByOrder } from '@/utils/media';
 
 export default function CollabInviteRoute() {
   const { user } = useAuth();
@@ -19,8 +20,9 @@ export default function CollabInviteRoute() {
     if (!user?.id) return;
     getPendingInvites(user.id).then(({ data }) => {
       setInvites(data);
-      setLoading(false);
-    });
+    }).catch((err) => {
+      console.warn('Failed to load invites:', err);
+    }).finally(() => setLoading(false));
   }, [user?.id]);
 
   async function handleRespond(postId: string, accept: boolean) {
@@ -37,7 +39,7 @@ export default function CollabInviteRoute() {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => {
           const post = item.post;
-          const media = (post?.media || []).sort((a: any, b: any) => a.sort_order - b.sort_order);
+          const media = sortMediaByOrder(post?.media);
           const firstMedia = media[0];
 
           return (

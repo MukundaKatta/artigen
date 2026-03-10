@@ -29,6 +29,9 @@ export function MoodPicker({ selected, onSelect }: Props) {
           style={[styles.moodItem, selected === mood.key && styles.moodItemSelected]}
           onPress={() => onSelect(mood.key)}
           activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel={`${mood.label} mood`}
+          accessibilityState={{ selected: selected === mood.key }}
         >
           <Text style={styles.moodIcon}>{mood.icon}</Text>
           <Text style={[styles.moodLabel, selected === mood.key && styles.moodLabelSelected]}>

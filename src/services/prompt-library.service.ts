@@ -141,6 +141,16 @@ export async function getSavedPrompts(userId: string, page = 0) {
   return { data: data || [], error };
 }
 
+export async function getTrendingPrompts(limit = 6) {
+  const { data, error } = await (supabase.from('prompt_library') as any)
+    .select('id, title, prompt, model_id, save_count, user:profiles!user_id(username)')
+    .eq('is_public', true)
+    .order('save_count', { ascending: false })
+    .limit(limit);
+
+  return { data: data || [], error };
+}
+
 export async function isPromptSaved(userId: string, promptId: string) {
   const { data } = await supabase
     .from('prompt_saves')

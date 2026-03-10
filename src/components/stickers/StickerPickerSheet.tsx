@@ -73,6 +73,7 @@ export function StickerPickerSheet({ visible, onClose, onSelect, userId }: Props
             keyExtractor={(item) => item.id}
             style={styles.packTabs}
             contentContainerStyle={styles.packTabsContent}
+            removeClippedSubviews={true}
             renderItem={({ item }) => (
               <TouchableOpacity
                 onPress={() => setSelectedPack(item.id)}
@@ -96,6 +97,9 @@ export function StickerPickerSheet({ visible, onClose, onSelect, userId }: Props
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.stickerGrid}
             columnWrapperStyle={styles.stickerRow}
+            removeClippedSubviews={true}
+            maxToRenderPerBatch={10}
+            windowSize={5}
             renderItem={({ item }) => (
               <TouchableOpacity
                 onPress={() => { onSelect(item); onClose(); }}

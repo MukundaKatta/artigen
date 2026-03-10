@@ -12,7 +12,7 @@ type Props = {
 const STYLES: { key: AvatarStyle; label: string; icon: keyof typeof Ionicons.glyphMap; color: string }[] = [
   { key: 'anime', label: 'Anime', icon: 'flash-outline', color: '#EC4899' },
   { key: 'cartoon', label: 'Cartoon', icon: 'happy-outline', color: '#F97316' },
-  { key: '3d', label: '3D', icon: 'cube-outline', color: '#8B5CF6' },
+  { key: '3d', label: '3D', icon: 'cube-outline', color: colors.accent },
   { key: 'pixel', label: 'Pixel', icon: 'grid-outline', color: '#10B981' },
   { key: 'watercolor', label: 'Watercolor', icon: 'water-outline', color: '#3B82F6' },
   { key: 'oil_painting', label: 'Oil Paint', icon: 'brush-outline', color: '#B45309' },

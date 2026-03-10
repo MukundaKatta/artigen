@@ -120,7 +120,7 @@ export default function PromptLibraryRoute() {
             <View style={styles.cardStats}>
               {item.model_name && (
                 <Text style={styles.cardStat}>
-                  <Ionicons name="sparkles" size={10} color="#8B5CF6" /> {item.model_name}
+                  <Ionicons name="sparkles" size={10} color={colors.accent} /> {item.model_name}
                 </Text>
               )}
               <Text style={styles.cardStat}>
@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
   tagText: {
     fontSize: 10,
     fontFamily: typography.medium,
-    color: '#8B5CF6',
+    color: colors.accent,
   },
   cardFooter: {
     flexDirection: 'row',
@@ -314,7 +314,7 @@ const styles = StyleSheet.create({
   useButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#8B5CF6',
+    backgroundColor: colors.accent,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     borderRadius: borderRadius.full,

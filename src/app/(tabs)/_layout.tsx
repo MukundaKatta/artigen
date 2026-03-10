@@ -7,6 +7,7 @@ import * as Haptics from 'expo-haptics';
 import Animated, { useAnimatedStyle, withSpring, useSharedValue } from 'react-native-reanimated';
 import { colors, shadows, typography } from '@/lib/theme';
 import { LogoText } from '@/components/ui/LogoText';
+import { CreditBadge } from '@/components/ui/CreditBadge';
 import { FeatureErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { DesktopLayout } from '@/components/layout/DesktopLayout';
 import { useResponsive } from '@/hooks/useResponsive';
@@ -180,6 +181,8 @@ export default function TabLayout() {
         name="index"
         options={{
           headerTitle: () => <LogoText size="sm" />,
+          headerRight: () => <CreditBadge />,
+          headerRightContainerStyle: { paddingRight: 12 },
           tabBarIcon: ({ focused, color }) => (
             <TabBarIcon name="home-outline" focusedName="home" focused={focused} color={color} />
           ),

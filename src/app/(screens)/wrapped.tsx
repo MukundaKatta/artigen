@@ -40,7 +40,7 @@ const SLIDES: Slide[] = [
   { id: 'personality', type: 'personality', gradient: ['#FF6B6B', '#FF8E53'] },
   { id: 'monthly', type: 'monthly', gradient: ['#0095F6', '#00D4FF'] },
   { id: 'streak', type: 'streak', gradient: ['#10B981', '#34D399'] },
-  { id: 'finale', type: 'finale', gradient: ['#8B5CF6', '#EC4899'] },
+  { id: 'finale', type: 'finale', gradient: [colors.accent, '#EC4899'] },
 ];
 
 export default function WrappedScreen() {

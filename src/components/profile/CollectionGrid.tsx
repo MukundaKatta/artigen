@@ -62,6 +62,7 @@ export function CollectionGrid({ collections, onCreateNew }: Props) {
       numColumns={2}
       columnWrapperStyle={styles.row}
       contentContainerStyle={styles.container}
+      removeClippedSubviews={true}
     />
   );
 }

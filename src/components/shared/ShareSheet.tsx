@@ -118,6 +118,10 @@ export function ShareSheet({
             keyExtractor={(item) => item.id}
             style={styles.list}
             keyboardShouldPersistTaps="handled"
+            removeClippedSubviews={true}
+            maxToRenderPerBatch={10}
+            windowSize={5}
+            initialNumToRender={10}
             renderItem={({ item }) => {
               const isSent = sentTo.has(item.id);
               const isSending = sending === item.id;

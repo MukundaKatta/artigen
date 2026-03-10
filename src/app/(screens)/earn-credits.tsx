@@ -35,8 +35,9 @@ export default function EarnCreditsScreen() {
     ]).then(([history, streakData]) => {
       setRewards(history);
       setStreak(streakData);
-      setLoading(false);
-    });
+    }).catch((err) => {
+      console.warn('Failed to load reward history:', err);
+    }).finally(() => setLoading(false));
   }, [user]);
 
   const totalEarned = rewards.reduce((sum, r) => sum + r.credits_earned, 0);

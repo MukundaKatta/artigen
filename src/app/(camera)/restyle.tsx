@@ -17,7 +17,7 @@ export default function RestyleRoute() {
   return (
     <ScrollView style={styles.container}>
       <Stack.Screen options={{ title: 'Restyle' }} />
-      <RestylePreview sourceUrl={imageUrl || ''} resultUrl={job?.result_image_url || null} />
+      <RestylePreview sourceUrl={imageUrl || ''} resultUrl={job?.result_image_url ?? undefined} />
       <Text style={styles.sectionTitle}>Choose a Style</Text>
       <StylePresetGrid presets={presets} selectedId={selectedPreset?.id || null} onSelect={setSelectedPreset} />
       <View style={styles.buttonRow}>

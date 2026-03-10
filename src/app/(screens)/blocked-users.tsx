@@ -22,8 +22,9 @@ export default function BlockedUsersRoute() {
     if (!user?.id) return;
     getBlockedUsers(user.id).then(({ data }) => {
       setBlocked(data);
-      setLoading(false);
-    });
+    }).catch((err) => {
+      console.warn('Failed to load blocked users:', err);
+    }).finally(() => setLoading(false));
   }, [user?.id]);
 
   async function handleUnblock(blockedId: string) {

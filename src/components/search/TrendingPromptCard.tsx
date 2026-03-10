@@ -5,7 +5,7 @@ import { colors, spacing, fontSize, typography } from '@/lib/theme';
 
 type Props = { prompt: any; onGenerate: () => void };
 
-export function TrendingPromptCard({ prompt, onGenerate }: Props) {
+export const TrendingPromptCard = React.memo(function TrendingPromptCard({ prompt, onGenerate }: Props) {
   return (
     <View style={styles.card}>
       <Text style={styles.prompt} numberOfLines={3}>{prompt.prompt}</Text>
@@ -19,7 +19,7 @@ export function TrendingPromptCard({ prompt, onGenerate }: Props) {
       </TouchableOpacity>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   card: { width: 200, backgroundColor: colors.surface, borderRadius: 12, padding: spacing.sm },

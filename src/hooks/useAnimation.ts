@@ -1,13 +1,12 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback } from 'react';
 import * as animationService from '@/services/animation.service';
+import { useJobPolling } from '@/hooks/useJobPolling';
 
 type AnimationType = 'motion' | 'camera_pan' | 'parallax' | 'zoom' | 'morph';
 
 export function useAnimation(userId?: string) {
   const [animationType, setAnimationType] = useState<AnimationType>('motion');
-  const [job, setJob] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
-  const pollRef = useRef<ReturnType<typeof setInterval>>();
+  const { job, loading, setLoading, startPolling } = useJobPolling(animationService.getAnimationJob);
 
   const startAnimation = useCallback(async (sourceImageUrl: string, sourcePostId?: string) => {
     if (!userId) return;
@@ -19,25 +18,12 @@ export function useAnimation(userId?: string) {
       animationType,
     });
     if (data) {
-      setJob(data);
-      if (pollRef.current) clearInterval(pollRef.current);
-      pollRef.current = setInterval(async () => {
-        const { data: updated } = await animationService.getAnimationJob(data.id);
-        if (updated) {
-          setJob(updated);
-          if (updated.status === 'completed' || updated.status === 'failed') {
-            clearInterval(pollRef.current);
-            setLoading(false);
-          }
-        }
-      }, 3000);
+      startPolling(data);
     } else {
       setLoading(false);
     }
     return { data, error };
-  }, [userId, animationType]);
-
-  useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current); }, []);
+  }, [userId, animationType, setLoading, startPolling]);
 
   return { animationType, setAnimationType, job, loading, startAnimation };
 }

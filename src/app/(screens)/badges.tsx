@@ -35,12 +35,14 @@ export default function BadgesRoute() {
 
   useEffect(() => {
     if (!user?.id) return;
-    supabase
-      .from('user_badges')
-      .select('*, badge:badges(*)')
-      .eq('user_id', user.id)
-      .order('earned_at', { ascending: false })
-      .then(({ data }) => setBadges(data || []));
+    Promise.resolve(
+      supabase
+        .from('user_badges')
+        .select('*, badge:badges(*)')
+        .eq('user_id', user.id)
+        .order('earned_at', { ascending: false })
+    ).then(({ data }) => setBadges(data || []))
+      .catch((err: unknown) => console.warn('Failed to load badges:', err));
   }, [user?.id]);
 
   if (loading) {

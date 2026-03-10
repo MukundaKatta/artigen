@@ -10,7 +10,7 @@ type Props = {
 };
 
 const STEP_CONFIG: Record<string, { icon: string; label: string; color: string }> = {
-  generate: { icon: 'sparkles', label: 'Generate', color: '#8B5CF6' },
+  generate: { icon: 'sparkles', label: 'Generate', color: colors.accent },
   restyle: { icon: 'color-palette', label: 'Restyle', color: '#EC4899' },
   inpaint: { icon: 'brush', label: 'Inpaint', color: '#F59E0B' },
   upscale: { icon: 'resize', label: 'Upscale', color: '#10B981' },

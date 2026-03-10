@@ -11,7 +11,7 @@ type Props = {
 };
 
 const STEP_TYPES: { type: WorkflowStepType; icon: string; label: string; color: string }[] = [
-  { type: 'generate', icon: 'sparkles', label: 'Generate', color: '#8B5CF6' },
+  { type: 'generate', icon: 'sparkles', label: 'Generate', color: colors.accent },
   { type: 'restyle', icon: 'color-palette', label: 'Restyle', color: '#EC4899' },
   { type: 'inpaint', icon: 'brush', label: 'Inpaint', color: '#F59E0B' },
   { type: 'upscale', icon: 'resize', label: 'Upscale', color: '#10B981' },

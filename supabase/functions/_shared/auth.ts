@@ -15,14 +15,24 @@ export function getCorsOrigin(req?: Request): string {
 }
 
 export const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': ALLOWED_ORIGINS[0],
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-export function jsonResponse(body: Record<string, unknown>, status = 200) {
+/** Build CORS headers with proper origin validation when request is available. */
+export function getCorsHeaders(req?: Request) {
+  const origin = getCorsOrigin(req);
+  return {
+    'Access-Control-Allow-Origin': origin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  };
+}
+
+export function jsonResponse(body: Record<string, unknown>, status = 200, req?: Request) {
+  const headers = req ? getCorsHeaders(req) : corsHeaders;
   return new Response(JSON.stringify(body), {
     status,
-    headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    headers: { 'Content-Type': 'application/json', ...headers },
   });
 }
 

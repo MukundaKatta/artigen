@@ -1,6 +1,12 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { checkRateLimit, rateLimitResponse } from '../_shared/auth.ts';
+import {
+  corsHeaders,
+  jsonResponse,
+  requireAuth,
+  checkRateLimit,
+  rateLimitResponse,
+} from '../_shared/auth.ts';
 
 const REPLICATE_API_URL = 'https://api.replicate.com/v1/predictions';
 const HF_INFERENCE_URL = 'https://api-inference.huggingface.co/models';
@@ -41,19 +47,6 @@ const HF_MODELS: Record<string, { name: string }> = {
   'stabilityai/stable-diffusion-2-1': { name: 'Stable Diffusion 2.1' },
   'black-forest-labs/FLUX.1-schnell': { name: 'Flux Schnell' },
 };
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-function jsonResponse(body: Record<string, unknown>, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { 'Content-Type': 'application/json', ...corsHeaders },
-  });
-}
 
 // ── Hugging Face ──────────────────────────────────────────────
 async function generateWithHuggingFace(
@@ -301,22 +294,20 @@ serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   try {
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) return jsonResponse({ error: 'Missing authorization' }, 401);
+    const authResult = await requireAuth(req);
+    if (authResult instanceof Response) return authResult;
 
+    // Rate limit: 20 generations per minute per user
+    if (!checkRateLimit(authResult.userId, 'generate', 20, 60)) {
+      return rateLimitResponse();
+    }
+
+    const authHeader = req.headers.get('Authorization')!;
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_ANON_KEY')!,
       { global: { headers: { Authorization: authHeader } } }
     );
-
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-    if (authError || !user) return jsonResponse({ error: 'Unauthorized' }, 401);
-
-    // Rate limit: 20 generations per minute per user
-    if (!checkRateLimit(user.id, 'generate', 20, 60)) {
-      return rateLimitResponse();
-    }
 
     const body = await req.json();
     const model_id = body.model_id;
@@ -358,12 +349,43 @@ serve(async (req: Request) => {
       return jsonResponse({ error: 'img2img_strength must be between 0.1 and 1' }, 400);
     }
 
+    // Validate style_image_url if provided (prevent SSRF)
+    if (style_image_url) {
+      if (typeof style_image_url !== 'string' || !style_image_url.startsWith('https://')) {
+        return jsonResponse({ error: 'style_image_url must use HTTPS' }, 400);
+      }
+      const STYLE_URL_ALLOWED_DOMAINS = [
+        'supabase.co',
+        'supabase.in',
+        'replicate.delivery',
+        'replicate.com',
+        'pbxt.replicate.delivery',
+        'oaidalleapiprodscus.blob.core.windows.net',
+        'githubusercontent.com',
+        'cloudflare.com',
+        'firebasestorage.googleapis.com',
+      ];
+      try {
+        const parsedUrl = new URL(style_image_url);
+        const hostname = parsedUrl.hostname;
+        if (/^(localhost|127\.|10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|0\.|::1|fc|fd|fe80)/i.test(hostname)) {
+          return jsonResponse({ error: 'Internal URLs are not allowed' }, 400);
+        }
+        const domainAllowed = STYLE_URL_ALLOWED_DOMAINS.some(d => hostname === d || hostname.endsWith('.' + d));
+        if (!domainAllowed) {
+          return jsonResponse({ error: 'style_image_url domain not allowed' }, 400);
+        }
+      } catch {
+        return jsonResponse({ error: 'Invalid style_image_url' }, 400);
+      }
+    }
+
     // Deduct credits for paid models
     const baseCreditCost = MODEL_CREDITS[model_id] ?? 10;
     const creditCost = baseCreditCost * (num_outputs ?? 1);
     if (creditCost > 0) {
       const { error: deductErr } = await supabaseClient.rpc('deduct_generation_credits', {
-        p_user_id: user.id,
+        p_user_id: authResult.userId,
         p_cost: creditCost,
       });
       if (deductErr) {
@@ -389,14 +411,14 @@ serve(async (req: Request) => {
       }
     } catch (genErr: any) {
       if (creditCost > 0) {
-        await supabaseClient.rpc('refund_generation_credits', { p_user_id: user.id, p_cost: creditCost });
+        await supabaseClient.rpc('refund_generation_credits', { p_user_id: authResult.userId, p_cost: creditCost });
       }
       throw genErr;
     }
 
     // Log credit deduction
     if (creditCost > 0) {
-      const { data: wallet } = await supabaseClient.from('wallets').select('id').eq('user_id', user.id).maybeSingle();
+      const { data: wallet } = await supabaseClient.from('wallets').select('id').eq('user_id', authResult.userId).maybeSingle();
       if (wallet) {
         await supabaseClient.from('wallet_transactions').insert({
           wallet_id: wallet.id,

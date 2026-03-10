@@ -46,9 +46,9 @@ export function ConfirmDialog({
 
   return (
     <Modal transparent visible={visible} onRequestClose={onClose} animationType="none">
-      <Pressable style={styles.overlay} onPress={onClose}>
-        <Animated.View entering={ZoomIn.springify().damping(20)} style={styles.dialog}>
-          <Pressable onPress={(e) => e.stopPropagation()}>
+      <Pressable style={styles.overlay} onPress={onClose} accessibilityRole="button" accessibilityLabel="Close dialog">
+        <Animated.View entering={ZoomIn.springify().damping(20)} style={styles.dialog} accessibilityRole="alert">
+          <Pressable onPress={(e) => e.stopPropagation()} accessibilityRole="none">
           {icon && (
             <View style={[styles.iconContainer, destructive && styles.iconDestructive]}>
               <Ionicons

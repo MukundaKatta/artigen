@@ -1,12 +1,11 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import * as restyleService from '@/services/restyle.service';
+import { useJobPolling } from '@/hooks/useJobPolling';
 
 export function useRestyle(userId?: string) {
   const [presets, setPresets] = useState<any[]>([]);
   const [selectedPreset, setSelectedPreset] = useState<any>(null);
-  const [job, setJob] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
-  const pollRef = useRef<ReturnType<typeof setInterval>>();
+  const { job, loading, setLoading, startPolling } = useJobPolling(restyleService.getRestyleJob);
 
   const fetchPresets = useCallback(async (category?: string) => {
     const { data } = await restyleService.getStylePresets(category);
@@ -26,25 +25,12 @@ export function useRestyle(userId?: string) {
       customStylePrompt: customPrompt,
     });
     if (data) {
-      setJob(data);
-      if (pollRef.current) clearInterval(pollRef.current);
-      pollRef.current = setInterval(async () => {
-        const { data: updated } = await restyleService.getRestyleJob(data.id);
-        if (updated) {
-          setJob(updated);
-          if (updated.status === 'completed' || updated.status === 'failed') {
-            clearInterval(pollRef.current);
-            setLoading(false);
-          }
-        }
-      }, 3000);
+      startPolling(data);
     } else {
       setLoading(false);
     }
     return { data, error };
-  }, [userId, selectedPreset]);
-
-  useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current); }, []);
+  }, [userId, selectedPreset, setLoading, startPolling]);
 
   return { presets, selectedPreset, setSelectedPreset, job, loading, startRestyle, fetchPresets };
 }

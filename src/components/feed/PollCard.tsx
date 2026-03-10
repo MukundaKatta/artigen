@@ -23,7 +23,7 @@ type Props = {
   onVote: (optionId: string) => void;
 };
 
-const PURPLE = '#8B5CF6';
+const PURPLE = colors.accent;
 const PURPLE_BG = 'rgba(139, 92, 246, 0.10)';
 const PURPLE_BAR = 'rgba(139, 92, 246, 0.25)';
 const PURPLE_BAR_SELECTED = 'rgba(139, 92, 246, 0.45)';
@@ -51,7 +51,7 @@ function AnimatedBar({ percentage, isSelected, hasVoted }: {
   return <Animated.View style={[styles.bar, animatedStyle]} />;
 }
 
-export function PollCard({ question, options, userVoteOptionId, endsAt, onVote }: Props) {
+export const PollCard = React.memo(function PollCard({ question, options, userVoteOptionId, endsAt, onVote }: Props) {
   const hasVoted = !!userVoteOptionId;
   const totalVotes = options.reduce((sum, o) => sum + o.vote_count, 0);
 
@@ -133,7 +133,7 @@ export function PollCard({ question, options, userVoteOptionId, endsAt, onVote }
       </View>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {

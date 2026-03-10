@@ -18,16 +18,18 @@ export default function CloseFriendsRoute() {
   useEffect(() => {
     if (!user?.id) return;
     // Load followers as candidates
-    supabase
-      .from('follows')
-      .select('follower_id, follower:profiles!follower_id(id, username, full_name, avatar_url)')
-      .eq('following_id', user.id)
-      .eq('status', 'accepted')
-      .then(({ data }) => {
+    Promise.resolve(
+      supabase
+        .from('follows')
+        .select('follower_id, follower:profiles!follower_id(id, username, full_name, avatar_url)')
+        .eq('following_id', user.id)
+        .eq('status', 'accepted')
+    ).then(({ data }) => {
         if (data) {
           setFollowers(data.map((d: any) => d.follower as Profile));
         }
-      });
+      })
+      .catch((err: unknown) => console.warn('Failed to load followers:', err));
   }, [user?.id]);
 
   const filteredFollowers = searchQuery

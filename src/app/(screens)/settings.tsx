@@ -119,7 +119,7 @@ export default function SettingsRoute() {
       <SectionCard>
         <SettingRow
           icon="color-palette-outline"
-          iconColor="#8B5CF6"
+          iconColor={colors.accent}
           label="Theme"
           value={themeLabels[themePreference]}
           onPress={() => setShowTheme(true)}
@@ -158,7 +158,7 @@ export default function SettingsRoute() {
         />
         <SettingRow
           icon="sparkles-outline"
-          iconColor="#8B5CF6"
+          iconColor={colors.accent}
           label="AI Credits"
           onPress={() => router.push('/(screens)/buy-credits')}
         />
@@ -175,7 +175,7 @@ export default function SettingsRoute() {
         />
         <SettingRow
           icon="flask-outline"
-          iconColor="#8B5CF6"
+          iconColor={colors.accent}
           label="Future Labs"
           onPress={() => router.push('/(screens)/future-labs')}
         />

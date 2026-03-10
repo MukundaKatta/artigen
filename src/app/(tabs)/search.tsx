@@ -90,23 +90,23 @@ export default function SearchRoute() {
     searchBarScale.value = withTiming(1, { duration: 150, easing: Easing.out(Easing.ease) });
   }, [searchBarScale]);
 
-  function handlePostPress(postId: string) {
+  const handlePostPress = useCallback((postId: string) => {
     if (Platform.OS !== 'web') Haptics.selectionAsync();
     router.push(`/(screens)/post/${postId}`);
-  }
+  }, [router]);
 
-  function handleUserPress(userId: string) {
+  const handleUserPress = useCallback((userId: string) => {
     if (Platform.OS !== 'web') Haptics.selectionAsync();
     router.push(`/(screens)/user/${userId}`);
-  }
+  }, [router]);
 
-  function handleHashtagPress(name: string) {
+  const handleHashtagPress = useCallback((name: string) => {
     if (Platform.OS !== 'web') Haptics.selectionAsync();
     router.push(`/(screens)/hashtag/${name}`);
-  }
+  }, [router]);
 
   // Explore grid item
-  function renderExploreItem({ item }: { item: PostWithUser }) {
+  const renderExploreItem = useCallback(({ item }: { item: PostWithUser }) => {
     const firstMedia = item.media?.[0];
     const isVideo = item.post_type === 'video' || item.post_type === 'reel';
     const isCarousel = (item.media?.length || 0) > 1;
@@ -142,10 +142,10 @@ export default function SearchRoute() {
         </View>
       </AnimatedPressable>
     );
-  }
+  }, [handlePostPress]);
 
   // Search result renderers
-  function renderUserItem({ item }: { item: (typeof searchResultUsers)[0] }) {
+  const renderUserItem = useCallback(({ item }: { item: (typeof searchResultUsers)[0] }) => {
     return (
       <AnimatedPressable
         style={styles.userRow}
@@ -164,9 +164,9 @@ export default function SearchRoute() {
         </View>
       </AnimatedPressable>
     );
-  }
+  }, [handleUserPress]);
 
-  function renderHashtagItem({ item }: { item: { id: string; name: string; post_count: number } }) {
+  const renderHashtagItem = useCallback(({ item }: { item: { id: string; name: string; post_count: number } }) => {
     return (
       <AnimatedPressable
         style={styles.userRow}
@@ -182,9 +182,9 @@ export default function SearchRoute() {
         </View>
       </AnimatedPressable>
     );
-  }
+  }, [handleHashtagPress]);
 
-  function renderSearchPostItem({ item }: { item: PostWithUser }) {
+  const renderSearchPostItem = useCallback(({ item }: { item: PostWithUser }) => {
     const firstMedia = item.media?.[0];
     const isAi = !!(item as any).ai_metadata;
     return (
@@ -213,9 +213,9 @@ export default function SearchRoute() {
         </View>
       </AnimatedPressable>
     );
-  }
+  }, [handlePostPress]);
 
-  function renderPromptItem({ item }: { item: PostWithUser }) {
+  const renderPromptItem = useCallback(({ item }: { item: PostWithUser }) => {
     const firstMedia = item.media?.[0];
     const aiMeta = (item as any).ai_metadata;
     return (
@@ -231,7 +231,7 @@ export default function SearchRoute() {
         />
         <View style={styles.userInfo}>
           <View style={styles.usernameRow}>
-            <Ionicons name="sparkles" size={12} color="#8B5CF6" />
+            <Ionicons name="sparkles" size={12} color={colors.accent} />
             <Text style={[styles.username, { marginLeft: 4 }]}>
               {aiMeta?.model_name || 'AI'}
             </Text>
@@ -242,7 +242,7 @@ export default function SearchRoute() {
         </View>
       </AnimatedPressable>
     );
-  }
+  }, [handlePostPress]);
 
   function getEmptyMessage() {
     switch (activeTab) {
@@ -347,7 +347,7 @@ export default function SearchRoute() {
                 <Ionicons
                   name="sparkles"
                   size={14}
-                  color={aiOnly ? '#fff' : '#8B5CF6'}
+                  color={aiOnly ? '#fff' : colors.accent}
                 />
                 <Text style={[styles.filterChipText, aiOnly && styles.filterChipTextActive]}>
                   AI Only
@@ -447,13 +447,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   filterChipActive: {
-    backgroundColor: '#8B5CF6',
-    borderColor: '#8B5CF6',
+    backgroundColor: colors.accent,
+    borderColor: colors.accent,
   },
   filterChipText: {
     fontSize: fontSize.sm,
     fontFamily: typography.medium,
-    color: '#8B5CF6',
+    color: colors.accent,
   },
   filterChipTextActive: {
     color: '#fff',
@@ -525,7 +525,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.backgroundSecondary,
   },
   aiBadgeSmall: {
-    backgroundColor: '#8B5CF6',
+    backgroundColor: colors.accent,
     borderRadius: 4,
     padding: 2,
     marginLeft: 4,

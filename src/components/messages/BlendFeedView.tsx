@@ -20,6 +20,10 @@ export function BlendFeedView({ posts, onPostPress, loading }: Props) {
       numColumns={COLS}
       keyExtractor={(item, i) => item.post_id || String(i)}
       contentContainerStyle={styles.grid}
+      removeClippedSubviews={true}
+      maxToRenderPerBatch={10}
+      windowSize={5}
+      initialNumToRender={10}
       renderItem={({ item }) => (
         <TouchableOpacity onPress={() => onPostPress(item.post_id)}>
           <Image source={{ uri: item.media_url }} style={styles.image} />

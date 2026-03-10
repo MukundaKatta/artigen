@@ -33,6 +33,7 @@ import { getSharedPost } from '@/services/message.service';
 import { sendVoiceMessage } from '@/services/voice.service';
 import { supabase } from '@/lib/supabase';
 import { colors, spacing, fontSize, borderRadius, typography, shadows } from '@/lib/theme';
+import { sortMediaByOrder } from '@/utils/media';
 import type { MessageWithSender } from '@/types';
 
 function TypingIndicator() {
@@ -75,7 +76,7 @@ function SharedPostBubble({ postId, isMine }: { postId: string; isMine: boolean 
 
   if (!post) return <Text style={styles.sharedPostLoading}>Loading post...</Text>;
 
-  const media = (post.media || []).sort((a: any, b: any) => a.sort_order - b.sort_order);
+  const media = sortMediaByOrder(post.media);
   const firstMedia = media[0];
 
   return (
