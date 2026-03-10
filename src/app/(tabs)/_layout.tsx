@@ -7,6 +7,7 @@ import * as Haptics from 'expo-haptics';
 import Animated, { useAnimatedStyle, withSpring, useSharedValue, withTiming } from 'react-native-reanimated';
 import { colors, shadows, typography } from '@/lib/theme';
 import { LogoText } from '@/components/ui/LogoText';
+import { FeatureErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { DesktopLayout } from '@/components/layout/DesktopLayout';
 import { useResponsive } from '@/hooks/useResponsive';
 
@@ -72,13 +73,16 @@ export default function TabLayout() {
   // Desktop/tablet: use sidebar navigation instead of bottom tabs
   if (Platform.OS === 'web' && !isMobile) {
     return (
-      <DesktopLayout>
-        <Slot />
-      </DesktopLayout>
+      <FeatureErrorBoundary fallbackTitle="Something went wrong">
+        <DesktopLayout>
+          <Slot />
+        </DesktopLayout>
+      </FeatureErrorBoundary>
     );
   }
 
   return (
+    <FeatureErrorBoundary fallbackTitle="Something went wrong">
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: colors.text,
@@ -159,5 +163,6 @@ export default function TabLayout() {
         }}
       />
     </Tabs>
+    </FeatureErrorBoundary>
   );
 }

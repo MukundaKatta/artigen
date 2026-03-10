@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { FEED_PAGE_SIZE } from '@/lib/constants';
 import {
   getFeed,
@@ -13,6 +13,10 @@ import { recordEngagement } from '@/services/taste-profile.service';
 import type { FeedPost, ReactionType } from '@/types';
 
 export function useFeed(userId: string | undefined) {
+  // Guards to prevent concurrent requests on the same post
+  const pendingLikes = useRef(new Set<string>());
+  const pendingSaves = useRef(new Set<string>());
+  const pendingReactions = useRef(new Set<string>());
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -69,11 +73,13 @@ export function useFeed(userId: string | undefined) {
 
   const toggleLike = useCallback(
     async (postId: string) => {
-      if (!userId) return;
+      if (!userId || pendingLikes.current.has(postId)) return;
 
       const post = posts.find((p) => p.id === postId);
       if (!post) return;
       const wasLiked = post.isLiked;
+
+      pendingLikes.current.add(postId);
 
       // Optimistic update
       setPosts((prev) =>
@@ -91,6 +97,8 @@ export function useFeed(userId: string | undefined) {
         ? await unlikePost(userId, postId)
         : await likePost(userId, postId);
 
+      pendingLikes.current.delete(postId);
+
       if (error) {
         // Revert
         setPosts((prev) =>
@@ -104,7 +112,6 @@ export function useFeed(userId: string | undefined) {
           })
         );
       } else if (!wasLiked) {
-        // Fire-and-forget engagement tracking for new likes
         recordEngagement(userId, postId, 'like', post.ai_metadata?.style_tags || []).catch(() => {});
       }
     },
@@ -113,11 +120,13 @@ export function useFeed(userId: string | undefined) {
 
   const toggleSave = useCallback(
     async (postId: string) => {
-      if (!userId) return;
+      if (!userId || pendingSaves.current.has(postId)) return;
 
       const post = posts.find((p) => p.id === postId);
       if (!post) return;
       const wasSaved = post.isSaved;
+
+      pendingSaves.current.add(postId);
 
       // Optimistic update
       setPosts((prev) =>
@@ -131,6 +140,8 @@ export function useFeed(userId: string | undefined) {
         ? await unsavePost(userId, postId)
         : await savePost(userId, postId);
 
+      pendingSaves.current.delete(postId);
+
       if (error) {
         setPosts((prev) =>
           prev.map((p) => {
@@ -139,7 +150,6 @@ export function useFeed(userId: string | undefined) {
           })
         );
       } else if (!wasSaved) {
-        // Fire-and-forget engagement tracking for new saves
         recordEngagement(userId, postId, 'save', post.ai_metadata?.style_tags || []).catch(() => {});
       }
     },
@@ -148,13 +158,15 @@ export function useFeed(userId: string | undefined) {
 
   const toggleReaction = useCallback(
     async (postId: string, reactionType: ReactionType) => {
-      if (!userId) return;
+      if (!userId || pendingReactions.current.has(postId)) return;
 
       const post = posts.find((p) => p.id === postId);
       if (!post) return;
 
       const hadReaction = post.userReaction;
       const isSameReaction = hadReaction === reactionType;
+
+      pendingReactions.current.add(postId);
 
       // Optimistic update
       setPosts((prev) =>
@@ -176,6 +188,8 @@ export function useFeed(userId: string | undefined) {
       const { error } = isSameReaction
         ? await removeReaction(userId, postId)
         : await setReaction(userId, postId, reactionType);
+
+      pendingReactions.current.delete(postId);
 
       if (error) {
         // Revert optimistic update

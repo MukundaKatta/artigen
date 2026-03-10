@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { checkIsFollowing, followUser, unfollowUser } from '@/services/follow.service';
 
 export function useFollow(currentUserId: string | undefined, targetUserId: string) {
   const [isFollowing, setIsFollowing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const pending = useRef(false);
 
   useEffect(() => {
     if (!currentUserId || currentUserId === targetUserId) {
@@ -18,7 +19,9 @@ export function useFollow(currentUserId: string | undefined, targetUserId: strin
   }, [currentUserId, targetUserId]);
 
   const toggleFollow = useCallback(async () => {
-    if (!currentUserId) return;
+    if (!currentUserId || pending.current) return;
+
+    pending.current = true;
 
     // Optimistic update
     const wasFollowing = isFollowing;
@@ -27,6 +30,8 @@ export function useFollow(currentUserId: string | undefined, targetUserId: strin
     const { error } = wasFollowing
       ? await unfollowUser(currentUserId, targetUserId)
       : await followUser(currentUserId, targetUserId);
+
+    pending.current = false;
 
     // Revert on error
     if (error) {

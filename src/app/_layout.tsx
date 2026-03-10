@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Platform, View, Text } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as SplashScreen from 'expo-splash-screen';
 import { AuthProvider, useAuth } from '@/providers/AuthProvider';
 import { ThemeProvider } from '@/providers/ThemeProvider';
+import { ToastContainer } from '@/components/ui/Toast';
 import { useActivityStatus } from '@/hooks/useActivityStatus';
 import { useWebNotifications } from '@/hooks/useWebNotifications';
 
@@ -117,6 +118,7 @@ export default function RootLayout() {
         <ThemeProvider>
           <AuthProvider>
             <AppContent />
+            <ToastContainer />
           </AuthProvider>
         </ThemeProvider>
       </GestureHandlerRootView>

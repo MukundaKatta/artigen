@@ -225,9 +225,11 @@ export const PostCard = React.memo(function PostCard({
           {sortedMedia.length === 1 ? (
             <Image
               source={{ uri: sortedMedia[0]?.media_url }}
+              placeholder={sortedMedia[0]?.blurhash ? { blurhash: sortedMedia[0].blurhash } : undefined}
               style={styles.postImage}
               contentFit="cover"
-              transition={200}
+              transition={300}
+              recyclingKey={sortedMedia[0]?.id}
             />
           ) : (
             <FlatList
@@ -245,9 +247,11 @@ export const PostCard = React.memo(function PostCard({
               renderItem={({ item }: { item: PostMedia }) => (
                 <Image
                   source={{ uri: item.media_url }}
+                  placeholder={item.blurhash ? { blurhash: item.blurhash } : undefined}
                   style={styles.postImage}
                   contentFit="cover"
-                  transition={200}
+                  transition={300}
+                  recyclingKey={item.id}
                 />
               )}
             />
