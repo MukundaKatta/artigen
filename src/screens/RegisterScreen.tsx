@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  View,
   Text,
   StyleSheet,
   KeyboardAvoidingView,
@@ -10,6 +9,13 @@ import {
 import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withDelay,
+  withTiming,
+  Easing,
+} from 'react-native-reanimated';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { showAlert } from '@/utils/alert';
@@ -18,10 +24,29 @@ import { registerSchema, RegisterFormData } from '@/utils/validation';
 import { colors, fontSize, spacing, typography } from '@/lib/theme';
 import { LogoText } from '@/components/ui/LogoText';
 
+function useFadeIn(delay: number) {
+  const opacity = useSharedValue(0);
+  const translateY = useSharedValue(20);
+
+  useEffect(() => {
+    opacity.value = withDelay(delay, withTiming(1, { duration: 600, easing: Easing.out(Easing.ease) }));
+    translateY.value = withDelay(delay, withTiming(0, { duration: 600, easing: Easing.out(Easing.ease) }));
+  }, [delay, opacity, translateY]);
+
+  return useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ translateY: translateY.value }],
+  }));
+}
+
 export function RegisterScreen() {
   const { signUp } = useAuth();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+
+  const logoStyle = useFadeIn(0);
+  const formStyle = useFadeIn(200);
+  const footerStyle = useFadeIn(400);
 
   const {
     control,
@@ -54,14 +79,16 @@ export function RegisterScreen() {
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.logoContainer}>
+        <Animated.View style={[styles.logoContainer, logoStyle]}>
           <LogoText size="lg" />
-        </View>
-        <Text style={styles.subtitle}>
-          Sign up to see photos and videos from your friends.
-        </Text>
+        </Animated.View>
+        <Animated.View style={logoStyle}>
+          <Text style={styles.subtitle}>
+            Create, share, and discover AI-generated art.
+          </Text>
+        </Animated.View>
 
-        <View style={styles.form}>
+        <Animated.View style={[styles.form, formStyle]}>
           <Controller
             control={control}
             name="email"
@@ -131,9 +158,9 @@ export function RegisterScreen() {
             size="lg"
             style={styles.signupButton}
           />
-        </View>
+        </Animated.View>
 
-        <View style={styles.loginRow}>
+        <Animated.View style={[styles.loginRow, footerStyle]}>
           <Text style={styles.loginText}>Already have an account? </Text>
           <Button
             title="Log In"
@@ -141,7 +168,7 @@ export function RegisterScreen() {
             onPress={() => router.back()}
             size="sm"
           />
-        </View>
+        </Animated.View>
       </ScrollView>
     </KeyboardAvoidingView>
   );

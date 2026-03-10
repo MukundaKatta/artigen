@@ -160,6 +160,9 @@ export default function HomeRoute() {
       ListFooterComponent={loadingMore ? <LoadingDots /> : null}
       ListEmptyComponent={
         <View style={styles.empty}>
+          <View style={styles.emptyIconCircle}>
+            <Ionicons name="sparkles" size={32} color={colors.primary} />
+          </View>
           <Text style={styles.emptyTitle}>Welcome to Artigen</Text>
           <Text style={styles.emptyText}>
             Follow creators to see their AI art here, or tap + to create your own.
@@ -202,6 +205,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingTop: 100,
     paddingHorizontal: spacing.xxxl,
+  },
+  emptyIconCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: 'rgba(0, 149, 246, 0.08)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.lg,
   },
   emptyTitle: {
     fontSize: fontSize.xl,

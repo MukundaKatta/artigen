@@ -268,9 +268,12 @@ export const PostCard = React.memo(function PostCard({
       {sortedMedia.length > 1 && (
         <View style={styles.dotsContainer}>
           {sortedMedia.map((_, i) => (
-            <View
+            <Animated.View
               key={i}
-              style={[styles.dot, i === activeIndex && styles.activeDot]}
+              style={[
+                styles.dot,
+                i === activeIndex && styles.activeDot,
+              ]}
             />
           ))}
         </View>
@@ -289,6 +292,9 @@ export const PostCard = React.memo(function PostCard({
             onLongPress={handleLongPressLike}
             hitSlop={8}
             style={styles.actionButton}
+            accessibilityRole="button"
+            accessibilityLabel={post.isLiked ? 'Unlike' : 'Like'}
+            accessibilityState={{ selected: post.isLiked }}
           >
             <Animated.View style={likeButtonStyle}>
               <Ionicons
@@ -302,6 +308,8 @@ export const PostCard = React.memo(function PostCard({
             onPress={() => onComment(post.id)}
             hitSlop={8}
             style={styles.actionButton}
+            accessibilityRole="button"
+            accessibilityLabel={`${post.comments_count} comments`}
           >
             <Ionicons
               name="chatbubble-outline"
@@ -333,15 +341,22 @@ export const PostCard = React.memo(function PostCard({
           {post.has_provenance && (
             <ProvenanceBadge onPress={() => router.push(`/(screens)/provenance/${post.id}`)} />
           )}
-          <TouchableOpacity onPress={handleSave} onLongPress={handleLongPressSave} hitSlop={8}>
-          <Animated.View style={saveButtonStyle}>
-            <Ionicons
-              name={post.isSaved ? 'bookmark' : 'bookmark-outline'}
-              size={24}
-              color={colors.text}
-            />
-          </Animated.View>
-        </TouchableOpacity>
+          <TouchableOpacity
+            onPress={handleSave}
+            onLongPress={handleLongPressSave}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={post.isSaved ? 'Unsave' : 'Save'}
+            accessibilityState={{ selected: post.isSaved }}
+          >
+            <Animated.View style={saveButtonStyle}>
+              <Ionicons
+                name={post.isSaved ? 'bookmark' : 'bookmark-outline'}
+                size={24}
+                color={colors.text}
+              />
+            </Animated.View>
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -581,13 +596,13 @@ const styles = StyleSheet.create({
     height: 6,
     borderRadius: 3,
     backgroundColor: colors.border,
-    marginHorizontal: 2,
+    marginHorizontal: 3,
   },
   activeDot: {
     backgroundColor: colors.primary,
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
   actions: {
     flexDirection: 'row',

@@ -5,15 +5,18 @@ import {
   StyleSheet,
   TouchableOpacity,
   Pressable,
-  ActivityIndicator,
   Dimensions,
   TextInput,
   Keyboard,
+  Platform,
 } from 'react-native';
 import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { Avatar } from '@/components/ui/Avatar';
 import { getUserStories } from '@/services/story.service';
 import { sendStoryReply } from '@/services/message.service';
@@ -78,6 +81,7 @@ export default function StoryViewerRoute() {
 
   function handleTapRight() {
     if (isInputFocused) return;
+    if (Platform.OS !== 'web') Haptics.selectionAsync();
     if (hasNext) {
       next();
     } else {
@@ -87,6 +91,7 @@ export default function StoryViewerRoute() {
 
   async function handleSendReply() {
     if (!replyText.trim() || !user?.id || !userId || sendingReply) return;
+    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setSendingReply(true);
     await sendStoryReply(user.id, userId, replyText.trim());
     setReplyText('');
@@ -109,7 +114,11 @@ export default function StoryViewerRoute() {
     return (
       <View style={[styles.container, { paddingTop: insets.top }]}>
         <Stack.Screen options={{ headerShown: false }} />
-        <ActivityIndicator color={colors.textLight} style={styles.loader} />
+        <View style={styles.loader}>
+          <Animated.View entering={FadeIn.duration(300)}>
+            <Ionicons name="albums-outline" size={40} color="rgba(255,255,255,0.3)" />
+          </Animated.View>
+        </View>
       </View>
     );
   }
@@ -138,8 +147,15 @@ export default function StoryViewerRoute() {
         transition={200}
       />
 
+      {/* Top gradient overlay */}
+      <LinearGradient
+        colors={['rgba(0,0,0,0.6)', 'transparent']}
+        style={styles.topOverlayGradient}
+        pointerEvents="none"
+      />
+
       {/* Overlay */}
-      <View style={[styles.overlay, { paddingTop: insets.top + spacing.sm }]}>
+      <Animated.View entering={FadeInDown.duration(350)} style={[styles.overlay, { paddingTop: insets.top + spacing.sm }]}>
         {/* Progress bars */}
         <View style={styles.progressContainer}>
           {stories.map((_, i) => (
@@ -168,11 +184,11 @@ export default function StoryViewerRoute() {
             <Text style={styles.username}>{currentStory.user.username}</Text>
             <Text style={styles.timestamp}>{timeAgo(currentStory.created_at)}</Text>
           </View>
-          <TouchableOpacity onPress={handleClose} hitSlop={12}>
+          <TouchableOpacity onPress={handleClose} hitSlop={12} accessibilityRole="button" accessibilityLabel="Close story">
             <Ionicons name="close" size={28} color={colors.textLight} />
           </TouchableOpacity>
         </View>
-      </View>
+      </Animated.View>
 
       {/* Story Stickers */}
       {stickers.length > 0 && (
@@ -201,9 +217,18 @@ export default function StoryViewerRoute() {
         />
       </View>
 
+      {/* Bottom gradient for reply bar */}
+      {!isOwnStory && (
+        <LinearGradient
+          colors={['transparent', 'rgba(0,0,0,0.6)']}
+          style={styles.bottomReplyGradient}
+          pointerEvents="none"
+        />
+      )}
+
       {/* Story reply input (only for other users' stories) */}
       {!isOwnStory && (
-        <View style={[styles.replyBar, { paddingBottom: Math.max(insets.bottom, spacing.sm) }]}>
+        <Animated.View entering={FadeInDown.delay(200).duration(300)} style={[styles.replyBar, { paddingBottom: Math.max(insets.bottom, spacing.sm) }]}>
           <TextInput
             ref={inputRef}
             style={styles.replyInput}
@@ -215,13 +240,21 @@ export default function StoryViewerRoute() {
             onBlur={handleInputBlur}
             returnKeyType="send"
             onSubmitEditing={handleSendReply}
+            accessibilityLabel={`Reply to ${currentStory.user.username}`}
           />
           {replyText.trim() ? (
-            <TouchableOpacity onPress={handleSendReply} disabled={sendingReply} hitSlop={8}>
-              <Ionicons name="send" size={24} color="#fff" />
+            <TouchableOpacity
+              onPress={handleSendReply}
+              disabled={sendingReply}
+              hitSlop={8}
+              style={styles.replySendButton}
+              accessibilityRole="button"
+              accessibilityLabel="Send reply"
+            >
+              <Ionicons name="send" size={18} color="#fff" />
             </TouchableOpacity>
           ) : null}
-        </View>
+        </Animated.View>
       )}
     </View>
   );
@@ -252,15 +285,15 @@ const styles = StyleSheet.create({
   },
   progressTrack: {
     flex: 1,
-    height: 2,
-    backgroundColor: 'rgba(255,255,255,0.3)',
-    borderRadius: 1,
+    height: 2.5,
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    borderRadius: 2,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
     backgroundColor: colors.textLight,
-    borderRadius: 1,
+    borderRadius: 2,
   },
   header: {
     flexDirection: 'row',
@@ -297,8 +330,18 @@ const styles = StyleSheet.create({
   tapRight: {
     flex: 2,
   },
+  topOverlayGradient: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 150,
+    zIndex: 9,
+  },
   loader: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   emptyText: {
     color: colors.textLight,
@@ -325,11 +368,28 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 40,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.4)',
+    borderColor: 'rgba(255,255,255,0.3)',
     borderRadius: borderRadius.xl,
     paddingHorizontal: spacing.md,
     fontSize: fontSize.md,
     color: '#fff',
     marginRight: spacing.sm,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+  },
+  replySendButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(0, 149, 246, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  bottomReplyGradient: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 120,
+    zIndex: 15,
   },
 });

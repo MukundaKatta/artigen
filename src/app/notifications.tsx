@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  FlatList,
+  SectionList,
   TouchableOpacity,
+  Platform,
 } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import Animated, { FadeInRight } from 'react-native-reanimated';
 import { useAuth } from '@/providers/AuthProvider';
 import { useNotifications } from '@/hooks/useNotifications';
@@ -16,6 +18,27 @@ import { UserRowSkeleton } from '@/components/ui/Skeleton';
 import { timeAgo } from '@/utils/format-date';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
 import type { NotificationWithSender } from '@/types';
+
+function getNotificationIcon(type: string): { name: string; color: string } {
+  switch (type) {
+    case 'like':
+    case 'comment_like':
+      return { name: 'heart', color: colors.like };
+    case 'comment':
+    case 'mention':
+      return { name: 'chatbubble', color: colors.primary };
+    case 'follow':
+    case 'follow_request':
+      return { name: 'person-add', color: '#8B5CF6' };
+    case 'story_reply':
+      return { name: 'albums', color: '#F59E0B' };
+    case 'collab_invite':
+    case 'collab_accepted':
+      return { name: 'people', color: '#10B981' };
+    default:
+      return { name: 'notifications', color: colors.textSecondary };
+  }
+}
 
 function getNotificationText(n: NotificationWithSender): string {
   switch (n.notification_type) {
@@ -42,6 +65,30 @@ function getNotificationText(n: NotificationWithSender): string {
   }
 }
 
+function groupNotifications(notifications: NotificationWithSender[]) {
+  const now = Date.now();
+  const dayMs = 86400000;
+  const weekMs = dayMs * 7;
+
+  const today: NotificationWithSender[] = [];
+  const thisWeek: NotificationWithSender[] = [];
+  const earlier: NotificationWithSender[] = [];
+
+  for (const n of notifications) {
+    const age = now - new Date(n.created_at).getTime();
+    if (age < dayMs) today.push(n);
+    else if (age < weekMs) thisWeek.push(n);
+    else earlier.push(n);
+  }
+
+  const sections = [];
+  if (today.length > 0) sections.push({ title: 'Today', data: today });
+  if (thisWeek.length > 0) sections.push({ title: 'This Week', data: thisWeek });
+  if (earlier.length > 0) sections.push({ title: 'Earlier', data: earlier });
+
+  return sections;
+}
+
 export default function NotificationsRoute() {
   const router = useRouter();
   const { user } = useAuth();
@@ -56,7 +103,10 @@ export default function NotificationsRoute() {
     markAll,
   } = useNotifications(user?.id);
 
+  const sections = useMemo(() => groupNotifications(notifications), [notifications]);
+
   function handlePress(n: NotificationWithSender) {
+    if (Platform.OS !== 'web') Haptics.selectionAsync();
     if (!n.is_read) markRead(n.id);
 
     if (n.notification_type === 'collab_invite') {
@@ -73,13 +123,23 @@ export default function NotificationsRoute() {
   }
 
   function renderItem({ item, index }: { item: NotificationWithSender; index: number }) {
+    const icon = getNotificationIcon(item.notification_type);
+
     return (
       <Animated.View entering={FadeInRight.delay(Math.min(index, 9) * 30).duration(250)}>
         <TouchableOpacity
           style={[styles.row, !item.is_read && styles.unreadRow]}
           onPress={() => handlePress(item)}
+          activeOpacity={0.6}
+          accessibilityRole="button"
+          accessibilityLabel={`${item.sender?.username} ${getNotificationText(item)}`}
         >
-          <Avatar uri={item.sender?.avatar_url} size="md" />
+          <View style={styles.avatarContainer}>
+            <Avatar uri={item.sender?.avatar_url} size="md" />
+            <View style={[styles.notifIconBadge, { backgroundColor: icon.color }]}>
+              <Ionicons name={icon.name as any} size={10} color="#fff" />
+            </View>
+          </View>
           <View style={styles.content}>
             <Text style={styles.text}>
               <Text style={styles.username}>{item.sender?.username}</Text>
@@ -88,8 +148,17 @@ export default function NotificationsRoute() {
             </Text>
             <Text style={styles.time}>{timeAgo(item.created_at)}</Text>
           </View>
+          {!item.is_read && <View style={styles.unreadDot} />}
         </TouchableOpacity>
       </Animated.View>
+    );
+  }
+
+  function renderSectionHeader({ section }: { section: { title: string } }) {
+    return (
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionHeaderText}>{section.title}</Text>
+      </View>
     );
   }
 
@@ -102,7 +171,7 @@ export default function NotificationsRoute() {
           headerTitleStyle: { fontFamily: typography.semiBold },
           headerRight: () =>
             notifications.some((n) => !n.is_read) ? (
-              <TouchableOpacity onPress={markAll} hitSlop={8}>
+              <TouchableOpacity onPress={markAll} hitSlop={8} accessibilityRole="button" accessibilityLabel="Mark all as read">
                 <Text style={styles.markAll}>Mark all read</Text>
               </TouchableOpacity>
             ) : null,
@@ -111,32 +180,35 @@ export default function NotificationsRoute() {
 
       {loading ? (
         <View style={{ paddingTop: spacing.sm }}>
-          {[...Array(5)].map((_, i) => <UserRowSkeleton key={i} />)}
+          {[...Array(6)].map((_, i) => <UserRowSkeleton key={i} />)}
+        </View>
+      ) : notifications.length === 0 ? (
+        <View style={styles.empty}>
+          <View style={styles.emptyIconCircle}>
+            <Ionicons name="notifications-outline" size={32} color={colors.textSecondary} />
+          </View>
+          <Text style={styles.emptyTitle}>No notifications yet</Text>
+          <Text style={styles.emptyText}>
+            When someone interacts with you, you'll see it here
+          </Text>
         </View>
       ) : (
-        <FlatList
-          data={notifications}
+        <SectionList
+          sections={sections}
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
+          renderSectionHeader={renderSectionHeader}
           refreshing={false}
           onRefresh={refresh}
           onEndReached={loadMore}
           onEndReachedThreshold={0.5}
+          stickySectionHeadersEnabled={false}
           ListFooterComponent={
             loadingMore ? (
               <View style={{ padding: spacing.lg }}>
                 <UserRowSkeleton />
               </View>
             ) : null
-          }
-          ListEmptyComponent={
-            <View style={styles.empty}>
-              <Ionicons name="notifications-outline" size={48} color={colors.border} />
-              <Text style={styles.emptyTitle}>No notifications yet</Text>
-              <Text style={styles.emptyText}>
-                When someone interacts with you, you'll see it here
-              </Text>
-            </View>
           }
         />
       )}
@@ -149,13 +221,42 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  sectionHeader: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.xl,
+    paddingBottom: spacing.sm,
+    backgroundColor: colors.background,
+  },
+  sectionHeaderText: {
+    fontSize: fontSize.lg,
+    fontFamily: typography.bold,
+    fontWeight: '700',
+    color: colors.text,
+  },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: spacing.lg,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
   },
   unreadRow: {
     backgroundColor: colors.notificationUnread,
+  },
+  avatarContainer: {
+    position: 'relative',
+  },
+  notifIconBadge: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: colors.background,
   },
   content: {
     flex: 1,
@@ -177,6 +278,13 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: 2,
   },
+  unreadDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.primary,
+    marginLeft: spacing.sm,
+  },
   markAll: {
     fontSize: fontSize.sm,
     fontFamily: typography.semiBold,
@@ -185,15 +293,23 @@ const styles = StyleSheet.create({
   },
   empty: {
     alignItems: 'center',
-    paddingTop: 100,
+    paddingTop: 120,
     paddingHorizontal: spacing.xxxl,
+  },
+  emptyIconCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: colors.backgroundSecondary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.lg,
   },
   emptyTitle: {
     fontSize: fontSize.xl,
     fontFamily: typography.semiBold,
     fontWeight: '600',
     color: colors.text,
-    marginTop: spacing.lg,
   },
   emptyText: {
     fontSize: fontSize.md,

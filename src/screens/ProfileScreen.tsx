@@ -6,6 +6,8 @@ import { useAuth } from '@/providers/AuthProvider';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import { ProfilePostGrid } from '@/components/profile/ProfilePostGrid';
 import { CollectionGrid } from '@/components/profile/CollectionGrid';
+import { AnimatedTabBar } from '@/components/ui/AnimatedTabBar';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useCollections } from '@/hooks/useCollections';
 import { supabase } from '@/lib/supabase';
@@ -14,6 +16,28 @@ import type { Post, PostMedia } from '@/types/database';
 
 type GridPost = Post & { media: PostMedia[] };
 type Tab = 'posts' | 'saved';
+
+function PostGridSkeleton() {
+  return (
+    <View style={skeletonStyles.grid}>
+      {[...Array(9)].map((_, i) => (
+        <Skeleton key={i} width="32%" height={120} borderRadius={2} style={skeletonStyles.gridItem} />
+      ))}
+    </View>
+  );
+}
+
+const skeletonStyles = StyleSheet.create({
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 2,
+    padding: 1,
+  },
+  gridItem: {
+    flexGrow: 1,
+  },
+});
 
 export function ProfileScreen() {
   const { profile, user } = useAuth();
@@ -48,6 +72,32 @@ export function ProfileScreen() {
     return <LoadingSpinner fullScreen />;
   }
 
+  // Build tabs with icons
+  const tabs = [
+    {
+      key: 'posts',
+      label: 'Posts',
+      icon: (
+        <Ionicons
+          name="grid-outline"
+          size={22}
+          color={activeTab === 'posts' ? colors.text : colors.textSecondary}
+        />
+      ),
+    },
+    {
+      key: 'saved',
+      label: 'Saved',
+      icon: (
+        <Ionicons
+          name="bookmark-outline"
+          size={22}
+          color={activeTab === 'saved' ? colors.text : colors.textSecondary}
+        />
+      ),
+    },
+  ];
+
   return (
     <FlatList
       data={[]}
@@ -66,34 +116,25 @@ export function ProfileScreen() {
             onFollowingPress={() => router.push(`/(screens)/following/${user?.id}`)}
           />
 
-          {/* Tab Bar */}
-          <View style={styles.tabBar}>
-            <TouchableOpacity
-              style={[styles.tab, activeTab === 'posts' && styles.tabActive]}
-              onPress={() => setActiveTab('posts')}
-            >
-              <Ionicons
-                name="grid-outline"
-                size={22}
-                color={activeTab === 'posts' ? colors.text : colors.textSecondary}
-              />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.tab, activeTab === 'saved' && styles.tabActive]}
-              onPress={() => setActiveTab('saved')}
-            >
-              <Ionicons
-                name="bookmark-outline"
-                size={22}
-                color={activeTab === 'saved' ? colors.text : colors.textSecondary}
-              />
-            </TouchableOpacity>
-          </View>
+          {/* Animated Tab Bar */}
+          <AnimatedTabBar
+            tabs={tabs}
+            activeKey={activeTab}
+            onTabPress={(key) => setActiveTab(key as Tab)}
+          />
 
           {/* Content */}
           {activeTab === 'posts' ? (
             loading ? (
-              <LoadingSpinner />
+              <PostGridSkeleton />
+            ) : posts.length === 0 ? (
+              <View style={styles.emptyContainer}>
+                <Ionicons name="camera-outline" size={48} color={colors.border} />
+                <Text style={styles.emptyTitle}>No posts yet</Text>
+                <Text style={styles.emptySubtext}>
+                  Tap the + button to create your first AI artwork
+                </Text>
+              </View>
             ) : (
               <ProfilePostGrid
                 posts={posts}
@@ -101,7 +142,15 @@ export function ProfileScreen() {
               />
             )
           ) : collectionsLoading ? (
-            <LoadingSpinner />
+            <PostGridSkeleton />
+          ) : collections.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Ionicons name="bookmark-outline" size={48} color={colors.border} />
+              <Text style={styles.emptyTitle}>No saved posts</Text>
+              <Text style={styles.emptySubtext}>
+                Save posts you love to find them here
+              </Text>
+            </View>
           ) : (
             <CollectionGrid
               collections={collections}
@@ -109,13 +158,15 @@ export function ProfileScreen() {
             />
           )}
 
-          {/* Insights Link (for own profile) */}
+          {/* Insights Link */}
           <TouchableOpacity
             style={styles.insightsRow}
             onPress={() => router.push('/(screens)/scheduled-posts')}
+            activeOpacity={0.6}
           >
             <Ionicons name="bar-chart-outline" size={18} color={colors.primary} />
             <Text style={styles.insightsText}>Scheduled Posts & Insights</Text>
+            <Ionicons name="chevron-forward" size={16} color={colors.primary} />
           </TouchableOpacity>
         </>
       }
@@ -128,26 +179,30 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  tabBar: {
-    flexDirection: 'row',
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
-  },
-  tab: {
-    flex: 1,
+  emptyContainer: {
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.xxxl * 2,
   },
-  tabActive: {
-    borderBottomWidth: 2,
-    borderBottomColor: colors.text,
+  emptyTitle: {
+    fontSize: fontSize.lg,
+    fontFamily: typography.semiBold,
+    color: colors.text,
+    marginTop: spacing.md,
+  },
+  emptySubtext: {
+    fontSize: fontSize.sm,
+    fontFamily: typography.regular,
+    color: colors.textSecondary,
+    marginTop: spacing.xs,
+    textAlign: 'center',
+    paddingHorizontal: spacing.xxxl,
   },
   insightsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.lg,
     gap: spacing.xs,
   },
   insightsText: {

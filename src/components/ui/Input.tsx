@@ -57,10 +57,12 @@ export const Input = forwardRef<TextInput, Props>(
             autoCapitalize="none"
             onFocus={handleFocus}
             onBlur={handleBlur}
+            accessibilityLabel={label || props.placeholder}
+            accessibilityState={{ disabled: !props.editable }}
             {...props}
           />
         </AnimatedView>
-        {error && <Text style={styles.error}>{error}</Text>}
+        {error && <Text style={styles.error} accessibilityRole="alert">{error}</Text>}
       </View>
     );
   }

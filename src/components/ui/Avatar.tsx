@@ -41,6 +41,7 @@ export function Avatar({
       ]}
       contentFit="cover"
       transition={200}
+      accessibilityLabel="User avatar"
     />
   );
 
@@ -113,7 +114,7 @@ export function Avatar({
 
   if (onPress) {
     return (
-      <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
+      <TouchableOpacity onPress={onPress} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel="View profile">
         {content}
       </TouchableOpacity>
     );

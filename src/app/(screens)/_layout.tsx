@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import { Stack } from 'expo-router';
 import { colors, shadows, typography } from '@/lib/theme';
 
@@ -14,6 +15,10 @@ export default function ScreensLayout() {
         headerTitleStyle: {
           fontFamily: typography.semiBold,
         },
+        ...(Platform.OS !== 'web' ? {
+          animation: 'slide_from_right',
+          animationDuration: 250,
+        } : {}),
       }}
     >
       <Stack.Screen name="edit-profile" options={{ title: 'Edit Profile' }} />

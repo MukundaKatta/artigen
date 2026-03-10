@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -6,16 +6,25 @@ import {
   TextInput,
   FlatList,
   TouchableOpacity,
-  ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  Easing,
+} from 'react-native-reanimated';
 import { Avatar } from '@/components/ui/Avatar';
+import { AnimatedTabBar } from '@/components/ui/AnimatedTabBar';
+import { UserRowSkeleton } from '@/components/ui/Skeleton';
 import { MasonryGrid } from '@/components/explore/MasonryGrid';
 import { VisualSearchButton } from '@/components/search/VisualSearchButton';
 import { TrendingPromptsSection } from '@/components/search/TrendingPromptsSection';
 import { TrendingStyleChips } from '@/components/search/TrendingStyleChips';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useExplore } from '@/hooks/useExplore';
 import { useTrending } from '@/hooks/useTrending';
 import { POST_GRID_SIZE, POST_GRID_GAP } from '@/lib/constants';
@@ -25,8 +34,26 @@ import type { PostWithUser } from '@/types';
 
 type SearchTab = 'users' | 'tags' | 'posts' | 'prompts';
 
+const SEARCH_TABS = [
+  { key: 'users', label: 'Users' },
+  { key: 'tags', label: 'Tags' },
+  { key: 'posts', label: 'Posts' },
+  { key: 'prompts', label: 'Prompts' },
+];
+
+function SearchSkeleton() {
+  return (
+    <View style={{ paddingTop: spacing.md }}>
+      {[...Array(5)].map((_, i) => (
+        <UserRowSkeleton key={i} />
+      ))}
+    </View>
+  );
+}
+
 export default function SearchRoute() {
   const router = useRouter();
+  const inputRef = useRef<TextInput>(null);
   const {
     query,
     isSearching,
@@ -46,6 +73,20 @@ export default function SearchRoute() {
   } = useExplore();
   const { prompts: trendingPrompts, styles: trendingStyles } = useTrending();
   const [activeTab, setActiveTab] = useState<SearchTab>('users');
+
+  // Animated search bar focus
+  const searchBarScale = useSharedValue(1);
+  const searchBarStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: searchBarScale.value }],
+  }));
+
+  const handleFocus = useCallback(() => {
+    searchBarScale.value = withTiming(1.02, { duration: 150, easing: Easing.out(Easing.ease) });
+  }, [searchBarScale]);
+
+  const handleBlur = useCallback(() => {
+    searchBarScale.value = withTiming(1, { duration: 150, easing: Easing.out(Easing.ease) });
+  }, [searchBarScale]);
 
   function handlePostPress(postId: string) {
     router.push(`/(screens)/post/${postId}`);
@@ -74,12 +115,14 @@ export default function SearchRoute() {
         <View style={styles.gridItem}>
           <Image
             source={{ uri: firstMedia?.media_url }}
+            placeholder={firstMedia?.blurhash ? { blurhash: firstMedia.blurhash } : undefined}
             style={styles.gridImage}
             contentFit="cover"
+            transition={200}
           />
           {isAi && (
             <View style={[styles.typeIcon, styles.aiIcon]}>
-              <Ionicons name="sparkles" size={14} color={colors.textLight} />
+              <Ionicons name="sparkles" size={14} color="#fff" />
             </View>
           )}
           {(isCarousel || isVideo) && (
@@ -87,7 +130,7 @@ export default function SearchRoute() {
               <Ionicons
                 name={isVideo ? 'play' : 'copy-outline'}
                 size={16}
-                color={colors.textLight}
+                color="#fff"
               />
             </View>
           )}
@@ -102,6 +145,7 @@ export default function SearchRoute() {
       <TouchableOpacity
         style={styles.userRow}
         onPress={() => handleUserPress(item.id)}
+        activeOpacity={0.6}
       >
         <Avatar uri={item.avatar_url} size="md" />
         <View style={styles.userInfo}>
@@ -122,6 +166,7 @@ export default function SearchRoute() {
       <TouchableOpacity
         style={styles.userRow}
         onPress={() => handleHashtagPress(item.name)}
+        activeOpacity={0.6}
       >
         <View style={styles.hashtagIcon}>
           <Text style={styles.hashSymbol}>#</Text>
@@ -141,6 +186,7 @@ export default function SearchRoute() {
       <TouchableOpacity
         style={styles.userRow}
         onPress={() => handlePostPress(item.id)}
+        activeOpacity={0.6}
       >
         <Image
           source={{ uri: firstMedia?.media_url }}
@@ -171,6 +217,7 @@ export default function SearchRoute() {
       <TouchableOpacity
         style={styles.userRow}
         onPress={() => handlePostPress(item.id)}
+        activeOpacity={0.6}
       >
         <Image
           source={{ uri: firstMedia?.media_url }}
@@ -192,100 +239,81 @@ export default function SearchRoute() {
     );
   }
 
-  const tabs: { key: SearchTab; label: string }[] = [
-    { key: 'users', label: 'Users' },
-    { key: 'tags', label: 'Tags' },
-    { key: 'posts', label: 'Posts' },
-    { key: 'prompts', label: 'Prompts' },
-  ];
+  function getEmptyMessage() {
+    switch (activeTab) {
+      case 'users': return 'No users found';
+      case 'tags': return 'No hashtags found';
+      case 'posts': return 'No posts found';
+      case 'prompts': return 'No AI prompts found';
+    }
+  }
+
+  function getSearchData() {
+    switch (activeTab) {
+      case 'users': return { data: searchResultUsers, render: renderUserItem };
+      case 'tags': return { data: searchResultHashtags, render: renderHashtagItem };
+      case 'posts': return { data: searchResultPosts, render: renderSearchPostItem };
+      case 'prompts': return { data: searchResultPrompts, render: renderPromptItem };
+    }
+  }
 
   return (
     <View style={styles.container}>
       {/* Search Bar */}
-      <View style={styles.searchBar}>
-        <Ionicons name="search" size={18} color={colors.textSecondary} />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search"
-          placeholderTextColor={colors.textSecondary}
-          value={query}
-          onChangeText={search}
-          autoCapitalize="none"
-          autoCorrect={false}
-          returnKeyType="search"
-        />
-        {query.length > 0 && (
-          <TouchableOpacity onPress={clearSearch} hitSlop={8}>
-            <Ionicons name="close-circle" size={18} color={colors.textSecondary} />
-          </TouchableOpacity>
-        )}
-        <VisualSearchButton onPress={() => router.push('/(screens)/visual-search')} />
-      </View>
+      <Animated.View style={searchBarStyle}>
+        <View style={styles.searchBar}>
+          <Ionicons name="search" size={18} color={colors.textSecondary} />
+          <TextInput
+            ref={inputRef}
+            style={styles.searchInput}
+            placeholder="Search users, tags, prompts..."
+            placeholderTextColor={colors.textSecondary}
+            value={query}
+            onChangeText={search}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            autoCapitalize="none"
+            autoCorrect={false}
+            returnKeyType="search"
+          />
+          {query.length > 0 && (
+            <TouchableOpacity onPress={clearSearch} hitSlop={8}>
+              <Ionicons name="close-circle" size={18} color={colors.textSecondary} />
+            </TouchableOpacity>
+          )}
+          <VisualSearchButton onPress={() => router.push('/(screens)/visual-search')} />
+        </View>
+      </Animated.View>
 
       {isSearching ? (
         <>
-          {/* Tabs */}
-          <View style={styles.tabBar}>
-            {tabs.map((tab) => (
-              <TouchableOpacity
-                key={tab.key}
-                style={[styles.tab, activeTab === tab.key && styles.activeTab]}
-                onPress={() => setActiveTab(tab.key)}
-              >
-                <Text
-                  style={[
-                    styles.tabText,
-                    activeTab === tab.key && styles.activeTabText,
-                  ]}
-                >
-                  {tab.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          <AnimatedTabBar
+            tabs={SEARCH_TABS}
+            activeKey={activeTab}
+            onTabPress={(key) => setActiveTab(key as SearchTab)}
+          />
 
           {searching ? (
-            <ActivityIndicator style={styles.loader} color={colors.textSecondary} />
-          ) : activeTab === 'users' ? (
-            <FlatList
-              data={searchResultUsers}
-              keyExtractor={(item) => item.id}
-              renderItem={renderUserItem}
-              ListEmptyComponent={
-                <Text style={styles.emptyText}>No users found</Text>
-              }
-            />
-          ) : activeTab === 'tags' ? (
-            <FlatList
-              data={searchResultHashtags}
-              keyExtractor={(item) => item.id}
-              renderItem={renderHashtagItem}
-              ListEmptyComponent={
-                <Text style={styles.emptyText}>No hashtags found</Text>
-              }
-            />
-          ) : activeTab === 'prompts' ? (
-            <FlatList
-              data={searchResultPrompts}
-              keyExtractor={(item) => item.id}
-              renderItem={renderPromptItem}
-              ListEmptyComponent={
-                <Text style={styles.emptyText}>No AI prompts found</Text>
-              }
-            />
+            <SearchSkeleton />
           ) : (
             <FlatList
-              data={searchResultPosts}
+              data={getSearchData().data as any[]}
               keyExtractor={(item) => item.id}
-              renderItem={renderSearchPostItem}
+              renderItem={getSearchData().render as any}
               ListEmptyComponent={
-                <Text style={styles.emptyText}>No posts found</Text>
+                <View style={styles.emptyContainer}>
+                  <Ionicons name="search-outline" size={48} color={colors.border} />
+                  <Text style={styles.emptyText}>{getEmptyMessage()}</Text>
+                </View>
               }
+              keyboardShouldPersistTaps="handled"
             />
           )}
         </>
       ) : loading ? (
-        <ActivityIndicator style={styles.loader} color={colors.textSecondary} />
+        <View style={styles.loaderContainer}>
+          <LoadingSpinner />
+        </View>
       ) : (
         <View style={{ flex: 1 }}>
           <View>
@@ -326,7 +354,11 @@ export default function SearchRoute() {
             )}
           </View>
           {explorePosts.length === 0 ? (
-            <Text style={styles.emptyText}>No posts to explore yet</Text>
+            <View style={styles.emptyContainer}>
+              <Ionicons name="compass-outline" size={48} color={colors.border} />
+              <Text style={styles.emptyText}>No posts to explore yet</Text>
+              <Text style={styles.emptySubtext}>Follow creators to discover art</Text>
+            </View>
           ) : (
             <MasonryGrid
               posts={explorePosts}
@@ -345,6 +377,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+    paddingTop: Platform.OS === 'ios' ? 50 : spacing.md,
   },
   searchBar: {
     flexDirection: 'row',
@@ -354,7 +387,7 @@ const styles = StyleSheet.create({
     marginVertical: spacing.sm,
     paddingHorizontal: spacing.md,
     borderRadius: borderRadius.lg,
-    height: 36,
+    height: 40,
   },
   searchInput: {
     flex: 1,
@@ -363,29 +396,6 @@ const styles = StyleSheet.create({
     fontFamily: typography.regular,
     color: colors.text,
     paddingVertical: 0,
-  },
-  tabBar: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  tab: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: spacing.md,
-  },
-  activeTab: {
-    borderBottomWidth: 2,
-    borderBottomColor: colors.text,
-  },
-  tabText: {
-    fontSize: fontSize.md,
-    fontFamily: typography.semiBold,
-    color: colors.textSecondary,
-    fontWeight: '600',
-  },
-  activeTabText: {
-    color: colors.text,
   },
   filterRow: {
     flexDirection: 'row',
@@ -415,9 +425,6 @@ const styles = StyleSheet.create({
   },
   filterChipTextActive: {
     color: '#fff',
-  },
-  gridRow: {
-    gap: POST_GRID_GAP,
   },
   gridItem: {
     width: POST_GRID_SIZE,
@@ -465,9 +472,9 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   hashtagIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     borderWidth: 1,
     borderColor: colors.border,
     justifyContent: 'center',
@@ -482,7 +489,7 @@ const styles = StyleSheet.create({
   postThumbnail: {
     width: 44,
     height: 44,
-    borderRadius: 4,
+    borderRadius: 6,
     backgroundColor: colors.backgroundSecondary,
   },
   aiBadgeSmall: {
@@ -491,16 +498,27 @@ const styles = StyleSheet.create({
     padding: 2,
     marginLeft: 4,
   },
-  loader: {
-    marginTop: spacing.xxxl,
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  footerLoader: {
-    paddingVertical: spacing.lg,
+  emptyContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: spacing.xxxl * 2,
   },
   emptyText: {
     textAlign: 'center',
     color: colors.textSecondary,
-    fontSize: fontSize.md,
-    marginTop: spacing.xxxl,
+    fontSize: fontSize.lg,
+    fontFamily: typography.semiBold,
+    marginTop: spacing.md,
+  },
+  emptySubtext: {
+    textAlign: 'center',
+    color: colors.textSecondary,
+    fontSize: fontSize.sm,
+    marginTop: spacing.xs,
   },
 });
