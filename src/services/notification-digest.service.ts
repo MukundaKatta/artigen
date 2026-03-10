@@ -22,8 +22,17 @@ export type NotificationDigest = {
 export async function fetchNotificationDigest(userId: string): Promise<NotificationDigest> {
   const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
-  const { data: notifications } = await supabase
-    .from('notifications')
+  type NotificationRow = {
+    id: string;
+    type: string;
+    created_at: string;
+    read: boolean;
+    actor: { username: string; avatar_url: string } | null;
+    post: { id: string; media: { media_url: string }[] } | null;
+  };
+
+  const { data: notifications } = await (supabase
+    .from('notifications') as any)
     .select(`
       id, type, created_at, read,
       actor:profiles!actor_id(username, avatar_url),
@@ -33,7 +42,7 @@ export async function fetchNotificationDigest(userId: string): Promise<Notificat
     .gte('created_at', oneDayAgo)
     .order('created_at', { ascending: false });
 
-  const items = notifications || [];
+  const items = (notifications || []) as NotificationRow[];
   const totalUnread = items.filter((n) => !n.read).length;
 
   // Group by type

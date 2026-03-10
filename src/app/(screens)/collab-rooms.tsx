@@ -40,7 +40,7 @@ function RoomCard({ room, index }: { room: CollabRoom; index: number }) {
         scaleValue={0.97}
       >
         <View style={styles.roomHeader}>
-          <Avatar uri={room.host_avatar} size={40} />
+          <Avatar uri={room.host_avatar} size="md" />
           <View style={styles.roomInfo}>
             <Text style={styles.roomName} numberOfLines={1}>{room.name}</Text>
             <Text style={styles.roomHost}>Hosted by @{room.host_username}</Text>

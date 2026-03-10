@@ -78,6 +78,7 @@ export default function WrappedScreen() {
   }
 
   function renderSlide({ item }: { item: Slide }) {
+    const s = stats!;
     return (
       <LinearGradient
         colors={item.gradient as [string, string]}
@@ -86,7 +87,7 @@ export default function WrappedScreen() {
         {item.type === 'intro' && (
           <View style={styles.slideContent}>
             <Animated.Text entering={FadeInUp.delay(200)} style={styles.wrappedYear}>
-              {stats.year}
+              {s.year}
             </Animated.Text>
             <Animated.Text entering={FadeInUp.delay(400)} style={styles.wrappedTitle}>
               Your Art{'\n'}Wrapped
@@ -107,12 +108,12 @@ export default function WrappedScreen() {
             </Animated.Text>
             <View style={styles.statsGrid}>
               {[
-                { label: 'Artworks Created', value: formatNumber(stats.totalPosts), icon: 'brush' as const },
-                { label: 'Likes Received', value: formatNumber(stats.totalLikes), icon: 'heart' as const },
-                { label: 'Views', value: formatNumber(stats.totalViews), icon: 'eye' as const },
-                { label: 'Remixes', value: formatNumber(stats.totalRemixes), icon: 'git-branch' as const },
-                { label: 'Badges Earned', value: String(stats.badgesEarned), icon: 'ribbon' as const },
-                { label: 'Styles Explored', value: String(stats.uniqueStyles), icon: 'color-palette' as const },
+                { label: 'Artworks Created', value: formatNumber(s.totalPosts), icon: 'brush' as const },
+                { label: 'Likes Received', value: formatNumber(s.totalLikes), icon: 'heart' as const },
+                { label: 'Views', value: formatNumber(s.totalViews), icon: 'eye' as const },
+                { label: 'Remixes', value: formatNumber(s.totalRemixes), icon: 'git-branch' as const },
+                { label: 'Badges Earned', value: String(s.badgesEarned), icon: 'ribbon' as const },
+                { label: 'Styles Explored', value: String(s.uniqueStyles), icon: 'color-palette' as const },
               ].map((stat, i) => (
                 <Animated.View key={stat.label} entering={FadeInUp.delay(300 + i * 100)} style={styles.statCard}>
                   <Ionicons name={stat.icon} size={24} color="#FFD700" />
@@ -129,11 +130,11 @@ export default function WrappedScreen() {
             <Animated.Text entering={FadeInUp.delay(200)} style={styles.slideHeading}>
               Your Top Artwork
             </Animated.Text>
-            {stats.topPost ? (
+            {s.topPost ? (
               <>
                 <Animated.View entering={ZoomIn.delay(400)} style={styles.topPostFrame}>
                   <Image
-                    source={{ uri: stats.topPost.mediaUrl }}
+                    source={{ uri: s.topPost.mediaUrl }}
                     style={styles.topPostImage}
                     contentFit="cover"
                     transition={500}
@@ -141,7 +142,7 @@ export default function WrappedScreen() {
                 </Animated.View>
                 <Animated.View entering={FadeInUp.delay(600)} style={styles.topPostStats}>
                   <Ionicons name="heart" size={20} color="#FF6B6B" />
-                  <Text style={styles.topPostLikes}>{formatNumber(stats.topPost.likesCount)} likes</Text>
+                  <Text style={styles.topPostLikes}>{formatNumber(s.topPost.likesCount)} likes</Text>
                 </Animated.View>
               </>
             ) : (
@@ -158,16 +159,16 @@ export default function WrappedScreen() {
               </View>
             </Animated.View>
             <Animated.Text entering={FadeInUp.delay(400)} style={styles.personalityTitle}>
-              {stats.artPersonality}
+              {s.artPersonality}
             </Animated.Text>
             <Animated.Text entering={FadeInUp.delay(600)} style={styles.wrappedSubtitle}>
-              Your favorite style: {stats.topStyle}
+              Your favorite style: {s.topStyle}
             </Animated.Text>
             <Animated.Text entering={FadeInUp.delay(700)} style={styles.wrappedSubtitle}>
-              You create mostly in the {stats.favoriteTimeOfDay}
+              You create mostly in the {s.favoriteTimeOfDay}
             </Animated.Text>
             <Animated.Text entering={FadeInUp.delay(800)} style={styles.percentileText}>
-              Top {stats.percentileRank}% of creators
+              Top {s.percentileRank}% of creators
             </Animated.Text>
           </View>
         )}
@@ -178,8 +179,8 @@ export default function WrappedScreen() {
               Your Creative Calendar
             </Animated.Text>
             <View style={styles.monthGrid}>
-              {stats.creationsByMonth.map((count, i) => {
-                const maxCount = Math.max(...stats.creationsByMonth, 1);
+              {s.creationsByMonth.map((count, i) => {
+                const maxCount = Math.max(...s.creationsByMonth, 1);
                 const height = Math.max(20, (count / maxCount) * 120);
                 return (
                   <Animated.View key={i} entering={FadeInUp.delay(300 + i * 50)} style={styles.monthCol}>
@@ -199,7 +200,7 @@ export default function WrappedScreen() {
               <Ionicons name="flame" size={80} color="#FF6B6B" />
             </Animated.View>
             <Animated.Text entering={FadeInUp.delay(400)} style={styles.streakNumber}>
-              {stats.longestStreak}
+              {s.longestStreak}
             </Animated.Text>
             <Animated.Text entering={FadeInUp.delay(500)} style={styles.slideHeading}>
               Day Streak
@@ -208,7 +209,7 @@ export default function WrappedScreen() {
               Your longest creative streak this year
             </Animated.Text>
             <Animated.Text entering={FadeInUp.delay(700)} style={styles.wrappedSubtitle}>
-              {stats.communitiesJoined} communities joined
+              {s.communitiesJoined} communities joined
             </Animated.Text>
           </View>
         )}
@@ -219,7 +220,7 @@ export default function WrappedScreen() {
               <Ionicons name="trophy" size={64} color="#FFD700" />
             </Animated.View>
             <Animated.Text entering={FadeInUp.delay(400)} style={styles.wrappedTitle}>
-              Here's to{'\n'}{stats.year + 1}
+              Here's to{'\n'}{s.year + 1}
             </Animated.Text>
             <Animated.Text entering={FadeInUp.delay(600)} style={styles.wrappedSubtitle}>
               Keep creating. Keep inspiring. Keep pushing the boundaries of AI art.

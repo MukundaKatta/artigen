@@ -42,14 +42,16 @@ export function parseDeepLink(url: string): DeepLinkRoute | null {
     const [resource, id] = pathSegments;
 
     if (resource === 'profile') {
-      return { screen: '/(tabs)/profile', params: undefined };
+      return { screen: '/(tabs)/profile' as const, params: undefined };
     }
 
     if (id && ROUTE_MAP[resource]) {
-      return {
-        screen: `${ROUTE_MAP[resource]}[id]` as DeepLinkRoute['screen'],
-        params: { id },
-      };
+      const screen = `${ROUTE_MAP[resource]}[id]` as
+        | '/(screens)/post/[id]'
+        | '/(screens)/user/[id]'
+        | '/(screens)/community/[id]'
+        | '/(screens)/challenge/[id]';
+      return { screen, params: { id } };
     }
 
     return null;

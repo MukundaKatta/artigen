@@ -148,7 +148,7 @@ export default function MoodBoardsScreen() {
             disabled={generating || !aiPrompt.trim()}
           >
             {generating ? (
-              <LoadingSpinner size={20} />
+              <LoadingSpinner size="small" />
             ) : (
               <Ionicons name="arrow-forward-circle" size={28} color={aiPrompt.trim() ? colors.primary : colors.border} />
             )}

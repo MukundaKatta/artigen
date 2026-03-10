@@ -50,8 +50,8 @@ export async function createCollabRoom(
   prompt: string,
   maxParticipants: number = 4,
 ): Promise<string | null> {
-  const { data, error } = await supabase
-    .from('collab_rooms')
+  const { data, error } = await (supabase
+    .from('collab_rooms') as any)
     .insert({
       name,
       host_id: hostId,
@@ -65,34 +65,34 @@ export async function createCollabRoom(
   if (error) return null;
 
   // Auto-join host
-  await supabase.from('collab_room_participants').insert({
-    room_id: data.id,
+  await (supabase.from('collab_room_participants') as any).insert({
+    room_id: (data as { id: string }).id,
     user_id: hostId,
     is_ready: true,
   });
 
-  return data.id;
+  return (data as { id: string }).id;
 }
 
 export async function joinCollabRoom(roomId: string, userId: string): Promise<boolean> {
-  const { error } = await supabase
-    .from('collab_room_participants')
+  const { error } = await (supabase
+    .from('collab_room_participants') as any)
     .insert({ room_id: roomId, user_id: userId, is_ready: false });
 
   return !error;
 }
 
 export async function leaveCollabRoom(roomId: string, userId: string): Promise<void> {
-  await supabase
-    .from('collab_room_participants')
+  await (supabase
+    .from('collab_room_participants') as any)
     .delete()
     .eq('room_id', roomId)
     .eq('user_id', userId);
 }
 
 export async function setReady(roomId: string, userId: string, ready: boolean): Promise<void> {
-  await supabase
-    .from('collab_room_participants')
+  await (supabase
+    .from('collab_room_participants') as any)
     .update({ is_ready: ready })
     .eq('room_id', roomId)
     .eq('user_id', userId);
@@ -104,7 +104,7 @@ export async function submitToRound(
   imageUrl: string,
   promptUsed: string,
 ): Promise<void> {
-  await supabase.from('collab_submissions').insert({
+  await (supabase.from('collab_submissions') as any).insert({
     round_id: roundId,
     user_id: userId,
     image_url: imageUrl,
@@ -113,15 +113,15 @@ export async function submitToRound(
 }
 
 export async function voteOnSubmission(submissionId: string, userId: string): Promise<void> {
-  await supabase.from('collab_votes').insert({
+  await (supabase.from('collab_votes') as any).insert({
     submission_id: submissionId,
     user_id: userId,
   });
 }
 
 export async function fetchActiveRooms(): Promise<CollabRoom[]> {
-  const { data } = await supabase
-    .from('collab_rooms')
+  const { data } = await (supabase
+    .from('collab_rooms') as any)
     .select(`
       *,
       host:profiles!host_id(username, avatar_url),
@@ -131,19 +131,19 @@ export async function fetchActiveRooms(): Promise<CollabRoom[]> {
     .order('created_at', { ascending: false })
     .limit(20);
 
-  return (data || []).map((room) => ({
+  return ((data || []) as Record<string, any>[]).map((room) => ({
     ...room,
     host_username: room.host?.username || '',
     host_avatar: room.host?.avatar_url || '',
     current_participants: room.participants?.[0]?.count || 0,
     participants: [],
     rounds: [],
-  }));
+  })) as unknown as CollabRoom[];
 }
 
 export async function fetchRoom(roomId: string): Promise<CollabRoom | null> {
-  const { data } = await supabase
-    .from('collab_rooms')
+  const { data } = await (supabase
+    .from('collab_rooms') as any)
     .select(`
       *,
       host:profiles!host_id(username, avatar_url),
@@ -165,17 +165,18 @@ export async function fetchRoom(roomId: string): Promise<CollabRoom | null> {
 
   if (!data) return null;
 
+  const roomData = data as Record<string, any>;
   return {
-    ...data,
-    host_username: data.host?.username || '',
-    host_avatar: data.host?.avatar_url || '',
-    current_participants: data.participants?.length || 0,
-    participants: (data.participants || []).map((p: Record<string, unknown>) => ({
+    ...roomData,
+    host_username: roomData.host?.username || '',
+    host_avatar: roomData.host?.avatar_url || '',
+    current_participants: roomData.participants?.length || 0,
+    participants: (roomData.participants || []).map((p: Record<string, unknown>) => ({
       ...p,
       username: (p.user as Record<string, string>)?.username || '',
       avatar_url: (p.user as Record<string, string>)?.avatar_url || '',
     })),
-    rounds: (data.rounds || []).map((r: Record<string, unknown>) => ({
+    rounds: (roomData.rounds || []).map((r: Record<string, unknown>) => ({
       ...r,
       submissions: ((r.submissions as Record<string, unknown>[]) || []).map((s: Record<string, unknown>) => ({
         ...s,
