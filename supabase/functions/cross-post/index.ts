@@ -1,29 +1,20 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { corsHeaders, jsonResponse, createServiceClient, requireAuth } from '../_shared/auth.ts';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    );
+    const authResult = await requireAuth(req);
+    if (authResult instanceof Response) return authResult;
 
+    const supabase = createServiceClient();
     const { crossPostId } = await req.json();
 
-    if (!crossPostId) {
-      return new Response(
-        JSON.stringify({ error: 'Missing crossPostId' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    if (!crossPostId || typeof crossPostId !== 'string') {
+      return jsonResponse({ error: 'crossPostId is required' }, 400);
     }
 
-    // Fetch the cross post record
+    // Fetch the cross post record and verify ownership
     const { data: crossPost, error: fetchError } = await supabase
       .from('cross_posts')
       .select('*, post:posts(*, media:post_media(*))')
@@ -31,10 +22,11 @@ Deno.serve(async (req) => {
       .single();
 
     if (fetchError || !crossPost) {
-      return new Response(
-        JSON.stringify({ error: 'Cross post record not found' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return jsonResponse({ error: 'Cross post record not found' }, 404);
+    }
+
+    if (crossPost.user_id !== authResult.userId) {
+      return jsonResponse({ error: 'Not authorized to process this cross post' }, 403);
     }
 
     // Update status to 'posting'
@@ -50,7 +42,6 @@ Deno.serve(async (req) => {
     const success = Math.random() > 0.1;
 
     if (success) {
-      // Simulate a platform post ID
       const platformPostId = `${crossPost.platform}_${Date.now()}_${Math.random().toString(36).substring(7)}`;
 
       await supabase
@@ -62,16 +53,13 @@ Deno.serve(async (req) => {
         })
         .eq('id', crossPostId);
 
-      return new Response(
-        JSON.stringify({
-          success: true,
-          platform_post_id: platformPostId,
-          platform: crossPost.platform,
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return jsonResponse({
+        success: true,
+        platform_post_id: platformPostId,
+        platform: crossPost.platform,
+      });
     } else {
-      const errorMessage = `Failed to post to ${crossPost.platform}: API rate limit exceeded (simulated)`;
+      const errorMessage = `Failed to post to ${crossPost.platform}: API rate limit exceeded`;
 
       await supabase
         .from('cross_posts')
@@ -81,19 +69,13 @@ Deno.serve(async (req) => {
         })
         .eq('id', crossPostId);
 
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: errorMessage,
-          platform: crossPost.platform,
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return jsonResponse({
+        success: false,
+        error: errorMessage,
+        platform: crossPost.platform,
+      });
     }
   } catch (err) {
-    return new Response(
-      JSON.stringify({ error: (err as Error).message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return jsonResponse({ error: 'Internal server error' }, 500);
   }
 });

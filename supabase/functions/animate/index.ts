@@ -1,28 +1,32 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { corsHeaders, jsonResponse, createServiceClient, requireAuth } from '../_shared/auth.ts';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    );
+    const authResult = await requireAuth(req);
+    if (authResult instanceof Response) return authResult;
 
+    const supabase = createServiceClient();
     const { job_id } = await req.json();
 
-    if (!job_id) {
-      return new Response(JSON.stringify({ error: 'job_id required' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    if (!job_id || typeof job_id !== 'string') {
+      return jsonResponse({ error: 'job_id is required' }, 400);
     }
 
-    const { data: job } = await supabase.from('animation_jobs').select('*').eq('id', job_id).single();
+    // Get the job and verify ownership
+    const { data: job } = await supabase
+      .from('animation_jobs')
+      .select('*')
+      .eq('id', job_id)
+      .single();
+
     if (!job) {
-      return new Response(JSON.stringify({ error: 'Job not found' }), { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      return jsonResponse({ error: 'Job not found' }, 404);
+    }
+
+    if (job.user_id !== authResult.userId) {
+      return jsonResponse({ error: 'Not authorized to process this job' }, 403);
     }
 
     await supabase.from('animation_jobs').update({ status: 'processing' }).eq('id', job_id);
@@ -61,8 +65,8 @@ Deno.serve(async (req) => {
       }).eq('id', job_id);
     }
 
-    return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    return jsonResponse({ success: true });
   } catch (err) {
-    return new Response(JSON.stringify({ error: (err as Error).message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    return jsonResponse({ error: 'Internal server error' }, 500);
   }
 });

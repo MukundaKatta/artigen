@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { checkRateLimit, rateLimitResponse } from '../_shared/auth.ts';
 
 const CREDITS_PER_CALL = 5;
 
@@ -146,13 +147,34 @@ serve(async (req: Request) => {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) return jsonResponse({ error: 'Unauthorized' }, 401);
 
-    const { task, provider = 'claude', input } = await req.json() as {
-      task: Task;
-      provider: Provider;
-      input: Record<string, unknown>;
-    };
+    // Rate limit: 30 text-AI calls per minute per user
+    if (!checkRateLimit(user.id, 'text-ai', 30, 60)) {
+      return rateLimitResponse();
+    }
 
-    if (!task || !input) return jsonResponse({ error: 'task and input are required' }, 400);
+    const body = await req.json();
+    const task = body.task as Task;
+    const provider = (body.provider || 'claude') as Provider;
+    const input = body.input as Record<string, unknown>;
+
+    const validTasks: Task[] = ['enhance_prompt', 'write_caption', 'chat', 'describe_to_prompt'];
+    const validProviders: Provider[] = ['claude', 'gpt4o', 'gemini'];
+
+    if (!task || !validTasks.includes(task)) {
+      return jsonResponse({ error: `task must be one of: ${validTasks.join(', ')}` }, 400);
+    }
+    if (!validProviders.includes(provider)) {
+      return jsonResponse({ error: `provider must be one of: ${validProviders.join(', ')}` }, 400);
+    }
+    if (!input || typeof input !== 'object') {
+      return jsonResponse({ error: 'input object is required' }, 400);
+    }
+    if (task === 'chat' && (!Array.isArray(input.messages) || input.messages.length === 0)) {
+      return jsonResponse({ error: 'chat task requires non-empty messages array' }, 400);
+    }
+    if (task === 'chat' && (input.messages as unknown[]).length > 50) {
+      return jsonResponse({ error: 'messages array exceeds 50 message limit' }, 400);
+    }
 
     // Deduct credits before calling AI
     const { error: deductError } = await supabase.rpc('deduct_generation_credits', {
@@ -196,6 +218,6 @@ serve(async (req: Request) => {
 
     return jsonResponse({ result, credits_used: CREDITS_PER_CALL });
   } catch (err: any) {
-    return jsonResponse({ error: err.message || 'Internal server error' });
+    return jsonResponse({ error: 'Internal server error' }, 500);
   }
 });

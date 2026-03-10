@@ -235,6 +235,8 @@ export default function HomeRoute() {
       showsVerticalScrollIndicator={false}
       windowSize={7}
       maxToRenderPerBatch={5}
+      updateCellsBatchingPeriod={50}
+      initialNumToRender={5}
       removeClippedSubviews
       style={styles.container}
       contentContainerStyle={{ paddingBottom: 80 }}

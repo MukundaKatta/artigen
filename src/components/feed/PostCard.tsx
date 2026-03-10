@@ -231,6 +231,7 @@ export const PostCard = React.memo(function PostCard({
               placeholder={sortedMedia[0]?.blurhash ? { blurhash: sortedMedia[0].blurhash } : undefined}
               style={styles.postImage}
               contentFit="cover"
+              cachePolicy="memory-disk"
               transition={300}
               recyclingKey={sortedMedia[0]?.id}
             />
@@ -253,6 +254,7 @@ export const PostCard = React.memo(function PostCard({
                   placeholder={item.blurhash ? { blurhash: item.blurhash } : undefined}
                   style={styles.postImage}
                   contentFit="cover"
+                  cachePolicy="memory-disk"
                   transition={300}
                   recyclingKey={item.id}
                 />

@@ -40,6 +40,7 @@ export function Avatar({
         },
       ]}
       contentFit="cover"
+      cachePolicy="memory-disk"
       transition={200}
       accessibilityLabel="User avatar"
     />

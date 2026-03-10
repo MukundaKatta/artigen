@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { checkRateLimit, rateLimitResponse } from '../_shared/auth.ts';
 
 const REPLICATE_API_URL = 'https://api.replicate.com/v1/predictions';
 const HF_INFERENCE_URL = 'https://api-inference.huggingface.co/models';
@@ -256,12 +257,41 @@ serve(async (req: Request) => {
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
     if (authError || !user) return jsonResponse({ error: 'Unauthorized' }, 401);
 
-    const {
-      model_id, provider = 'replicate', prompt, negative_prompt,
-      width, height, steps, cfg_scale, seed, scheduler,
-    } = await req.json();
+    // Rate limit: 20 generations per minute per user
+    if (!checkRateLimit(user.id, 'generate', 20, 60)) {
+      return rateLimitResponse();
+    }
 
-    if (!model_id || !prompt) return jsonResponse({ error: 'model_id and prompt are required' }, 400);
+    const body = await req.json();
+    const model_id = body.model_id;
+    const provider = body.provider || 'replicate';
+    const prompt = body.prompt;
+    const negative_prompt = body.negative_prompt;
+    const width = body.width;
+    const height = body.height;
+    const steps = body.steps;
+    const cfg_scale = body.cfg_scale;
+    const seed = body.seed;
+    const scheduler = body.scheduler;
+
+    if (!model_id || typeof model_id !== 'string') return jsonResponse({ error: 'model_id is required' }, 400);
+    if (!prompt || typeof prompt !== 'string') return jsonResponse({ error: 'prompt is required' }, 400);
+    if (prompt.length > 4000) return jsonResponse({ error: 'prompt exceeds 4000 character limit' }, 400);
+    if (!['replicate', 'huggingface', 'openai', 'gemini'].includes(provider)) {
+      return jsonResponse({ error: 'Invalid provider' }, 400);
+    }
+    if (width != null && (typeof width !== 'number' || width < 256 || width > 2048)) {
+      return jsonResponse({ error: 'width must be between 256 and 2048' }, 400);
+    }
+    if (height != null && (typeof height !== 'number' || height < 256 || height > 2048)) {
+      return jsonResponse({ error: 'height must be between 256 and 2048' }, 400);
+    }
+    if (steps != null && (typeof steps !== 'number' || steps < 1 || steps > 100)) {
+      return jsonResponse({ error: 'steps must be between 1 and 100' }, 400);
+    }
+    if (cfg_scale != null && (typeof cfg_scale !== 'number' || cfg_scale < 0 || cfg_scale > 30)) {
+      return jsonResponse({ error: 'cfg_scale must be between 0 and 30' }, 400);
+    }
 
     // Deduct credits for paid models
     const creditCost = MODEL_CREDITS[model_id] ?? 10;
@@ -313,6 +343,6 @@ serve(async (req: Request) => {
 
     return jsonResponse(result);
   } catch (err: any) {
-    return jsonResponse({ error: err.message || 'Internal server error' });
+    return jsonResponse({ error: 'Internal server error' }, 500);
   }
 });
