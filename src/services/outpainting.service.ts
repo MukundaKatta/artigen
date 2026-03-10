@@ -23,7 +23,10 @@ export async function createOutpaintingJob(params: {
     .single();
 
   if (data) {
-    supabase.functions.invoke('outpaint', { body: { job_id: data.id } }).catch(() => {});
+    supabase.functions.invoke('outpaint', { body: { job_id: data.id } }).catch((err) => {
+      console.error('[outpainting] edge function failed:', err);
+      supabase.from('outpainting_jobs').update({ status: 'failed', error_message: 'Failed to start processing' }).eq('id', data.id);
+    });
   }
   return { data, error };
 }

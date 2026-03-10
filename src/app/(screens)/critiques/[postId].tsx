@@ -2,6 +2,7 @@ import React, { useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '@/providers/AuthProvider';
 import { useCritique } from '@/hooks/useCritique';
 import { CritiqueCard } from '@/components/critiques/CritiqueCard';
 import { CritiqueSummaryCard } from '@/components/critiques/CritiqueSummary';
@@ -9,10 +10,8 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Button } from '@/components/ui/Button';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
 
-// TODO: Replace with real auth hook
-const MOCK_USER_ID = 'current-user-id';
-
 export default function CritiquesScreen() {
+  const { user } = useAuth();
   const { postId } = useLocalSearchParams<{ postId: string }>();
   const router = useRouter();
   const {
@@ -25,7 +24,7 @@ export default function CritiquesScreen() {
     toggleHelpful,
     loadMore,
     refresh,
-  } = useCritique(postId, MOCK_USER_ID);
+  } = useCritique(postId, user?.id ?? '');
 
   const handleUserPress = useCallback(
     (userId: string) => {

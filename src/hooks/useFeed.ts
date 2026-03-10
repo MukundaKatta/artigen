@@ -42,10 +42,15 @@ export function useFeed(userId: string | undefined) {
   const refresh = useCallback(async () => {
     if (!userId) return;
     setRefreshing(true);
-    const { data } = await getFeed(userId, 0);
-    setPosts(data);
-    setPage(0);
-    setHasMore(data.length >= FEED_PAGE_SIZE);
+    const { data, error: refreshError } = await getFeed(userId, 0);
+    if (refreshError) {
+      setError(refreshError.message);
+    } else {
+      setPosts(data);
+      setPage(0);
+      setHasMore(data.length >= FEED_PAGE_SIZE);
+      setError(null);
+    }
     setRefreshing(false);
   }, [userId]);
 
@@ -53,10 +58,12 @@ export function useFeed(userId: string | undefined) {
     if (!userId || loadingMore || !hasMore) return;
     setLoadingMore(true);
     const nextPage = page + 1;
-    const { data } = await getFeed(userId, nextPage);
-    setPosts((prev) => [...prev, ...data]);
-    setPage(nextPage);
-    setHasMore(data.length >= FEED_PAGE_SIZE);
+    const { data, error: loadError } = await getFeed(userId, nextPage);
+    if (!loadError) {
+      setPosts((prev) => [...prev, ...data]);
+      setPage(nextPage);
+      setHasMore(data.length >= FEED_PAGE_SIZE);
+    }
     setLoadingMore(false);
   }, [userId, page, loadingMore, hasMore]);
 

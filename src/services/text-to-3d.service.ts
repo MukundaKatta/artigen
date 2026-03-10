@@ -21,7 +21,10 @@ export async function createText3DJob(
     .single();
 
   if (data) {
-    supabase.functions.invoke('text-to-3d', { body: { job_id: data.id } }).catch(() => {});
+    supabase.functions.invoke('text-to-3d', { body: { job_id: data.id } }).catch((err) => {
+      console.error('[text-to-3d] edge function failed:', err);
+      supabase.from('text_to_3d_jobs').update({ status: 'failed', error_message: 'Failed to start processing' }).eq('id', data.id);
+    });
   }
 
   return { data, error };

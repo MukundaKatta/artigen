@@ -13,6 +13,7 @@ import {
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import { useAuth } from '@/providers/AuthProvider';
 import { useAvatarGenerator } from '@/hooks/useAvatarGenerator';
 import { AvatarStylePicker } from '@/components/avatars/AvatarStylePicker';
 import { AvatarGrid } from '@/components/avatars/AvatarGrid';
@@ -25,10 +26,8 @@ import type { UserAvatar } from '@/services/avatar.service';
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const THUMB_SIZE = 80;
 
-// TODO: Replace with real auth hook
-const MOCK_USER_ID = 'current-user-id';
-
 export default function AvatarGeneratorScreen() {
+  const { user } = useAuth();
   const [selectedPhotos, setSelectedPhotos] = useState<string[]>([]);
   const [previewAvatar, setPreviewAvatar] = useState<UserAvatar | null>(null);
 
@@ -43,7 +42,7 @@ export default function AvatarGeneratorScreen() {
     saveAvatar,
     setActive,
     remove,
-  } = useAvatarGenerator(MOCK_USER_ID);
+  } = useAvatarGenerator(user?.id ?? '');
 
   // ── Pick selfie photos ─────────────────────────────
 

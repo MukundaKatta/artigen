@@ -23,7 +23,10 @@ export async function createUpscalingJob(params: {
     .single();
 
   if (data) {
-    supabase.functions.invoke('upscale', { body: { job_id: data.id } }).catch(() => {});
+    supabase.functions.invoke('upscale', { body: { job_id: data.id } }).catch((err) => {
+      console.error('[upscaling] edge function failed:', err);
+      supabase.from('upscaling_jobs').update({ status: 'failed', error_message: 'Failed to start processing' }).eq('id', data.id);
+    });
   }
   return { data, error };
 }
