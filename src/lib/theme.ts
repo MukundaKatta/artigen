@@ -152,3 +152,22 @@ export const gradients = {
   primaryButton: ['#0095F6', '#1877F2'] as [string, string, ...string[]],
   shimmer: ['#EBEBEB', '#F5F5F5', '#EBEBEB'] as [string, string, ...string[]],
 };
+
+export const animation = {
+  duration: {
+    fast: 150,
+    normal: 300,
+    slow: 500,
+    shimmer: 1200,
+  },
+  spring: {
+    button: { damping: 6, stiffness: 300 },
+    bouncy: { damping: 4, stiffness: 300 },
+    gentle: { damping: 20, stiffness: 300 },
+    stiff: { damping: 15, stiffness: 400 },
+  },
+  stagger: {
+    delay: 60,
+    maxItems: 8,
+  },
+} as const;

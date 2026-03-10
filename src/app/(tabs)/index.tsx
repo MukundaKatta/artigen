@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useRef } from 'react';
-import { FlatList, View, Text, StyleSheet, TouchableOpacity, ViewabilityConfig } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { FlatList, View, Text, StyleSheet, TouchableOpacity, ViewabilityConfig, Platform, NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
   useSharedValue,
@@ -16,10 +16,11 @@ import { PostCard } from '@/components/feed/PostCard';
 import { ChallengeCard } from '@/components/feed/ChallengeCard';
 import { StoryBar } from '@/components/feed/StoryBar';
 import { StoryBarSkeleton, PostCardSkeleton } from '@/components/ui/Skeleton';
+import { AnimatedListItem } from '@/components/ui/AnimatedListItem';
 import { useChallenge } from '@/hooks/useChallenge';
 import { ResponsiveContainer } from '@/components/layout/ResponsiveContainer';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
-import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
+import { colors, spacing, fontSize, typography, borderRadius, shadows } from '@/lib/theme';
 import type { FeedPost } from '@/types';
 
 function FeedSkeleton() {
@@ -83,6 +84,8 @@ function FeedError({ message, onRetry }: { message: string; onRetry: () => void 
 export default function HomeRoute() {
   const { user } = useAuth();
   const router = useRouter();
+  const flatListRef = useRef<FlatList>(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
   const {
     posts,
     loading,
@@ -108,6 +111,14 @@ export default function HomeRoute() {
   }), [router]);
   useKeyboardShortcuts(shortcuts);
 
+  const handleScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    setShowScrollTop(e.nativeEvent.contentOffset.y > 800);
+  }, []);
+
+  const scrollToTop = useCallback(() => {
+    flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+  }, []);
+
   if (loading) return <FeedSkeleton />;
 
   if (error && posts.length === 0) {
@@ -117,25 +128,28 @@ export default function HomeRoute() {
   return (
     <ResponsiveContainer>
     <FlatList<FeedPost>
+      ref={flatListRef}
       data={posts}
       keyExtractor={(item) => item.id}
-      renderItem={({ item }) => (
-        <PostCard
-          post={item}
-          currentUserId={user?.id || ''}
-          onLike={toggleLike}
-          onSave={toggleSave}
-          onReaction={toggleReaction}
-          onComment={(postId) =>
-            router.push(`/(screens)/comments/${postId}`)
-          }
-          onUserPress={(userId) =>
-            router.push(`/(screens)/user/${userId}`)
-          }
-          onPostPress={(postId) =>
-            router.push(`/(screens)/post/${postId}`)
-          }
-        />
+      renderItem={({ item, index }) => (
+        <AnimatedListItem index={index}>
+          <PostCard
+            post={item}
+            currentUserId={user?.id || ''}
+            onLike={toggleLike}
+            onSave={toggleSave}
+            onReaction={toggleReaction}
+            onComment={(postId) =>
+              router.push(`/(screens)/comments/${postId}`)
+            }
+            onUserPress={(userId) =>
+              router.push(`/(screens)/user/${userId}`)
+            }
+            onPostPress={(postId) =>
+              router.push(`/(screens)/post/${postId}`)
+            }
+          />
+        </AnimatedListItem>
       )}
       ListHeaderComponent={
         <>
@@ -156,12 +170,23 @@ export default function HomeRoute() {
       refreshing={refreshing}
       onEndReached={loadMore}
       onEndReachedThreshold={0.5}
+      onScroll={handleScroll}
+      scrollEventThrottle={200}
       onViewableItemsChanged={onViewableItemsChanged}
       viewabilityConfig={viewabilityConfig}
       showsVerticalScrollIndicator={false}
       style={styles.container}
       contentContainerStyle={{ paddingBottom: 80 }}
     />
+    {showScrollTop && (
+      <TouchableOpacity
+        style={styles.scrollTopButton}
+        onPress={scrollToTop}
+        activeOpacity={0.8}
+      >
+        <Ionicons name="chevron-up" size={20} color="#fff" />
+      </TouchableOpacity>
+    )}
     </ResponsiveContainer>
   );
 }
@@ -248,5 +273,17 @@ const styles = StyleSheet.create({
     fontSize: fontSize.md,
     fontFamily: typography.semiBold,
     color: '#fff',
+  },
+  scrollTopButton: {
+    position: 'absolute',
+    bottom: Platform.OS === 'web' ? spacing.xl : 100,
+    right: spacing.lg,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...shadows.md,
   },
 });
