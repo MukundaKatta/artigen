@@ -105,6 +105,73 @@ export function StoryBarSkeleton() {
   );
 }
 
+export function FeedSkeleton({ count = 3 }: { count?: number }) {
+  return (
+    <View>
+      <StoryBarSkeleton />
+      {Array.from({ length: count }).map((_, i) => (
+        <PostCardSkeleton key={i} />
+      ))}
+    </View>
+  );
+}
+
+export function ProfileSkeleton() {
+  return (
+    <View style={skeletonStyles.profile}>
+      <View style={skeletonStyles.profileHeader}>
+        <Skeleton width={86} height={86} borderRadius={43} />
+        <View style={skeletonStyles.profileStats}>
+          {[1, 2, 3].map((i) => (
+            <View key={i} style={{ alignItems: 'center' }}>
+              <Skeleton width={30} height={16} />
+              <Skeleton width={50} height={10} borderRadius={4} style={{ marginTop: 4 }} />
+            </View>
+          ))}
+        </View>
+      </View>
+      <Skeleton width={150} height={14} style={{ marginTop: spacing.md }} />
+      <Skeleton width={220} height={12} style={{ marginTop: spacing.xs }} />
+      <Skeleton width={180} height={12} style={{ marginTop: spacing.xs }} />
+      <Skeleton width="100%" height={34} borderRadius={6} style={{ marginTop: spacing.lg }} />
+    </View>
+  );
+}
+
+export function GridSkeleton({ columns = 3, rows = 4 }: { columns?: number; rows?: number }) {
+  const gap = 2;
+  return (
+    <View style={skeletonStyles.grid}>
+      {Array.from({ length: columns * rows }).map((_, i) => (
+        <Skeleton
+          key={i}
+          width={`${(100 - gap * (columns - 1)) / columns}%` as any}
+          height={120}
+          borderRadius={0}
+          style={{ marginBottom: gap }}
+        />
+      ))}
+    </View>
+  );
+}
+
+export function MessageListSkeleton({ count = 8 }: { count?: number }) {
+  return (
+    <View>
+      {Array.from({ length: count }).map((_, i) => (
+        <View key={i} style={skeletonStyles.messageRow}>
+          <Skeleton width={52} height={52} borderRadius={26} />
+          <View style={{ marginLeft: spacing.md, flex: 1 }}>
+            <Skeleton width={140} height={13} />
+            <Skeleton width={200} height={11} style={{ marginTop: 6 }} />
+          </View>
+          <Skeleton width={40} height={10} />
+        </View>
+      ))}
+    </View>
+  );
+}
+
 const skeletonStyles = StyleSheet.create({
   postCard: {
     backgroundColor: colors.background,
@@ -136,5 +203,28 @@ const skeletonStyles = StyleSheet.create({
   storyItem: {
     alignItems: 'center',
     marginRight: spacing.lg,
+  },
+  profile: {
+    padding: spacing.lg,
+  },
+  profileHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xxl,
+  },
+  profileStats: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  messageRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.lg,
   },
 });

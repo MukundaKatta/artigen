@@ -4,6 +4,11 @@ import {
   editProfileSchema,
   commentSchema,
   captionSchema,
+  generateImageSchema,
+  createListingSchema,
+  createCommunitySchema,
+  messageSchema,
+  reportSchema,
 } from '@/utils/validation';
 
 describe('loginSchema', () => {
@@ -131,5 +136,94 @@ describe('captionSchema', () => {
 
   it('rejects location over 100 chars', () => {
     expect(captionSchema.safeParse({ location: 'a'.repeat(101) }).success).toBe(false);
+  });
+});
+
+describe('generateImageSchema', () => {
+  const valid = { prompt: 'A beautiful sunset', modelId: 'flux-schnell' };
+
+  it('accepts valid generation params', () => {
+    expect(generateImageSchema.safeParse(valid).success).toBe(true);
+  });
+
+  it('rejects short prompt', () => {
+    expect(generateImageSchema.safeParse({ ...valid, prompt: 'ab' }).success).toBe(false);
+  });
+
+  it('rejects prompt over 2000 chars', () => {
+    expect(generateImageSchema.safeParse({ ...valid, prompt: 'a'.repeat(2001) }).success).toBe(false);
+  });
+
+  it('rejects missing modelId', () => {
+    expect(generateImageSchema.safeParse({ prompt: 'test' }).success).toBe(false);
+  });
+
+  it('accepts optional dimensions', () => {
+    expect(generateImageSchema.safeParse({ ...valid, width: 1024, height: 1024 }).success).toBe(true);
+  });
+
+  it('rejects dimensions out of range', () => {
+    expect(generateImageSchema.safeParse({ ...valid, width: 100 }).success).toBe(false);
+    expect(generateImageSchema.safeParse({ ...valid, width: 5000 }).success).toBe(false);
+  });
+});
+
+describe('createListingSchema', () => {
+  const valid = { title: 'My Artwork', priceInCents: 500 };
+
+  it('accepts valid listing', () => {
+    expect(createListingSchema.safeParse(valid).success).toBe(true);
+  });
+
+  it('rejects price below $1', () => {
+    expect(createListingSchema.safeParse({ ...valid, priceInCents: 50 }).success).toBe(false);
+  });
+
+  it('rejects price above $10,000', () => {
+    expect(createListingSchema.safeParse({ ...valid, priceInCents: 1_000_001 }).success).toBe(false);
+  });
+
+  it('rejects short title', () => {
+    expect(createListingSchema.safeParse({ ...valid, title: 'ab' }).success).toBe(false);
+  });
+});
+
+describe('createCommunitySchema', () => {
+  it('accepts valid community', () => {
+    expect(createCommunitySchema.safeParse({ name: 'AI Art Lovers' }).success).toBe(true);
+  });
+
+  it('rejects short name', () => {
+    expect(createCommunitySchema.safeParse({ name: 'ab' }).success).toBe(false);
+  });
+});
+
+describe('messageSchema', () => {
+  it('accepts valid message', () => {
+    expect(messageSchema.safeParse({ content: 'Hello!' }).success).toBe(true);
+  });
+
+  it('rejects empty message', () => {
+    expect(messageSchema.safeParse({ content: '' }).success).toBe(false);
+  });
+
+  it('rejects message over 5000 chars', () => {
+    expect(messageSchema.safeParse({ content: 'a'.repeat(5001) }).success).toBe(false);
+  });
+});
+
+describe('reportSchema', () => {
+  it('accepts valid report', () => {
+    expect(reportSchema.safeParse({ reason: 'spam' }).success).toBe(true);
+  });
+
+  it('rejects invalid reason', () => {
+    expect(reportSchema.safeParse({ reason: 'invalid_reason' }).success).toBe(false);
+  });
+
+  it('accepts optional description', () => {
+    expect(
+      reportSchema.safeParse({ reason: 'harassment', description: 'Details here' }).success,
+    ).toBe(true);
   });
 });
