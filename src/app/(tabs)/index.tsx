@@ -20,6 +20,7 @@ import { StoryBar } from '@/components/feed/StoryBar';
 import { StoryBarSkeleton, PostCardSkeleton } from '@/components/ui/Skeleton';
 import { AnimatedListItem } from '@/components/ui/AnimatedListItem';
 import { useChallenge } from '@/hooks/useChallenge';
+import { useScrollToTopOnTabPress } from '@/app/(tabs)/_layout';
 import { ResponsiveContainer } from '@/components/layout/ResponsiveContainer';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { colors, spacing, fontSize, typography, borderRadius, shadows } from '@/lib/theme';
@@ -128,6 +129,9 @@ export default function HomeRoute() {
     flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
   }, []);
 
+  // Register scroll-to-top on tab re-tap
+  useScrollToTopOnTabPress('index', scrollToTop);
+
   if (loading) return <FeedSkeleton />;
 
   if (error && posts.length === 0) {
@@ -174,8 +178,36 @@ export default function HomeRoute() {
           </View>
           <Text style={styles.emptyTitle}>Welcome to Artigen</Text>
           <Text style={styles.emptyText}>
-            Follow creators to see their AI art here, or tap + to create your own.
+            Follow creators to see their AI art here, or create your own masterpiece.
           </Text>
+          <View style={styles.emptyCTAs}>
+            <AnimatedPressable
+              style={styles.emptyCTAPrimary}
+              onPress={() => {
+                if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push('/(tabs)/create');
+              }}
+              scaleValue={0.95}
+              accessibilityLabel="Create your first artwork"
+              accessibilityRole="button"
+            >
+              <Ionicons name="add-circle" size={18} color="#fff" />
+              <Text style={styles.emptyCTAPrimaryText}>Create Artwork</Text>
+            </AnimatedPressable>
+            <AnimatedPressable
+              style={styles.emptyCTASecondary}
+              onPress={() => {
+                if (Platform.OS !== 'web') Haptics.selectionAsync();
+                router.push('/(tabs)/search');
+              }}
+              scaleValue={0.95}
+              accessibilityLabel="Explore and discover art"
+              accessibilityRole="button"
+            >
+              <Ionicons name="compass-outline" size={18} color={colors.primary} />
+              <Text style={styles.emptyCTASecondaryText}>Explore Art</Text>
+            </AnimatedPressable>
+          </View>
         </View>
       }
       onRefresh={refresh}
@@ -244,6 +276,41 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 20,
+  },
+  emptyCTAs: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    marginTop: spacing.xl,
+  },
+  emptyCTAPrimary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.lg,
+  },
+  emptyCTAPrimaryText: {
+    fontSize: fontSize.sm,
+    fontFamily: typography.semiBold,
+    color: '#fff',
+  },
+  emptyCTASecondary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    backgroundColor: colors.backgroundSecondary,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  emptyCTASecondaryText: {
+    fontSize: fontSize.sm,
+    fontFamily: typography.semiBold,
+    color: colors.primary,
   },
   loadingDots: {
     flexDirection: 'row',

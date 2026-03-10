@@ -1,7 +1,8 @@
 import React, { useCallback, useMemo, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Platform, Modal, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Platform, Modal, Pressable } from 'react-native';
 import BottomSheet, { BottomSheetBackdrop } from '@gorhom/bottom-sheet';
 import * as Haptics from 'expo-haptics';
+import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
 import { useResponsive } from '@/hooks/useResponsive';
 
@@ -28,21 +29,21 @@ function DesktopActionSheet({ visible, onClose, items, title }: Props) {
         <Pressable style={desktopStyles.dialog} onPress={(e) => e.stopPropagation()}>
           {title && <Text style={desktopStyles.title}>{title}</Text>}
           {items.map((item, index) => (
-            <TouchableOpacity
+            <AnimatedPressable
               key={index}
               style={[desktopStyles.item, index < items.length - 1 && desktopStyles.itemBorder]}
               onPress={() => { onClose(); setTimeout(() => item.onPress(), 100); }}
-              activeOpacity={0.7}
+              scaleValue={0.97}
             >
               <Text style={[desktopStyles.itemText, item.destructive && desktopStyles.destructiveText]}>
                 {item.label}
               </Text>
-            </TouchableOpacity>
+            </AnimatedPressable>
           ))}
           <View style={desktopStyles.separator} />
-          <TouchableOpacity style={desktopStyles.item} onPress={onClose} activeOpacity={0.7}>
+          <AnimatedPressable style={desktopStyles.item} onPress={onClose} scaleValue={0.97}>
             <Text style={desktopStyles.cancelText}>Cancel</Text>
-          </TouchableOpacity>
+          </AnimatedPressable>
         </Pressable>
       </Pressable>
     </Modal>
@@ -142,7 +143,11 @@ export function ActionSheet({ visible, onClose, items, title }: Props) {
 
   const handleItemPress = (item: ActionSheetItem) => {
     if (Platform.OS !== 'web') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      if (item.destructive) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      } else {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      }
     }
     onClose();
     setTimeout(() => item.onPress(), 200);
@@ -170,22 +175,24 @@ export function ActionSheet({ visible, onClose, items, title }: Props) {
         {title && <Text style={styles.title}>{title}</Text>}
 
         {items.map((item, index) => (
-          <TouchableOpacity
+          <AnimatedPressable
             key={index}
             style={[styles.item, index < items.length - 1 && styles.itemBorder]}
             onPress={() => handleItemPress(item)}
-            activeOpacity={0.6}
+            scaleValue={0.97}
+            accessibilityLabel={item.label}
+            accessibilityRole="button"
           >
             <Text style={[styles.itemText, item.destructive && styles.destructiveText]}>
               {item.label}
             </Text>
-          </TouchableOpacity>
+          </AnimatedPressable>
         ))}
 
         <View style={styles.cancelSeparator} />
-        <TouchableOpacity style={styles.item} onPress={onClose} activeOpacity={0.6}>
+        <AnimatedPressable style={styles.item} onPress={onClose} scaleValue={0.97} accessibilityLabel="Cancel" accessibilityRole="button">
           <Text style={styles.cancelText}>Cancel</Text>
-        </TouchableOpacity>
+        </AnimatedPressable>
       </View>
     </BottomSheet>
   );
