@@ -6,17 +6,31 @@ import {
   FlatList,
   TouchableOpacity,
   TextInput,
-  ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { useAuth } from '@/providers/AuthProvider';
 import { useWorkflowTemplates } from '@/hooks/useWorkflowTemplates';
 import { WorkflowCard } from '@/components/workflows/WorkflowCard';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
 import type { WorkflowTemplateWithUser } from '@/services/workflow.service';
 
 type Tab = 'discover' | 'mine';
+
+function WorkflowsSkeleton() {
+  return (
+    <View style={styles.skeletonContainer}>
+      {[...Array(3)].map((_, i) => (
+        <Skeleton key={i} width="100%" height={100} borderRadius={borderRadius.lg} style={{ marginBottom: spacing.md }} />
+      ))}
+    </View>
+  );
+}
 
 export default function WorkflowsScreen() {
   const router = useRouter();
@@ -37,12 +51,14 @@ export default function WorkflowsScreen() {
   const [tab, setTab] = useState<Tab>('discover');
   const data = tab === 'discover' ? templates : myTemplates;
 
-  const renderItem = ({ item }: { item: WorkflowTemplateWithUser }) => (
-    <WorkflowCard
-      template={item}
-      isSaved={savedIds.has(item.id)}
-      onToggleSave={toggleSave}
-    />
+  const renderItem = ({ item, index }: { item: WorkflowTemplateWithUser; index: number }) => (
+    <Animated.View entering={FadeIn.delay(Math.min(index, 8) * 40).duration(300)}>
+      <WorkflowCard
+        template={item}
+        isSaved={savedIds.has(item.id)}
+        onToggleSave={toggleSave}
+      />
+    </Animated.View>
   );
 
   return (
@@ -70,13 +86,19 @@ export default function WorkflowsScreen() {
       <View style={styles.tabBar}>
         <TouchableOpacity
           style={[styles.tab, tab === 'discover' && styles.tabActive]}
-          onPress={() => setTab('discover')}
+          onPress={() => {
+            if (Platform.OS !== 'web') Haptics.selectionAsync();
+            setTab('discover');
+          }}
         >
           <Text style={[styles.tabText, tab === 'discover' && styles.tabTextActive]}>Discover</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.tab, tab === 'mine' && styles.tabActive]}
-          onPress={() => setTab('mine')}
+          onPress={() => {
+            if (Platform.OS !== 'web') Haptics.selectionAsync();
+            setTab('mine');
+          }}
         >
           <Text style={[styles.tabText, tab === 'mine' && styles.tabTextActive]}>My Workflows</Text>
         </TouchableOpacity>
@@ -84,7 +106,7 @@ export default function WorkflowsScreen() {
 
       {/* List */}
       {loading && data.length === 0 ? (
-        <ActivityIndicator style={styles.loader} color={colors.primary} />
+        <View style={styles.list}><WorkflowsSkeleton /></View>
       ) : (
         <FlatList
           data={data}
@@ -99,7 +121,10 @@ export default function WorkflowsScreen() {
             tab === 'mine' ? (
               <TouchableOpacity
                 style={styles.createButton}
-                onPress={() => router.push('/(screens)/workflow/create')}
+                onPress={() => {
+                  if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  router.push('/(screens)/workflow/create');
+                }}
                 activeOpacity={0.7}
               >
                 <Ionicons name="add-circle-outline" size={20} color="#fff" />
@@ -109,7 +134,9 @@ export default function WorkflowsScreen() {
           }
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Ionicons name="layers-outline" size={48} color={colors.textSecondary} />
+              <View style={styles.emptyIconCircle}>
+                <Ionicons name="layers-outline" size={32} color={colors.textSecondary} />
+              </View>
               <Text style={styles.emptyText}>
                 {tab === 'discover' ? 'No workflows found' : 'No workflows yet'}
               </Text>
@@ -122,7 +149,7 @@ export default function WorkflowsScreen() {
           }
           ListFooterComponent={
             loading && data.length > 0 ? (
-              <ActivityIndicator style={styles.footerLoader} color={colors.textSecondary} />
+              <View style={styles.footerLoader}><LoadingSpinner /></View>
             ) : null
           }
         />
@@ -136,8 +163,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  loader: {
-    flex: 1,
+  skeletonContainer: {
+    paddingTop: spacing.md,
   },
   searchContainer: {
     flexDirection: 'row',
@@ -202,12 +229,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing.xxxl,
   },
+  emptyIconCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: colors.backgroundSecondary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
   emptyText: {
     fontSize: fontSize.xl,
     fontFamily: typography.semiBold,
     fontWeight: '600',
     color: colors.text,
-    marginTop: spacing.lg,
   },
   emptySubtext: {
     fontSize: fontSize.md,

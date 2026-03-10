@@ -5,12 +5,16 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { getRemixes } from '@/services/remix.service';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { POST_GRID_SIZE, POST_GRID_GAP } from '@/lib/constants';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
 
@@ -56,33 +60,43 @@ export default function RemixesRoute() {
     fetchRemixes();
   }, [fetchRemixes]);
 
-  function renderItem({ item }: { item: RemixPost }) {
+  function renderItem({ item, index }: { item: RemixPost; index: number }) {
     const firstMedia = item.media?.[0];
     return (
-      <TouchableOpacity
-        onPress={() => router.push(`/(screens)/post/${item.id}`)}
-        activeOpacity={0.8}
-      >
-        <View style={styles.gridItem}>
-          <Image
-            source={{ uri: firstMedia?.media_url }}
-            style={styles.gridImage}
-            contentFit="cover"
-          />
-          {item.ai_metadata && (
-            <View style={styles.sparkleIcon}>
-              <Ionicons name="sparkles" size={12} color="#fff" />
-            </View>
-          )}
-        </View>
-      </TouchableOpacity>
+      <Animated.View entering={FadeIn.delay(Math.min(index, 8) * 30).duration(250)}>
+        <TouchableOpacity
+          onPress={() => {
+            if (Platform.OS !== 'web') Haptics.selectionAsync();
+            router.push(`/(screens)/post/${item.id}`);
+          }}
+          activeOpacity={0.8}
+        >
+          <View style={styles.gridItem}>
+            <Image
+              source={{ uri: firstMedia?.media_url }}
+              style={styles.gridImage}
+              contentFit="cover"
+              transition={200}
+            />
+            {item.ai_metadata && (
+              <View style={styles.sparkleIcon}>
+                <Ionicons name="sparkles" size={12} color="#fff" />
+              </View>
+            )}
+          </View>
+        </TouchableOpacity>
+      </Animated.View>
     );
   }
 
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color={colors.primary} />
+        <View style={styles.skeletonGrid}>
+          {[...Array(9)].map((_, i) => (
+            <Skeleton key={i} width="32%" height={120} borderRadius={2} style={{ flexGrow: 1 }} />
+          ))}
+        </View>
       </View>
     );
   }
@@ -98,8 +112,10 @@ export default function RemixesRoute() {
       onEndReached={loadMore}
       onEndReachedThreshold={0.5}
       ListEmptyComponent={
-        <View style={styles.center}>
-          <Ionicons name="git-branch-outline" size={48} color={colors.border} />
+        <View style={styles.emptyCenter}>
+          <View style={styles.emptyIconCircle}>
+            <Ionicons name="git-branch-outline" size={32} color={colors.textSecondary} />
+          </View>
           <Text style={styles.emptyText}>No remixes yet</Text>
           <Text style={styles.emptySubtext}>
             Be the first to remix this post!
@@ -108,7 +124,7 @@ export default function RemixesRoute() {
       }
       ListFooterComponent={
         loadingMore ? (
-          <ActivityIndicator style={styles.footer} color={colors.primary} />
+          <View style={styles.footer}><LoadingSpinner /></View>
         ) : null
       }
     />
@@ -118,10 +134,14 @@ export default function RemixesRoute() {
 const styles = StyleSheet.create({
   center: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: spacing.xxxl,
     backgroundColor: colors.background,
+  },
+  skeletonGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 2,
+    padding: 1,
+    marginTop: spacing.md,
   },
   grid: {
     backgroundColor: colors.background,
@@ -139,6 +159,7 @@ const styles = StyleSheet.create({
   gridImage: {
     width: '100%',
     height: '100%',
+    backgroundColor: colors.backgroundSecondary,
   },
   sparkleIcon: {
     position: 'absolute',
@@ -151,11 +172,23 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  emptyCenter: {
+    alignItems: 'center',
+    paddingVertical: spacing.xxxl,
+  },
+  emptyIconCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: colors.backgroundSecondary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
   emptyText: {
     fontSize: fontSize.lg,
     fontFamily: typography.semiBold,
     color: colors.text,
-    marginTop: spacing.md,
   },
   emptySubtext: {
     fontSize: fontSize.md,

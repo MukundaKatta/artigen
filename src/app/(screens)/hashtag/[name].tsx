@@ -5,12 +5,16 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { getHashtagPosts } from '@/services/explore.service';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { POST_GRID_SIZE, POST_GRID_GAP, EXPLORE_PAGE_SIZE } from '@/lib/constants';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
 import { formatNumber } from '@/utils/format-number';
@@ -53,36 +57,40 @@ export default function HashtagRoute() {
   }, [fetchPosts]);
 
   function handlePostPress(postId: string) {
+    if (Platform.OS !== 'web') Haptics.selectionAsync();
     router.push(`/(screens)/post/${postId}`);
   }
 
-  function renderItem({ item }: { item: PostWithUser }) {
+  function renderItem({ item, index }: { item: PostWithUser; index: number }) {
     const firstMedia = item.media?.[0];
     const isVideo = item.post_type === 'video' || item.post_type === 'reel';
     const isCarousel = (item.media?.length || 0) > 1;
 
     return (
-      <TouchableOpacity
-        onPress={() => handlePostPress(item.id)}
-        activeOpacity={0.8}
-      >
-        <View style={styles.gridItem}>
-          <Image
-            source={{ uri: firstMedia?.media_url }}
-            style={styles.gridImage}
-            contentFit="cover"
-          />
-          {(isCarousel || isVideo) && (
-            <View style={styles.typeIcon}>
-              <Ionicons
-                name={isVideo ? 'play' : 'copy-outline'}
-                size={16}
-                color={colors.textLight}
-              />
-            </View>
-          )}
-        </View>
-      </TouchableOpacity>
+      <Animated.View entering={FadeIn.delay(Math.min(index, 8) * 30).duration(250)}>
+        <TouchableOpacity
+          onPress={() => handlePostPress(item.id)}
+          activeOpacity={0.8}
+        >
+          <View style={styles.gridItem}>
+            <Image
+              source={{ uri: firstMedia?.media_url }}
+              style={styles.gridImage}
+              contentFit="cover"
+              transition={200}
+            />
+            {(isCarousel || isVideo) && (
+              <View style={styles.typeIcon}>
+                <Ionicons
+                  name={isVideo ? 'play' : 'copy-outline'}
+                  size={16}
+                  color={colors.textLight}
+                />
+              </View>
+            )}
+          </View>
+        </TouchableOpacity>
+      </Animated.View>
     );
   }
 
@@ -91,7 +99,17 @@ export default function HashtagRoute() {
       <Stack.Screen options={{ title: `#${name}` }} />
 
       {loading ? (
-        <ActivityIndicator style={styles.loader} color={colors.textSecondary} />
+        <View style={styles.skeletonContainer}>
+          <View style={styles.skeletonHeader}>
+            <Skeleton width={180} height={24} />
+            <Skeleton width={80} height={14} style={{ marginTop: spacing.xs }} />
+          </View>
+          <View style={styles.skeletonGrid}>
+            {[...Array(9)].map((_, i) => (
+              <Skeleton key={i} width="32%" height={120} borderRadius={2} style={{ flexGrow: 1 }} />
+            ))}
+          </View>
+        </View>
       ) : (
         <FlatList
           data={posts}
@@ -103,21 +121,27 @@ export default function HashtagRoute() {
           onEndReachedThreshold={0.5}
           ListHeaderComponent={
             hashtag ? (
-              <View style={styles.header}>
+              <Animated.View entering={FadeInUp.duration(400)} style={styles.header}>
                 <Text style={styles.hashtagName}>#{hashtag.name}</Text>
                 <Text style={styles.postCount}>
                   {formatNumber(hashtag.post_count)} {hashtag.post_count === 1 ? 'post' : 'posts'}
                 </Text>
-              </View>
+              </Animated.View>
             ) : null
           }
           ListFooterComponent={
             loadingMore ? (
-              <ActivityIndicator style={styles.footerLoader} color={colors.textSecondary} />
+              <View style={styles.footerLoader}><LoadingSpinner /></View>
             ) : null
           }
           ListEmptyComponent={
-            <Text style={styles.emptyText}>No posts with this hashtag yet</Text>
+            <View style={styles.emptyContainer}>
+              <View style={styles.emptyIconCircle}>
+                <Ionicons name="pricetag-outline" size={32} color={colors.textSecondary} />
+              </View>
+              <Text style={styles.emptyTitle}>No posts with this hashtag</Text>
+              <Text style={styles.emptySubtitle}>Be the first to use #{name}</Text>
+            </View>
           }
         />
       )}
@@ -130,10 +154,23 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  skeletonContainer: {
+    flex: 1,
+  },
+  skeletonHeader: {
+    padding: spacing.lg,
+    alignItems: 'center',
+  },
+  skeletonGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 2,
+    padding: 1,
+  },
   header: {
     padding: spacing.lg,
     alignItems: 'center',
-    borderBottomWidth: 1,
+    borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.border,
     marginBottom: POST_GRID_GAP,
   },
@@ -167,16 +204,31 @@ const styles = StyleSheet.create({
     top: 6,
     right: 6,
   },
-  loader: {
-    marginTop: spacing.xxxl,
-  },
   footerLoader: {
     paddingVertical: spacing.lg,
   },
-  emptyText: {
-    textAlign: 'center',
-    color: colors.textSecondary,
+  emptyContainer: {
+    alignItems: 'center',
+    paddingVertical: spacing.xxxl,
+  },
+  emptyIconCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: colors.backgroundSecondary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
+  emptyTitle: {
+    fontSize: fontSize.lg,
+    fontFamily: typography.semiBold,
+    color: colors.text,
+  },
+  emptySubtitle: {
     fontSize: fontSize.md,
-    marginTop: spacing.xxxl,
+    fontFamily: typography.regular,
+    color: colors.textSecondary,
+    marginTop: spacing.xs,
   },
 });
