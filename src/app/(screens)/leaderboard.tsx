@@ -4,13 +4,13 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  TouchableOpacity,
   Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import Animated, { FadeInUp, FadeIn } from 'react-native-reanimated';
+import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { useLeaderboard } from '@/hooks/useLeaderboard';
 import { LeaderboardRow } from '@/components/leaderboard/LeaderboardRow';
 import { Skeleton } from '@/components/ui/Skeleton';
@@ -66,13 +66,13 @@ function TopThreeHeader({ entries, onPress }: { entries: LeaderboardEntry[]; onP
 
         return (
           <Animated.View key={entry.id} entering={FadeInUp.delay(animDelay).duration(500).springify()}>
-            <TouchableOpacity
+            <AnimatedPressable
               style={[styles.topCard, isFirst && styles.topCardFirst]}
               onPress={() => {
                 if (Platform.OS !== 'web') Haptics.selectionAsync();
                 onPress(entry.id);
               }}
-              activeOpacity={0.7}
+              scaleValue={0.95}
               accessibilityRole="button"
               accessibilityLabel={`${entry.username}, rank ${entry.rank}, ${entry.score} points`}
             >
@@ -96,7 +96,7 @@ function TopThreeHeader({ entries, onPress }: { entries: LeaderboardEntry[]; onP
               <Text style={[styles.topScore, { color: medalColors[medalIndex] }]}>
                 {entry.score} pts
               </Text>
-            </TouchableOpacity>
+            </AnimatedPressable>
           </Animated.View>
         );
       })}
@@ -124,11 +124,11 @@ export default function LeaderboardScreen() {
       {/* Period tabs */}
       <View style={styles.tabsContainer}>
         {PERIODS.map((p) => (
-          <TouchableOpacity
+          <AnimatedPressable
             key={p.key}
             style={[styles.tab, period === p.key && styles.tabActive]}
             onPress={() => handlePeriodChange(p.key)}
-            activeOpacity={0.7}
+            scaleValue={0.95}
             accessibilityRole="button"
             accessibilityLabel={`${p.label} leaderboard`}
             accessibilityState={{ selected: period === p.key }}
@@ -136,7 +136,7 @@ export default function LeaderboardScreen() {
             <Text style={[styles.tabText, period === p.key && styles.tabTextActive]}>
               {p.label}
             </Text>
-          </TouchableOpacity>
+          </AnimatedPressable>
         ))}
       </View>
 

@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
+  Pressable,
   StyleSheet,
   Platform,
 } from 'react-native';
@@ -14,6 +14,7 @@ import Animated, {
   withSequence,
   withSpring,
 } from 'react-native-reanimated';
+import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { showConfirm } from '@/utils/alert';
 import { Avatar } from '@/components/ui/Avatar';
 import { colors, fontSize, spacing, typography } from '@/lib/theme';
@@ -72,9 +73,8 @@ export function CommentItem({
 
   return (
     <View style={isReply ? styles.replyContainer : undefined}>
-      <TouchableOpacity
+      <Pressable
         onLongPress={handleLongPress}
-        activeOpacity={0.8}
         style={styles.container}
       >
         <Avatar
@@ -101,16 +101,16 @@ export function CommentItem({
               </Text>
             )}
             {!isReply && onReply && (
-              <TouchableOpacity onPress={() => {
+              <AnimatedPressable onPress={() => {
                 if (Platform.OS !== 'web') Haptics.selectionAsync();
                 onReply(comment.id, comment.user.username);
-              }}>
+              }} scaleValue={0.9}>
                 <Text style={styles.replyButton}>Reply</Text>
-              </TouchableOpacity>
+              </AnimatedPressable>
             )}
           </View>
         </View>
-        <TouchableOpacity onPress={handleLike} hitSlop={8} style={styles.likeButton}>
+        <AnimatedPressable onPress={handleLike} hitSlop={8} style={styles.likeButton} scaleValue={0.85}>
           <Animated.View style={likeButtonStyle}>
             <Ionicons
               name={comment.isLiked ? 'heart' : 'heart-outline'}
@@ -118,20 +118,24 @@ export function CommentItem({
               color={comment.isLiked ? colors.like : colors.textSecondary}
             />
           </Animated.View>
-        </TouchableOpacity>
-      </TouchableOpacity>
+        </AnimatedPressable>
+      </Pressable>
 
       {/* Replies section */}
       {showRepliesSection && !replies && onViewReplies && (
-        <TouchableOpacity
-          onPress={() => onViewReplies(comment.id)}
+        <AnimatedPressable
+          onPress={() => {
+            if (Platform.OS !== 'web') Haptics.selectionAsync();
+            onViewReplies(comment.id);
+          }}
           style={styles.viewRepliesButton}
+          scaleValue={0.97}
         >
           <View style={styles.repliesLine} />
           <Text style={styles.viewRepliesText}>
             View {repliesCount} {repliesCount === 1 ? 'reply' : 'replies'}
           </Text>
-        </TouchableOpacity>
+        </AnimatedPressable>
       )}
 
       {replies && replies.length > 0 && renderReply && (
