@@ -14,8 +14,8 @@ export default function IndexRoute() {
       // User is logged in, go to main app
       router.replace('/(tabs)');
     } else {
-      // User is not logged in, go to auth
-      router.replace('/(auth)/login');
+      // User is not logged in, show welcome onboarding
+      router.replace('/(auth)/welcome');
     }
   }, [session, loading]);
 

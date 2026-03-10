@@ -16,6 +16,8 @@ export function RemixButton({ onPress }: Props) {
         onPress();
       }}
       scaleValue={0.9}
+      accessibilityLabel="Remix this artwork"
+      accessibilityRole="button"
     >
       <Ionicons name="git-compare-outline" size={22} color={colors.text} />
     </AnimatedPressable>

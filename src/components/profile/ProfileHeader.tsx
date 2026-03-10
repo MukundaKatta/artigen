@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
+import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { HighlightCircle } from '@/components/profile/HighlightCircle';
 import { ActionSheet } from '@/components/ui/ActionSheet';
 import { InterestTags } from '@/components/profile/InterestTags';
@@ -137,15 +138,18 @@ export function ProfileHeader({
               onPress={onFollowPress}
               style={styles.followButton}
             />
-            <TouchableOpacity
+            <AnimatedPressable
               style={styles.moreButton}
               onPress={() => {
                 if (Platform.OS !== 'web') Haptics.selectionAsync();
                 setShowMoreSheet(true);
               }}
+              scaleValue={0.9}
+              accessibilityLabel="More options"
+              accessibilityRole="button"
             >
               <Ionicons name="ellipsis-horizontal" size={18} color={colors.text} />
-            </TouchableOpacity>
+            </AnimatedPressable>
           </View>
         )}
       </Animated.View>
@@ -203,17 +207,17 @@ function StatItem({
 
   if (onPress) {
     return (
-      <TouchableOpacity
+      <AnimatedPressable
         onPress={() => {
           if (Platform.OS !== 'web') Haptics.selectionAsync();
           onPress();
         }}
-        activeOpacity={0.6}
+        scaleValue={0.9}
         accessibilityRole="button"
         accessibilityLabel={`${formatNumber(value)} ${label}`}
       >
         {content}
-      </TouchableOpacity>
+      </AnimatedPressable>
     );
   }
 

@@ -16,6 +16,8 @@ export function TipButton({ onPress }: Props) {
         onPress();
       }}
       scaleValue={0.9}
+      accessibilityLabel="Send a tip"
+      accessibilityRole="button"
     >
       <Ionicons name="gift-outline" size={22} color={colors.text} />
     </AnimatedPressable>

@@ -23,6 +23,9 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
         router.push('/(screens)/challenge');
       }}
       scaleValue={0.97}
+      accessibilityLabel={`Daily Challenge: ${challenge.prompt_theme}`}
+      accessibilityRole="button"
+      accessibilityHint="Tap to join the daily challenge"
     >
       <LinearGradient
         colors={['#7C3AED', '#A855F7', '#C084FC'] as [string, string, ...string[]]}
