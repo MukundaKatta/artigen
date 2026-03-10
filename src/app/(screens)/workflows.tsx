@@ -117,6 +117,7 @@ export default function WorkflowsScreen() {
           onEndReachedThreshold={0.5}
           refreshing={loading}
           onRefresh={refresh}
+          removeClippedSubviews
           ListHeaderComponent={
             tab === 'mine' ? (
               <TouchableOpacity
