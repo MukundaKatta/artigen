@@ -55,8 +55,8 @@ export async function getPostInsights(postId: string): Promise<{ data: PostInsig
   const insights: PostInsights = {
     total_views: totalViews || 0,
     unique_viewers: uniqueViewers,
-    likes: (post as any)?.likes_count || 0,
-    comments: (post as any)?.comments_count || 0,
+    likes: post?.likes_count ?? 0,
+    comments: post?.comments_count ?? 0,
     saves: saves || 0,
     source_breakdown: sourceBreakdown,
   };

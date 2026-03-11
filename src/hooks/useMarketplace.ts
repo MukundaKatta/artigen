@@ -1,8 +1,10 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import * as marketplaceService from '@/services/marketplace.service';
 
+type MarketplaceListing = NonNullable<Awaited<ReturnType<typeof marketplaceService.getListing>>['data']>;
+
 export function useMarketplace(sellerId?: string) {
-  const [listings, setListings] = useState<any[]>([]);
+  const [listings, setListings] = useState<MarketplaceListing[]>([]);
   const [loading, setLoading] = useState(false);
 
   const fetchListings = useCallback(async () => {

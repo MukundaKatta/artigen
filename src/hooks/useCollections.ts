@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   getCollections,
   createCollection,
@@ -10,6 +10,13 @@ import type { Collection } from '@/types';
 export function useCollections(userId: string | undefined) {
   const [collections, setCollections] = useState<Collection[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
 
   const fetchCollections = useCallback(async () => {
     if (!userId) {
@@ -17,9 +24,17 @@ export function useCollections(userId: string | undefined) {
       return;
     }
     setLoading(true);
-    const { data } = await getCollections(userId);
-    setCollections(data);
-    setLoading(false);
+    setError(null);
+    try {
+      const { data } = await getCollections(userId);
+      if (!mountedRef.current) return;
+      setCollections(data);
+    } catch (err) {
+      if (!mountedRef.current) return;
+      setError(err instanceof Error ? err.message : 'Failed to load collections');
+    } finally {
+      if (mountedRef.current) setLoading(false);
+    }
   }, [userId]);
 
   const addCollection = useCallback(
@@ -58,6 +73,7 @@ export function useCollections(userId: string | undefined) {
   return {
     collections,
     loading,
+    error,
     addCollection,
     removeCollection,
     saveToCollection,

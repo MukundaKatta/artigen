@@ -55,6 +55,7 @@ export async function setReaction(userId: string, postId: string, reactionType: 
     .select()
     .single();
 
+  // Send notification in background with error handling
   if (!error) {
     supabase
       .from('posts')
@@ -62,10 +63,12 @@ export async function setReaction(userId: string, postId: string, reactionType: 
       .eq('id', postId)
       .single()
       .then(({ data: post }) => {
-        if (post && (post as any).user_id !== userId) {
-          createNotification({ type: 'like', senderId: userId, recipientId: (post as any).user_id, postId });
+        if (post && post.user_id !== userId) {
+          createNotification({ type: 'like', senderId: userId, recipientId: post.user_id, postId })
+            .catch((err) => console.warn('Failed to create reaction notification:', err));
         }
-      });
+      })
+      .catch((err) => console.warn('Failed to fetch post owner for notification:', err));
   }
 
   return { data, error };

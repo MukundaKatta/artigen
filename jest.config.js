@@ -26,8 +26,11 @@ module.exports = {
   collectCoverageFrom: [
     'src/utils/**/*.ts',
     'src/lib/**/*.ts',
+    'src/hooks/**/*.ts',
     'src/services/**/*.ts',
     '!src/**/*.d.ts',
+    '!src/lib/supabase.ts',
+    '!src/lib/storage*.ts',
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'text-summary', 'lcov'],

@@ -41,7 +41,7 @@ export async function getFeed(userId: string, page = 0) {
   if (error || !posts) return { data: [] as FeedPost[], error };
 
   // Step 3: Batch check likes and saves
-  const postIds = posts.map((p: any) => p.id as string);
+  const postIds = posts.map((p) => p.id);
 
   const [likesResult, savesResult] = await Promise.all([
     supabase
@@ -156,7 +156,7 @@ export async function createPost({
 
   if (postError || !post) return { data: null, error: postError };
 
-  const postId = (post as any).id as string;
+  const postId = post.id;
 
   // Upload media files and insert post_media rows
   const mediaInserts: PostMediaInsert[] = [];
@@ -273,7 +273,7 @@ export async function likePost(userId: string, postId: string) {
     .from('likes')
     .insert({ user_id: userId, post_id: postId });
 
-  // Create notification (fire-and-forget)
+  // Background notification with proper error handling
   if (!error) {
     supabase
       .from('posts')
@@ -281,10 +281,12 @@ export async function likePost(userId: string, postId: string) {
       .eq('id', postId)
       .single()
       .then(({ data: post }) => {
-        if (post && (post as any).user_id !== userId) {
-          createNotification({ type: 'like', senderId: userId, recipientId: (post as any).user_id, postId });
+        if (post && post.user_id !== userId) {
+          createNotification({ type: 'like', senderId: userId, recipientId: post.user_id, postId })
+            .catch((err) => console.warn('Failed to create like notification:', err));
         }
-      });
+      })
+      .catch((err) => console.warn('Failed to fetch post owner for notification:', err));
   }
 
   return { error };
@@ -363,7 +365,7 @@ export async function getReels(userId: string, page = 0) {
 
   if (error || !posts) return { data: [] as FeedPost[], error };
 
-  const reelIds = posts.map((p: any) => p.id as string);
+  const reelIds = posts.map((p) => p.id);
 
   const [likesResult, savesResult] = await Promise.all([
     supabase
@@ -378,8 +380,8 @@ export async function getReels(userId: string, page = 0) {
       .in('post_id', reelIds),
   ]);
 
-  const likedPostIds = new Set((likesResult.data || []).map((l: any) => l.post_id as string));
-  const savedPostIds = new Set((savesResult.data || []).map((s: any) => s.post_id as string));
+  const likedPostIds = new Set((likesResult.data || []).map((l) => l.post_id));
+  const savedPostIds = new Set((savesResult.data || []).map((s) => s.post_id));
 
   const feedPosts: FeedPost[] = (posts as unknown as PostWithUser[]).map(
     (post) => ({

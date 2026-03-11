@@ -88,3 +88,19 @@ export const SIDEBAR_COLLAPSED_WIDTH = 72;
 // Larger page sizes for web (more screen real estate)
 export const WEB_FEED_PAGE_SIZE = 20;
 export const WEB_EXPLORE_PAGE_SIZE = 50;
+
+// Remix page size (previously hardcoded in remix.service.ts)
+export const REMIX_PAGE_SIZE = 20;
+
+// Chat & messaging
+export const TYPING_INDICATOR_TIMEOUT_MS = 3000;
+export const SEARCH_DEBOUNCE_MS = 400;
+
+// Offline cache
+export const OFFLINE_CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
+
+// XP Level thresholds
+export const XP_LEVEL_THRESHOLDS = [0, 100, 250, 500, 1000, 2000, 4000, 8000, 16000, 32000] as const;
+
+// Pinned posts
+export const MAX_PINNED_POSTS = 3;
