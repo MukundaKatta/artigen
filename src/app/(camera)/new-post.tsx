@@ -290,8 +290,8 @@ export default function NewPostRoute() {
           style={styles.optionRow}
           onPress={() => setShowCaptionGen(true)}
         >
-          <Ionicons name="sparkles-outline" size={18} color="#8B5CF6" />
-          <Text style={[styles.optionLabel, { color: '#8B5CF6' }]}>Generate caption with AI</Text>
+          <Ionicons name="sparkles-outline" size={18} color={colors.accent} />
+          <Text style={[styles.optionLabel, { color: colors.accent }]}>Generate caption with AI</Text>
         </TouchableOpacity>
 
         <Controller
@@ -313,13 +313,13 @@ export default function NewPostRoute() {
         <View style={styles.aiSection}>
           <View style={styles.aiToggleRow}>
             <View style={styles.aiToggleLabel}>
-              <Ionicons name="sparkles" size={18} color="#8B5CF6" />
+              <Ionicons name="sparkles" size={18} color={colors.accent} />
               <Text style={styles.aiToggleText}>AI-Generated Content</Text>
             </View>
             <Switch
               value={isAiContent}
               onValueChange={setIsAiContent}
-              trackColor={{ true: '#8B5CF6', false: colors.border }}
+              trackColor={{ true: colors.accent, false: colors.border }}
               disabled={!!prefilledAi}
             />
           </View>

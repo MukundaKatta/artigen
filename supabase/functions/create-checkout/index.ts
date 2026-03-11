@@ -1,5 +1,11 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import {
+  corsHeaders,
+  jsonResponse,
+  requireAuth,
+  checkRateLimit,
+  rateLimitResponse,
+} from '../_shared/auth.ts';
 
 const CREDIT_PACKAGES: Record<string, { credits: number; price_cents: number; label: string }> = {
   starter: { credits: 2500,  price_cents: 200,  label: 'Starter Pack — 2,500 credits' },
@@ -8,34 +14,16 @@ const CREDIT_PACKAGES: Record<string, { credits: number; price_cents: number; la
   studio:  { credits: 37500, price_cents: 2500, label: 'Studio Pack — 37,500 credits' },
 };
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-function jsonResponse(body: Record<string, unknown>, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { 'Content-Type': 'application/json', ...corsHeaders },
-  });
-}
-
 serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   try {
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) return jsonResponse({ error: 'Missing authorization' }, 401);
+    const authResult = await requireAuth(req);
+    if (authResult instanceof Response) return authResult;
 
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_ANON_KEY')!,
-      { global: { headers: { Authorization: authHeader } } }
-    );
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) return jsonResponse({ error: 'Unauthorized' }, 401);
+    if (!checkRateLimit(authResult.userId, 'checkout', 10, 60)) {
+      return rateLimitResponse();
+    }
 
     const { package_id } = await req.json();
     const pkg = CREDIT_PACKAGES[package_id];
@@ -57,7 +45,7 @@ serve(async (req: Request) => {
       'mode': 'payment',
       'success_url': `${appUrl}/buy-credits?status=success&package=${package_id}`,
       'cancel_url': `${appUrl}/buy-credits?status=cancelled`,
-      'metadata[user_id]': user.id,
+      'metadata[user_id]': authResult.userId,
       'metadata[package_id]': package_id,
       'metadata[credits]': String(pkg.credits),
     });

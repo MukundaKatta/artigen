@@ -96,6 +96,9 @@ export type GenerateImageRequest = {
   cfg_scale?: number;
   seed?: number;
   scheduler?: string;
+  style_image_url?: string;
+  img2img_strength?: number;
+  num_outputs?: number;
 };
 
 export type GenerateImageResponse = {

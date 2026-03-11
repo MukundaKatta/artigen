@@ -13,6 +13,10 @@ export function LeaderboardList({ entries, onPress }: Props) {
     <FlatList
       data={entries}
       keyExtractor={item => item.id}
+      removeClippedSubviews={true}
+      maxToRenderPerBatch={10}
+      windowSize={5}
+      initialNumToRender={10}
       renderItem={({ item, index }) => (
         <Animated.View entering={FadeInRight.delay(Math.min(index, 10) * 40).duration(250)}>
           <AnimatedPressable

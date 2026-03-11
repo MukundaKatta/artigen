@@ -12,7 +12,7 @@ type Props = {
 
 const STICKER_OPTIONS: { type: StickerType; icon: string; label: string; color: string }[] = [
   { type: 'poll', icon: 'bar-chart', label: 'Poll', color: '#F59E0B' },
-  { type: 'quiz', icon: 'help-circle', label: 'Quiz', color: '#8B5CF6' },
+  { type: 'quiz', icon: 'help-circle', label: 'Quiz', color: colors.accent },
   { type: 'question', icon: 'chatbox-ellipses', label: 'Question', color: '#EC4899' },
   { type: 'emoji_slider', icon: 'happy', label: 'Emoji Slider', color: '#F97316' },
   { type: 'countdown', icon: 'timer', label: 'Countdown', color: '#EF4444' },

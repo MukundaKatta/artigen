@@ -1,20 +1,14 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import {
+  corsHeaders,
+  jsonResponse,
+  requireAuth,
+  checkRateLimit,
+  rateLimitResponse,
+} from '../_shared/auth.ts';
 
 const CREDITS_PER_CALL = 5;
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-function jsonResponse(body: Record<string, unknown>, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { 'Content-Type': 'application/json', ...corsHeaders },
-  });
-}
 
 type Task = 'enhance_prompt' | 'write_caption' | 'chat' | 'describe_to_prompt';
 type Provider = 'claude' | 'gpt4o' | 'gemini';
@@ -134,29 +128,48 @@ serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   try {
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) return jsonResponse({ error: 'Missing authorization' }, 401);
+    const authResult = await requireAuth(req);
+    if (authResult instanceof Response) return authResult;
 
+    // Rate limit: 30 text-AI calls per minute per user
+    if (!checkRateLimit(authResult.userId, 'text-ai', 30, 60)) {
+      return rateLimitResponse();
+    }
+
+    const authHeader = req.headers.get('Authorization')!;
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_ANON_KEY')!,
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) return jsonResponse({ error: 'Unauthorized' }, 401);
+    const body = await req.json();
+    const task = body.task as Task;
+    const provider = (body.provider || 'claude') as Provider;
+    const input = body.input as Record<string, unknown>;
 
-    const { task, provider = 'claude', input } = await req.json() as {
-      task: Task;
-      provider: Provider;
-      input: Record<string, unknown>;
-    };
+    const validTasks: Task[] = ['enhance_prompt', 'write_caption', 'chat', 'describe_to_prompt'];
+    const validProviders: Provider[] = ['claude', 'gpt4o', 'gemini'];
 
-    if (!task || !input) return jsonResponse({ error: 'task and input are required' }, 400);
+    if (!task || !validTasks.includes(task)) {
+      return jsonResponse({ error: `task must be one of: ${validTasks.join(', ')}` }, 400);
+    }
+    if (!validProviders.includes(provider)) {
+      return jsonResponse({ error: `provider must be one of: ${validProviders.join(', ')}` }, 400);
+    }
+    if (!input || typeof input !== 'object') {
+      return jsonResponse({ error: 'input object is required' }, 400);
+    }
+    if (task === 'chat' && (!Array.isArray(input.messages) || input.messages.length === 0)) {
+      return jsonResponse({ error: 'chat task requires non-empty messages array' }, 400);
+    }
+    if (task === 'chat' && (input.messages as unknown[]).length > 50) {
+      return jsonResponse({ error: 'messages array exceeds 50 message limit' }, 400);
+    }
 
     // Deduct credits before calling AI
     const { error: deductError } = await supabase.rpc('deduct_generation_credits', {
-      p_user_id: user.id,
+      p_user_id: authResult.userId,
       p_cost: CREDITS_PER_CALL,
     });
 
@@ -177,12 +190,12 @@ serve(async (req: Request) => {
       }
     } catch (genErr) {
       // Refund on failure
-      await supabase.rpc('refund_generation_credits', { p_user_id: user.id, p_cost: CREDITS_PER_CALL });
+      await supabase.rpc('refund_generation_credits', { p_user_id: authResult.userId, p_cost: CREDITS_PER_CALL });
       throw genErr;
     }
 
     // Log transaction
-    const { data: wallet } = await supabase.from('wallets').select('id').eq('user_id', user.id).maybeSingle();
+    const { data: wallet } = await supabase.from('wallets').select('id').eq('user_id', authResult.userId).maybeSingle();
     if (wallet) {
       await supabase.from('wallet_transactions').insert({
         wallet_id: wallet.id,
@@ -196,6 +209,6 @@ serve(async (req: Request) => {
 
     return jsonResponse({ result, credits_used: CREDITS_PER_CALL });
   } catch (err: any) {
-    return jsonResponse({ error: err.message || 'Internal server error' });
+    return jsonResponse({ error: 'Internal server error' }, 500);
   }
 });

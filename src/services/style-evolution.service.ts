@@ -22,14 +22,23 @@ export async function fetchStyleEvolution(userId: string): Promise<StyleEvolutio
   const sixMonthsAgo = new Date();
   sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
-  const { data: posts } = await supabase
-    .from('posts')
+  type PostRow = {
+    id: string;
+    created_at: string;
+    ai_style: string | null;
+    ai_model: string | null;
+    likes_count: number;
+    media: { media_url: string }[];
+  };
+
+  const { data: posts } = await (supabase
+    .from('posts') as any)
     .select('id, created_at, ai_style, ai_model, likes_count, media:post_media(media_url)')
     .eq('user_id', userId)
     .gte('created_at', sixMonthsAgo.toISOString())
     .order('created_at', { ascending: true });
 
-  const allPosts = posts || [];
+  const allPosts = (posts || []) as PostRow[];
   const monthlyData: Record<string, { styles: Record<string, number>; models: Record<string, number>; likes: number[]; topPost: { url: string; likes: number } | null }> = {};
 
   allPosts.forEach((post) => {

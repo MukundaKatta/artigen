@@ -44,6 +44,29 @@ serve(async (req: Request) => {
         Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
       );
 
+      // Idempotency check: prevent duplicate processing of same payment
+      const paymentId = payment.id;
+      if (paymentId) {
+        const { data: existing } = await supabase
+          .from('webhook_events')
+          .select('id')
+          .eq('id', paymentId)
+          .maybeSingle();
+
+        if (existing) {
+          return new Response(JSON.stringify({ status: 'ok', duplicate: true }), {
+            headers: { 'Content-Type': 'application/json' },
+          });
+        }
+
+        await supabase.from('webhook_events').insert({
+          id: paymentId,
+          event_type: event.event,
+          provider: 'razorpay',
+          payload: { user_id: userId, credits, package_id: packageId },
+        });
+      }
+
       await supabase.rpc('add_credits', {
         p_user_id: userId,
         p_amount: credits,
@@ -55,6 +78,6 @@ serve(async (req: Request) => {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (err: any) {
-    return new Response(err.message || 'Internal error', { status: 500 });
+    return new Response('Internal error', { status: 500 });
   }
 });

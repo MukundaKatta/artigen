@@ -31,6 +31,9 @@ export const MODEL_CREDITS: Record<string, number> = {
   'dall-e-3-standard': 40,
   'dall-e-3-hd': 80,
   'imagen-3': 25,
+  'imagen-4': 35,
+  'black-forest-labs/flux-2-schnell': 8,
+  'black-forest-labs/flux-2-dev': 40,
 };
 
 export const TEXT_AI_CREDITS = 5; // per call

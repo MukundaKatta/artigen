@@ -19,7 +19,13 @@ export function MusicPlayer({ audioUrl, title }: Props) {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity onPress={togglePlay} style={styles.playButton} activeOpacity={0.7}>
+      <TouchableOpacity
+        onPress={togglePlay}
+        style={styles.playButton}
+        activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel={isPlaying ? 'Pause music' : 'Play music'}
+      >
         <Ionicons
           name={isPlaying ? 'pause' : 'play'}
           size={20}

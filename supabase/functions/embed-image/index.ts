@@ -1,23 +1,32 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { corsHeaders, jsonResponse, createServiceClient, requireAuth } from '../_shared/auth.ts';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    );
+    const authResult = await requireAuth(req);
+    if (authResult instanceof Response) return authResult;
 
+    const supabase = createServiceClient();
     const { post_id, image_url } = await req.json();
 
-    if (!post_id || !image_url) {
-      return new Response(JSON.stringify({ error: 'post_id and image_url required' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    if (!post_id || typeof post_id !== 'string') {
+      return jsonResponse({ error: 'post_id is required' }, 400);
+    }
+    if (!image_url || typeof image_url !== 'string') {
+      return jsonResponse({ error: 'image_url is required' }, 400);
+    }
+
+    // Verify the post belongs to the authenticated user
+    const { data: post } = await supabase
+      .from('posts')
+      .select('id')
+      .eq('id', post_id)
+      .eq('user_id', authResult.userId)
+      .single();
+
+    if (!post) {
+      return jsonResponse({ error: 'Post not found or not owned by user' }, 403);
     }
 
     // Call CLIP API to get embedding (placeholder — replace with actual CLIP endpoint)
@@ -39,7 +48,7 @@ Deno.serve(async (req) => {
         model_version: 'placeholder',
       }, { onConflict: 'post_id' });
 
-      return new Response(JSON.stringify({ success: true, placeholder: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      return jsonResponse({ success: true, placeholder: true });
     }
 
     const { embedding } = await embedResponse.json();
@@ -50,8 +59,8 @@ Deno.serve(async (req) => {
       model_version: 'clip-vit-b-32',
     }, { onConflict: 'post_id' });
 
-    return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    return jsonResponse({ success: true });
   } catch (err) {
-    return new Response(JSON.stringify({ error: (err as Error).message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    return jsonResponse({ error: 'Internal server error' }, 500);
   }
 });

@@ -7,6 +7,7 @@ import { getCollectionPosts } from '@/services/collection.service';
 import { getLocation } from '@/services/location.service';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
 import { POST_GRID_SIZE, POST_GRID_GAP } from '@/lib/constants';
+import { sortMediaByOrder } from '@/utils/media';
 
 export default function CollectionDetailRoute() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -32,7 +33,7 @@ export default function CollectionDetailRoute() {
         numColumns={3}
         renderItem={({ item }) => {
           const post = (item as any).posts;
-          const media = (post?.media || []).sort((a: any, b: any) => a.sort_order - b.sort_order);
+          const media = sortMediaByOrder(post?.media);
           const firstMedia = media[0];
           return (
             <TouchableOpacity

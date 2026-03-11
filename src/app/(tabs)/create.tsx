@@ -94,7 +94,7 @@ export default function CreateRoute() {
       title: 'Generate with AI',
       subtitle: 'Create images from text prompts',
       onPress: () => router.push('/(camera)/generate'),
-      gradient: ['#8B5CF6', '#6D28D9'],
+      gradient: [colors.accent, colors.accentDark],
     },
     {
       icon: 'cloud-upload-outline',

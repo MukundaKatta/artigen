@@ -46,16 +46,26 @@ export async function fetchWrappedStats(userId: string, year: number): Promise<W
   const startDate = `${year}-01-01T00:00:00Z`;
   const endDate = `${year + 1}-01-01T00:00:00Z`;
 
+  type PostRow = {
+    id: string;
+    created_at: string;
+    likes_count: number;
+    views_count: number;
+    ai_model: string | null;
+    ai_style: string | null;
+    media: { media_url: string }[];
+  };
+
   // Fetch posts for the year
-  const { data: posts } = await supabase
-    .from('posts')
+  const { data: posts } = await (supabase
+    .from('posts') as any)
     .select('id, created_at, likes_count, views_count, ai_model, ai_style, media:post_media(media_url)')
     .eq('user_id', userId)
     .gte('created_at', startDate)
     .lt('created_at', endDate)
     .order('likes_count', { ascending: false });
 
-  const allPosts = posts || [];
+  const allPosts = (posts || []) as PostRow[];
   const totalPosts = allPosts.length;
   const totalLikes = allPosts.reduce((sum, p) => sum + (p.likes_count || 0), 0);
   const totalViews = allPosts.reduce((sum, p) => sum + (p.views_count || 0), 0);
@@ -123,8 +133,8 @@ export async function fetchWrappedStats(userId: string, year: number): Promise<W
     .lt('joined_at', endDate);
 
   // Fetch streak data
-  const { data: streakData } = await supabase
-    .from('streaks')
+  const { data: streakData } = await (supabase
+    .from('streaks') as any)
     .select('longest_streak')
     .eq('user_id', userId)
     .single();

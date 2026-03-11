@@ -10,7 +10,7 @@ type Props = {
   totalCount: number;
 };
 
-export function ReactionSummary({ summary, totalCount }: Props) {
+export const ReactionSummary = React.memo(function ReactionSummary({ summary, totalCount }: Props) {
   if (totalCount === 0 || summary.length === 0) return null;
 
   const top3 = summary.slice(0, 3);
@@ -29,7 +29,7 @@ export function ReactionSummary({ summary, totalCount }: Props) {
       </Text>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {

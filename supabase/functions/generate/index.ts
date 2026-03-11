@@ -1,5 +1,12 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import {
+  corsHeaders,
+  jsonResponse,
+  requireAuth,
+  checkRateLimit,
+  rateLimitResponse,
+} from '../_shared/auth.ts';
 
 const REPLICATE_API_URL = 'https://api.replicate.com/v1/predictions';
 const HF_INFERENCE_URL = 'https://api-inference.huggingface.co/models';
@@ -17,6 +24,9 @@ const MODEL_CREDITS: Record<string, number> = {
   'dall-e-3-standard': 40,
   'dall-e-3-hd': 80,
   'imagen-3': 25,
+  'imagen-4': 35,
+  'black-forest-labs/flux-2-schnell': 8,
+  'black-forest-labs/flux-2-dev': 40,
 };
 
 const REPLICATE_MODELS: Record<string, { version: string; name: string }> = {
@@ -27,6 +37,8 @@ const REPLICATE_MODELS: Record<string, { version: string; name: string }> = {
     name: 'SDXL 1.0',
   },
   'stability-ai/stable-diffusion-3': { version: 'latest', name: 'Stable Diffusion 3' },
+  'black-forest-labs/flux-2-schnell': { version: 'latest', name: 'FLUX.2 Schnell' },
+  'black-forest-labs/flux-2-dev': { version: 'latest', name: 'FLUX.2 Dev' },
 };
 
 const HF_MODELS: Record<string, { name: string }> = {
@@ -35,19 +47,6 @@ const HF_MODELS: Record<string, { name: string }> = {
   'stabilityai/stable-diffusion-2-1': { name: 'Stable Diffusion 2.1' },
   'black-forest-labs/FLUX.1-schnell': { name: 'Flux Schnell' },
 };
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-function jsonResponse(body: Record<string, unknown>, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { 'Content-Type': 'application/json', ...corsHeaders },
-  });
-}
 
 // ── Hugging Face ──────────────────────────────────────────────
 async function generateWithHuggingFace(
@@ -97,7 +96,8 @@ async function generateWithHuggingFace(
 async function generateWithReplicate(
   modelId: string, prompt: string, negativePrompt?: string,
   width?: number, height?: number, steps?: number, cfgScale?: number,
-  seed?: number, scheduler?: string,
+  seed?: number, scheduler?: string, styleImageUrl?: string,
+  img2imgStrength?: number, numOutputs?: number,
 ) {
   const replicateToken = Deno.env.get('REPLICATE_API_TOKEN');
   if (!replicateToken) throw new Error('Replicate API token not configured');
@@ -112,6 +112,11 @@ async function generateWithReplicate(
   if (cfgScale) input.guidance_scale = cfgScale;
   if (seed) input.seed = seed;
   if (scheduler) input.scheduler = scheduler;
+  if (styleImageUrl) {
+    input.image = styleImageUrl;
+    input.prompt_strength = img2imgStrength ?? 0.65;
+  }
+  if (numOutputs && numOutputs > 1) input.num_outputs = numOutputs;
 
   const startTime = Date.now();
   let replicateUrl: string;
@@ -143,16 +148,17 @@ async function generateWithReplicate(
 
   if (prediction.status === 'failed') throw new Error(prediction.error || 'Generation failed');
   const output = prediction.output;
-  const imageUrl = Array.isArray(output) ? output[0] : typeof output === 'string' ? output : null;
-  if (!imageUrl) throw new Error('Unexpected output format');
+  const imageUrls = Array.isArray(output) ? output : typeof output === 'string' ? [output] : [];
+  if (imageUrls.length === 0) throw new Error('Unexpected output format');
 
   return {
-    image_url: imageUrl,
+    image_url: imageUrls[0],
+    ...(imageUrls.length > 1 ? { image_urls: imageUrls } : {}),
     prediction_id: prediction.id,
     generation_time_ms: Date.now() - startTime,
     model_id: modelId,
     model_name: model.name,
-    settings: { steps, cfg_scale: cfgScale, seed, width, height, scheduler },
+    settings: { steps, cfg_scale: cfgScale, seed, width, height, scheduler, num_outputs: numOutputs },
   };
 }
 
@@ -239,35 +245,147 @@ async function generateWithImagen(prompt: string, width?: number, height?: numbe
   };
 }
 
+// ── Gemini Imagen 4 ───────────────────────────────────────────
+async function generateWithImagen4(prompt: string, width?: number, height?: number) {
+  const apiKey = Deno.env.get('GOOGLE_AI_API_KEY');
+  if (!apiKey) throw new Error('Google AI API key not configured');
+
+  const aspectRatio = (() => {
+    if (!width || !height) return '1:1';
+    const r = width / height;
+    if (r > 1.4) return '16:9';
+    if (r < 0.75) return '9:16';
+    if (r > 1.1) return '4:3';
+    if (r < 0.9) return '3:4';
+    return '1:1';
+  })();
+
+  const startTime = Date.now();
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ instances: [{ prompt }], parameters: { sampleCount: 1, aspectRatio } }),
+    }
+  );
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error?.message || `Imagen 4 API error: ${res.status}`);
+  }
+
+  const data = await res.json();
+  const b64 = data.predictions?.[0]?.bytesBase64Encoded;
+  if (!b64) throw new Error('No image returned by Imagen 4');
+
+  return {
+    image_url: `data:image/png;base64,${b64}`,
+    prediction_id: `imagen4_${Date.now()}`,
+    generation_time_ms: Date.now() - startTime,
+    model_id: 'imagen-4',
+    model_name: 'Imagen 4',
+    settings: { aspectRatio, width, height },
+  };
+}
+
 // ── Main Handler ──────────────────────────────────────────────
 serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   try {
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) return jsonResponse({ error: 'Missing authorization' }, 401);
+    const authResult = await requireAuth(req);
+    if (authResult instanceof Response) return authResult;
 
+    // Rate limit: 20 generations per minute per user
+    if (!checkRateLimit(authResult.userId, 'generate', 20, 60)) {
+      return rateLimitResponse();
+    }
+
+    const authHeader = req.headers.get('Authorization')!;
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_ANON_KEY')!,
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-    if (authError || !user) return jsonResponse({ error: 'Unauthorized' }, 401);
+    const body = await req.json();
+    const model_id = body.model_id;
+    const provider = body.provider || 'replicate';
+    const prompt = body.prompt;
+    const negative_prompt = body.negative_prompt;
+    const width = body.width;
+    const height = body.height;
+    const steps = body.steps;
+    const cfg_scale = body.cfg_scale;
+    const seed = body.seed;
+    const scheduler = body.scheduler;
+    const style_image_url = body.style_image_url;
+    const img2img_strength = body.img2img_strength;
+    const num_outputs = body.num_outputs;
 
-    const {
-      model_id, provider = 'replicate', prompt, negative_prompt,
-      width, height, steps, cfg_scale, seed, scheduler,
-    } = await req.json();
+    if (!model_id || typeof model_id !== 'string') return jsonResponse({ error: 'model_id is required' }, 400);
+    if (!prompt || typeof prompt !== 'string') return jsonResponse({ error: 'prompt is required' }, 400);
+    if (prompt.length > 4000) return jsonResponse({ error: 'prompt exceeds 4000 character limit' }, 400);
+    if (!['replicate', 'huggingface', 'openai', 'gemini'].includes(provider)) {
+      return jsonResponse({ error: 'Invalid provider' }, 400);
+    }
+    if (width != null && (typeof width !== 'number' || width < 256 || width > 2048)) {
+      return jsonResponse({ error: 'width must be between 256 and 2048' }, 400);
+    }
+    if (height != null && (typeof height !== 'number' || height < 256 || height > 2048)) {
+      return jsonResponse({ error: 'height must be between 256 and 2048' }, 400);
+    }
+    if (steps != null && (typeof steps !== 'number' || steps < 1 || steps > 100)) {
+      return jsonResponse({ error: 'steps must be between 1 and 100' }, 400);
+    }
+    if (cfg_scale != null && (typeof cfg_scale !== 'number' || cfg_scale < 0 || cfg_scale > 30)) {
+      return jsonResponse({ error: 'cfg_scale must be between 0 and 30' }, 400);
+    }
+    if (num_outputs != null && (typeof num_outputs !== 'number' || num_outputs < 1 || num_outputs > 4)) {
+      return jsonResponse({ error: 'num_outputs must be between 1 and 4' }, 400);
+    }
+    if (img2img_strength != null && (typeof img2img_strength !== 'number' || img2img_strength < 0.1 || img2img_strength > 1)) {
+      return jsonResponse({ error: 'img2img_strength must be between 0.1 and 1' }, 400);
+    }
 
-    if (!model_id || !prompt) return jsonResponse({ error: 'model_id and prompt are required' }, 400);
+    // Validate style_image_url if provided (prevent SSRF)
+    if (style_image_url) {
+      if (typeof style_image_url !== 'string' || !style_image_url.startsWith('https://')) {
+        return jsonResponse({ error: 'style_image_url must use HTTPS' }, 400);
+      }
+      const STYLE_URL_ALLOWED_DOMAINS = [
+        'supabase.co',
+        'supabase.in',
+        'replicate.delivery',
+        'replicate.com',
+        'pbxt.replicate.delivery',
+        'oaidalleapiprodscus.blob.core.windows.net',
+        'githubusercontent.com',
+        'cloudflare.com',
+        'firebasestorage.googleapis.com',
+      ];
+      try {
+        const parsedUrl = new URL(style_image_url);
+        const hostname = parsedUrl.hostname;
+        if (/^(localhost|127\.|10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|0\.|::1|fc|fd|fe80)/i.test(hostname)) {
+          return jsonResponse({ error: 'Internal URLs are not allowed' }, 400);
+        }
+        const domainAllowed = STYLE_URL_ALLOWED_DOMAINS.some(d => hostname === d || hostname.endsWith('.' + d));
+        if (!domainAllowed) {
+          return jsonResponse({ error: 'style_image_url domain not allowed' }, 400);
+        }
+      } catch {
+        return jsonResponse({ error: 'Invalid style_image_url' }, 400);
+      }
+    }
 
     // Deduct credits for paid models
-    const creditCost = MODEL_CREDITS[model_id] ?? 10;
+    const baseCreditCost = MODEL_CREDITS[model_id] ?? 10;
+    const creditCost = baseCreditCost * (num_outputs ?? 1);
     if (creditCost > 0) {
       const { error: deductErr } = await supabaseClient.rpc('deduct_generation_credits', {
-        p_user_id: user.id,
+        p_user_id: authResult.userId,
         p_cost: creditCost,
       });
       if (deductErr) {
@@ -285,20 +403,22 @@ serve(async (req: Request) => {
       } else if (provider === 'openai') {
         result = await generateWithDallE(model_id, prompt, width, height);
       } else if (provider === 'gemini') {
-        result = await generateWithImagen(prompt, width, height);
+        result = model_id === 'imagen-4'
+          ? await generateWithImagen4(prompt, width, height)
+          : await generateWithImagen(prompt, width, height);
       } else {
-        result = await generateWithReplicate(model_id, prompt, negative_prompt, width, height, steps, cfg_scale, seed, scheduler);
+        result = await generateWithReplicate(model_id, prompt, negative_prompt, width, height, steps, cfg_scale, seed, scheduler, style_image_url, img2img_strength, num_outputs);
       }
     } catch (genErr: any) {
       if (creditCost > 0) {
-        await supabaseClient.rpc('refund_generation_credits', { p_user_id: user.id, p_cost: creditCost });
+        await supabaseClient.rpc('refund_generation_credits', { p_user_id: authResult.userId, p_cost: creditCost });
       }
       throw genErr;
     }
 
     // Log credit deduction
     if (creditCost > 0) {
-      const { data: wallet } = await supabaseClient.from('wallets').select('id').eq('user_id', user.id).maybeSingle();
+      const { data: wallet } = await supabaseClient.from('wallets').select('id').eq('user_id', authResult.userId).maybeSingle();
       if (wallet) {
         await supabaseClient.from('wallet_transactions').insert({
           wallet_id: wallet.id,
@@ -313,6 +433,6 @@ serve(async (req: Request) => {
 
     return jsonResponse(result);
   } catch (err: any) {
-    return jsonResponse({ error: err.message || 'Internal server error' });
+    return jsonResponse({ error: 'Internal server error' }, 500);
   }
 });

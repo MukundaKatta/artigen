@@ -23,7 +23,7 @@ type Props = {
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: string }> = {
   waiting: { label: 'WAITING', color: colors.warning, icon: 'hourglass-outline' },
   active: { label: 'LIVE', color: colors.error, icon: 'flash' },
-  voting: { label: 'VOTING', color: '#8B5CF6', icon: 'thumbs-up-outline' },
+  voting: { label: 'VOTING', color: colors.accent, icon: 'thumbs-up-outline' },
   completed: { label: 'DONE', color: colors.success, icon: 'checkmark-circle-outline' },
 };
 
@@ -54,7 +54,7 @@ function PulseBadge({ config }: { config: { label: string; color: string; icon: 
   );
 }
 
-export function BattleCard({ battle }: Props) {
+export const BattleCard = React.memo(function BattleCard({ battle }: Props) {
   const router = useRouter();
   const config = STATUS_CONFIG[battle.status] || STATUS_CONFIG.waiting;
 
@@ -113,7 +113,7 @@ export function BattleCard({ battle }: Props) {
       </View>
     </AnimatedPressable>
   );
-}
+});
 
 const styles = StyleSheet.create({
   card: {

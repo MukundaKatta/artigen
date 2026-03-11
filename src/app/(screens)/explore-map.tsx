@@ -15,8 +15,9 @@ export default function ExploreMapRoute() {
     // Default to showing popular locations (no coords)
     getNearbyLocations(0, 0, 99999).then(({ data }) => {
       setLocations(data);
-      setLoading(false);
-    });
+    }).catch((err) => {
+      console.warn('Failed to load locations:', err);
+    }).finally(() => setLoading(false));
   }, []);
 
   return (

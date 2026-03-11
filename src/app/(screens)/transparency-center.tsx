@@ -29,6 +29,9 @@ export default function TransparencyCenterScreen() {
       .then(({ data }) => {
         setRecords(data as any[]);
       })
+      .catch((err) => {
+        console.warn('Failed to load provenance records:', err);
+      })
       .finally(() => setLoading(false));
   }, [enabled, user]);
 

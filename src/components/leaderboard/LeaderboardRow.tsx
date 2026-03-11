@@ -17,7 +17,7 @@ function getRankStyle(rank: number) {
   return { color: colors.textSecondary, label: `${rank}` };
 }
 
-export function LeaderboardRow({ entry, onPress }: Props) {
+export const LeaderboardRow = React.memo(function LeaderboardRow({ entry, onPress }: Props) {
   const rankInfo = getRankStyle(entry.rank);
   const isTopThree = entry.rank <= 3;
 
@@ -63,7 +63,7 @@ export function LeaderboardRow({ entry, onPress }: Props) {
       </View>
     </TouchableOpacity>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {

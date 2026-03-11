@@ -14,8 +14,9 @@ export function useFollow(currentUserId: string | undefined, targetUserId: strin
 
     checkIsFollowing(currentUserId, targetUserId).then(({ isFollowing }) => {
       setIsFollowing(isFollowing);
-      setLoading(false);
-    });
+    }).catch((err) => {
+      console.warn('Failed to check follow status:', err);
+    }).finally(() => setLoading(false));
   }, [currentUserId, targetUserId]);
 
   const toggleFollow = useCallback(async () => {

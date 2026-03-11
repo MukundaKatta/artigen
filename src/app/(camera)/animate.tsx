@@ -17,7 +17,7 @@ export default function AnimateRoute() {
   return (
     <ScrollView style={styles.container}>
       <Stack.Screen options={{ title: 'Animate' }} />
-      <AnimationPreview sourceUrl={imageUrl || ''} resultUrl={job?.result_video_url || null} />
+      <AnimationPreview sourceUrl={imageUrl || ''} resultUrl={job?.result_video_url ?? undefined} />
       <Text style={styles.sectionTitle}>Animation Type</Text>
       <AnimationTypePicker selected={animationType} onSelect={(t: string) => setAnimationType(t as typeof animationType)} />
       <View style={styles.buttonRow}>

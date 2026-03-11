@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
+import { sortMediaByOrder } from '@/utils/media';
 
 type Props = {
   posts: any[];
@@ -35,8 +36,9 @@ export function ScheduledPostsList({ posts, onCancel, onPublish }: Props) {
     <FlatList
       data={posts}
       keyExtractor={(item) => item.id}
+      removeClippedSubviews={true}
       renderItem={({ item }) => {
-        const media = (item.media || []).sort((a: any, b: any) => a.sort_order - b.sort_order);
+        const media = sortMediaByOrder(item.media);
         const firstMedia = media[0];
 
         return (

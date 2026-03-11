@@ -35,7 +35,7 @@ type Props = {
   renderReply?: (reply: CommentWithUser) => React.ReactNode;
 };
 
-export function CommentItem({
+export const CommentItem = React.memo(function CommentItem({
   comment,
   currentUserId,
   onUserPress,
@@ -145,7 +145,7 @@ export function CommentItem({
       )}
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {

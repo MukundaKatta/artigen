@@ -111,6 +111,8 @@ export default function ScreensLayout() {
       <Stack.Screen name="art-genetics" options={{ title: 'Art Genetics' }} />
       <Stack.Screen name="buy-credits" options={{ title: 'Buy AI Credits' }} />
       <Stack.Screen name="ai-assistant" options={{ title: 'AI Assistant' }} />
+      <Stack.Screen name="generation-history" options={{ title: 'Generation History' }} />
+      <Stack.Screen name="earn-credits" options={{ title: 'Earn Credits' }} />
     </Stack>
   );
 }

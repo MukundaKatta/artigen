@@ -80,7 +80,7 @@ export function useVoiceRecorder() {
       if (recordingRef.current) {
         recordingRef.current
           .stopAndUnloadAsync()
-          .catch(() => {});
+          .catch((err) => console.warn('Failed to stop recording:', err));
         recordingRef.current = null;
       }
     };

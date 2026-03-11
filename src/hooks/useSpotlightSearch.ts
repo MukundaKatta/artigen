@@ -58,20 +58,21 @@ export function useSpotlightSearch() {
     );
 
     // Search users
-    const { data: users } = await supabase
-      .from('profiles')
+    type ProfileRow = { id: string; username: string; display_name: string | null; avatar_url: string | null };
+    const { data: users } = await (supabase
+      .from('profiles') as any)
       .select('id, username, display_name, avatar_url')
       .or(`username.ilike.%${searchQuery}%,display_name.ilike.%${searchQuery}%`)
       .limit(5);
 
-    const userResults: SpotlightResult[] = (users || []).map((u) => ({
+    const userResults: SpotlightResult[] = ((users || []) as ProfileRow[]).map((u) => ({
       id: `user-${u.id}`,
       type: 'user' as const,
       title: u.display_name || u.username,
       subtitle: `@${u.username}`,
       icon: 'person',
       route: `/(screens)/user/${u.id}`,
-      imageUrl: u.avatar_url,
+      imageUrl: u.avatar_url || undefined,
     }));
 
     // Search communities

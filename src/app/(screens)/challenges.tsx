@@ -43,8 +43,9 @@ export default function ChallengesRoute() {
     ]).then(([activeRes, allRes]) => {
       setActive(activeRes.data);
       setChallenges(allRes.data || []);
-      setLoading(false);
-    });
+    }).catch((err) => {
+      console.warn('Failed to load challenges:', err);
+    }).finally(() => setLoading(false));
   }, []);
 
   if (loading) {

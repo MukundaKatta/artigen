@@ -22,7 +22,7 @@ import { Button } from '@/components/ui/Button';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
 
 const ACCENT_COLORS = [
-  '#0095F6', '#EF4444', '#F59E0B', '#22C55E', '#8B5CF6',
+  '#0095F6', '#EF4444', '#F59E0B', '#22C55E', colors.accent,
   '#EC4899', '#06B6D4', '#F97316', '#6366F1', '#14B8A6',
 ];
 

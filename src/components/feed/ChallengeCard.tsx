@@ -12,7 +12,7 @@ type ChallengeCardProps = {
   challenge: DailyChallenge;
 };
 
-export function ChallengeCard({ challenge }: ChallengeCardProps) {
+export const ChallengeCard = React.memo(function ChallengeCard({ challenge }: ChallengeCardProps) {
   const router = useRouter();
 
   return (
@@ -66,7 +66,7 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
       </LinearGradient>
     </AnimatedPressable>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {

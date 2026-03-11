@@ -59,10 +59,12 @@ export function ProfileHeader({
   const accentColor = profileTheme?.accent_color;
 
   useEffect(() => {
-    getHighlights(profile.id).then(({ data }) => setHighlights(data as HighlightWithStories[]));
-    getTopFriends(profile.id).then(({ data }) => {
-      if (data) setTopFriends(data || []);
-    });
+    getHighlights(profile.id)
+      .then(({ data }) => setHighlights(data as HighlightWithStories[]))
+      .catch((err) => console.warn('Failed to load highlights:', err));
+    getTopFriends(profile.id)
+      .then(({ data }) => { if (data) setTopFriends(data || []); })
+      .catch((err) => console.warn('Failed to load top friends:', err));
   }, [profile.id]);
 
   return (

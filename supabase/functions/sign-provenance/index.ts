@@ -47,10 +47,11 @@ Deno.serve(async (req) => {
     // Proper HMAC signature
     const signingKey = Deno.env.get('PROVENANCE_SIGNING_KEY');
     if (!signingKey || signingKey === 'default-dev-key') {
-      console.warn('PROVENANCE_SIGNING_KEY not set — signatures are not production-grade');
+      console.warn('PROVENANCE_SIGNING_KEY not set or insecure — refusing to sign');
+      return jsonResponse({ error: 'Provenance signing is not configured' }, 500);
     }
     const signatureData = `${contentHash}:${author_id}:${post_id}`;
-    const signature = await hmacSign(signatureData, signingKey || 'default-dev-key');
+    const signature = await hmacSign(signatureData, signingKey);
 
     const c2paManifest = {
       claim_generator: 'artigen/1.0',

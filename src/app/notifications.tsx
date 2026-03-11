@@ -29,7 +29,7 @@ function getNotificationIcon(type: string): { name: string; color: string } {
       return { name: 'chatbubble', color: colors.primary };
     case 'follow':
     case 'follow_request':
-      return { name: 'person-add', color: '#8B5CF6' };
+      return { name: 'person-add', color: colors.accent };
     case 'story_reply':
       return { name: 'albums', color: '#F59E0B' };
     case 'collab_invite':

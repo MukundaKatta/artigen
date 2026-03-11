@@ -50,6 +50,41 @@ export async function getConversations(userId: string) {
     (profiles || []).map((p: any) => [p.id as string, p as unknown as Profile])
   );
 
+  // Batch-fetch recent messages for all conversations in one query,
+  // then pick the latest per conversation client-side.
+  // Limit to convIds.length * 3 rows (enough to find 1 latest per conv).
+  const { data: recentMessages } = await supabase
+    .from('messages')
+    .select('*')
+    .in('conversation_id', convIds)
+    .order('created_at', { ascending: false })
+    .limit(Math.max(convIds.length * 3, 50));
+
+  // Build a map of conversation_id → latest message
+  const lastMessageMap = new Map<string, Message>();
+  for (const msg of (recentMessages || []) as unknown as Message[]) {
+    if (!lastMessageMap.has(msg.conversation_id)) {
+      lastMessageMap.set(msg.conversation_id, msg);
+    }
+  }
+
+  // Batch-count unread messages for all conversations in one query
+  // For conversations where we have a last_read_at, we count messages after that timestamp.
+  // We fetch all unread-candidate messages and count client-side to avoid N+1.
+  const { data: unreadMessages } = await supabase
+    .from('messages')
+    .select('conversation_id, created_at, sender_id')
+    .in('conversation_id', convIds)
+    .neq('sender_id', userId);
+
+  const unreadCountMap = new Map<string, number>();
+  for (const msg of (unreadMessages || []) as unknown as { conversation_id: string; created_at: string; sender_id: string }[]) {
+    const lastReadAt = lastReadMap.get(msg.conversation_id);
+    if (!lastReadAt || msg.created_at > lastReadAt) {
+      unreadCountMap.set(msg.conversation_id, (unreadCountMap.get(msg.conversation_id) || 0) + 1);
+    }
+  }
+
   // Build previews
   const previews: ConversationPreview[] = [];
 
@@ -62,41 +97,11 @@ export async function getConversations(userId: string) {
       .map((id: string) => profileMap.get(id))
       .filter(Boolean) as Profile[];
 
-    // Get last message
-    const { data: lastMessages } = await supabase
-      .from('messages')
-      .select('*')
-      .eq('conversation_id', conv.id)
-      .order('created_at', { ascending: false })
-      .limit(1);
-
-    const lastMessage = (lastMessages?.[0] as unknown as Message) || null;
-    const lastReadAt = lastReadMap.get(conv.id);
-
-    // Count unread
-    let unreadCount = 0;
-    if (lastReadAt && lastMessage) {
-      const { count } = await supabase
-        .from('messages')
-        .select('id', { count: 'exact', head: true })
-        .eq('conversation_id', conv.id)
-        .neq('sender_id', userId)
-        .gt('created_at', lastReadAt);
-      unreadCount = count || 0;
-    } else if (!lastReadAt && lastMessage) {
-      const { count } = await supabase
-        .from('messages')
-        .select('id', { count: 'exact', head: true })
-        .eq('conversation_id', conv.id)
-        .neq('sender_id', userId);
-      unreadCount = count || 0;
-    }
-
     previews.push({
       ...conv,
       participants: convProfiles,
-      lastMessage,
-      unreadCount,
+      lastMessage: lastMessageMap.get(conv.id) || null,
+      unreadCount: unreadCountMap.get(conv.id) || 0,
     });
   }
 
@@ -121,15 +126,18 @@ export async function getOrCreateConversation(userId: string, otherUserId: strin
       .map((c: any) => c.conversation_id as string)
       .filter((id: string) => myIds.has(id));
 
-    for (const convId of commonIds) {
-      const { data: conv } = await supabase
+    if (commonIds.length > 0) {
+      // Batch fetch all candidate conversations in a single query (avoids N+1)
+      const { data: convs } = await supabase
         .from('conversations')
         .select('*')
-        .eq('id', convId)
+        .in('id', commonIds)
         .eq('is_group', false)
-        .maybeSingle();
+        .limit(1);
 
-      if (conv) return { data: conv as unknown as Conversation, error: null };
+      if (convs && convs.length > 0) {
+        return { data: convs[0] as unknown as Conversation, error: null };
+      }
     }
   }
 

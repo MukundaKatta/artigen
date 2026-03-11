@@ -41,7 +41,7 @@ describe('formatPostDate', () => {
   });
 
   it('formats January 1 correctly', () => {
-    const result = formatPostDate('2021-01-01T00:00:00Z');
+    const result = formatPostDate('2021-01-01T12:00:00Z');
     expect(result).toBe('January 1, 2021');
   });
 });

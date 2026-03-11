@@ -1,11 +1,10 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback } from 'react';
 import * as musicService from '@/services/music.service';
+import { useJobPolling } from '@/hooks/useJobPolling';
 
 export function useAiMusic(userId?: string) {
-  const [job, setJob] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
   const [mood, setMood] = useState<string | null>(null);
-  const pollRef = useRef<ReturnType<typeof setInterval>>();
+  const { job, loading, setLoading, startPolling } = useJobPolling(musicService.getMusicJob);
 
   const generate = useCallback(
     async (params: { prompt?: string; mood?: string; durationSeconds?: number; genre?: string; postId?: string }) => {
@@ -13,38 +12,21 @@ export function useAiMusic(userId?: string) {
       setLoading(true);
       const { data, error } = await musicService.createMusicJob(userId, params);
       if (data) {
-        setJob(data);
-        if (pollRef.current) clearInterval(pollRef.current);
-        pollRef.current = setInterval(async () => {
-          const { data: updated } = await musicService.getMusicJob(data.id);
-          if (updated) {
-            setJob(updated);
-            if (updated.status === 'completed' || updated.status === 'failed') {
-              clearInterval(pollRef.current);
-              setLoading(false);
-            }
-          }
-        }, 3000);
+        startPolling(data);
       } else {
         setLoading(false);
       }
       return { data, error };
     },
-    [userId]
+    [userId, setLoading, startPolling],
   );
 
   const attachToPost = useCallback(
     async (postId: string, musicUrl: string, title: string) => {
       return musicService.attachMusicToPost(postId, musicUrl, title);
     },
-    []
+    [],
   );
-
-  useEffect(() => {
-    return () => {
-      if (pollRef.current) clearInterval(pollRef.current);
-    };
-  }, []);
 
   return { job, loading, mood, setMood, generate, attachToPost };
 }

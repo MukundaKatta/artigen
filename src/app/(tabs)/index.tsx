@@ -147,6 +147,19 @@ export default function HomeRoute() {
     router.push(`/(screens)/post/${postId}`);
   }, [router]);
 
+  const onPromptRemix = useCallback((postId: string) => {
+    const post = posts.find((p) => p.id === postId);
+    if (!post?.ai_metadata) return;
+    router.push({
+      pathname: '/(camera)/generate',
+      params: {
+        remixPrompt: post.ai_metadata.prompt,
+        remixModelId: post.ai_metadata.model_id,
+        remixOfPostId: postId,
+      },
+    });
+  }, [posts, router]);
+
   const currentUserId = user?.id || '';
 
   const renderItem = useCallback(({ item, index }: { item: FeedPost; index: number }) => (
@@ -160,9 +173,10 @@ export default function HomeRoute() {
         onComment={onComment}
         onUserPress={onUserPress}
         onPostPress={onPostPress}
+        onPromptRemix={onPromptRemix}
       />
     </AnimatedListItem>
-  ), [currentUserId, toggleLike, toggleSave, toggleReaction, onComment, onUserPress, onPostPress]);
+  ), [currentUserId, toggleLike, toggleSave, toggleReaction, onComment, onUserPress, onPostPress, onPromptRemix]);
 
   if (loading) return <FeedSkeleton />;
 
@@ -235,6 +249,8 @@ export default function HomeRoute() {
       showsVerticalScrollIndicator={false}
       windowSize={7}
       maxToRenderPerBatch={5}
+      updateCellsBatchingPeriod={50}
+      initialNumToRender={5}
       removeClippedSubviews
       style={styles.container}
       contentContainerStyle={{ paddingBottom: 80 }}

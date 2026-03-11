@@ -81,10 +81,10 @@ export async function addComment(
             postId,
             commentId: data.id,
           })
-            .catch((err) => console.warn('Failed to create comment notification:', err));
+            .catch((err: unknown) => console.warn('Failed to create comment notification:', err));
         }
       })
-      .catch((err) => console.warn('Failed to fetch post owner for notification:', err));
+      .catch((err: unknown) => console.warn('Failed to fetch post owner for notification:', err));
   }
 
   return { data: data as unknown as CommentWithUser | null, error };

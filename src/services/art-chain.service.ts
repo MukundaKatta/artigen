@@ -37,8 +37,8 @@ export async function createArtChain(
   firstPrompt: string,
   maxLinks: number = 20,
 ): Promise<string | null> {
-  const { data: chain, error } = await supabase
-    .from('art_chains')
+  const { data: chain, error } = await (supabase
+    .from('art_chains') as any)
     .insert({
       title,
       description,
@@ -53,15 +53,15 @@ export async function createArtChain(
   if (error || !chain) return null;
 
   // Add first link
-  await supabase.from('art_chain_links').insert({
-    chain_id: chain.id,
+  await (supabase.from('art_chain_links') as any).insert({
+    chain_id: (chain as { id: string }).id,
     user_id: userId,
     position: 1,
     image_url: firstImageUrl,
     prompt_used: firstPrompt,
   });
 
-  return chain.id;
+  return (chain as { id: string }).id;
 }
 
 export async function addChainLink(
@@ -71,14 +71,14 @@ export async function addChainLink(
   promptUsed: string,
 ): Promise<boolean> {
   // Get current position
-  const { count } = await supabase
-    .from('art_chain_links')
+  const { count } = await (supabase
+    .from('art_chain_links') as any)
     .select('id', { count: 'exact', head: true })
     .eq('chain_id', chainId);
 
   const nextPosition = (count || 0) + 1;
 
-  const { error } = await supabase.from('art_chain_links').insert({
+  const { error } = await (supabase.from('art_chain_links') as any).insert({
     chain_id: chainId,
     user_id: userId,
     position: nextPosition,
@@ -90,8 +90,8 @@ export async function addChainLink(
 }
 
 export async function fetchArtChains(status?: string): Promise<ArtChain[]> {
-  let query = supabase
-    .from('art_chains')
+  let query = (supabase
+    .from('art_chains') as any)
     .select(`
       *,
       starter:profiles!starter_id(username, avatar_url),
@@ -104,19 +104,19 @@ export async function fetchArtChains(status?: string): Promise<ArtChain[]> {
 
   const { data } = await query;
 
-  return (data || []).map((chain) => ({
+  return ((data || []) as Record<string, any>[]).map((chain) => ({
     ...chain,
     starter_username: chain.starter?.username || '',
     total_links: chain.links?.[0]?.count || 0,
     total_participants: 0,
     total_likes: 0,
     links: [],
-  }));
+  })) as unknown as ArtChain[];
 }
 
 export async function fetchArtChain(chainId: string): Promise<ArtChain | null> {
-  const { data } = await supabase
-    .from('art_chains')
+  const { data } = await (supabase
+    .from('art_chains') as any)
     .select(`
       *,
       starter:profiles!starter_id(username, avatar_url),
@@ -130,7 +130,8 @@ export async function fetchArtChain(chainId: string): Promise<ArtChain | null> {
 
   if (!data) return null;
 
-  const links: ArtChainLink[] = (data.links || [])
+  const chainData = data as Record<string, any>;
+  const links: ArtChainLink[] = (chainData.links || [])
     .sort((a: Record<string, number>, b: Record<string, number>) => a.position - b.position)
     .map((link: Record<string, unknown>) => ({
       ...link,
@@ -139,11 +140,11 @@ export async function fetchArtChain(chainId: string): Promise<ArtChain | null> {
     }));
 
   return {
-    ...data,
-    starter_username: data.starter?.username || '',
+    ...chainData,
+    starter_username: chainData.starter?.username || '',
     total_links: links.length,
     total_participants: new Set(links.map((l) => l.user_id)).size,
     total_likes: links.reduce((sum, l) => sum + (l.likes_count || 0), 0),
     links,
-  };
+  } as ArtChain;
 }

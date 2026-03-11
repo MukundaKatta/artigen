@@ -4,6 +4,8 @@ import { Platform } from 'react-native';
 export type ThemeColors = {
   primary: string;
   primaryDark: string;
+  accent: string;
+  accentDark: string;
   background: string;
   backgroundSecondary: string;
   text: string;
@@ -23,6 +25,8 @@ export type ThemeColors = {
 export const lightColors: ThemeColors = {
   primary: '#0095F6',
   primaryDark: '#0074CC',
+  accent: '#8B5CF6',
+  accentDark: '#6D28D9',
   background: '#FFFFFF',
   backgroundSecondary: '#FAFAFA',
   text: '#262626',
@@ -42,6 +46,8 @@ export const lightColors: ThemeColors = {
 export const darkColors: ThemeColors = {
   primary: '#0095F6',
   primaryDark: '#0074CC',
+  accent: '#A78BFA',
+  accentDark: '#7C3AED',
   background: '#000000',
   backgroundSecondary: '#121212',
   text: '#FAFAFA',
@@ -151,6 +157,7 @@ export const gradients = {
   storyRing: ['#F58529', '#DD2A7B', '#8134AF', '#515BD4'] as [string, string, ...string[]],
   primaryButton: ['#0095F6', '#1877F2'] as [string, string, ...string[]],
   shimmer: ['#EBEBEB', '#F5F5F5', '#EBEBEB'] as [string, string, ...string[]],
+  ai: ['#8B5CF6', '#6D28D9', '#4C1D95'] as [string, string, ...string[]],
 };
 
 export const animation = {

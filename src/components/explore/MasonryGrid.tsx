@@ -103,7 +103,9 @@ export function MasonryGrid({ posts, onPostPress, onEndReached, loading }: Props
               source={{ uri: firstMedia?.media_url }}
               style={styles.image}
               contentFit="cover"
+              cachePolicy="memory-disk"
               transition={200}
+              recyclingKey={post.id}
             />
             {hasAiMetadata && (
               <View style={styles.aiIcon}>

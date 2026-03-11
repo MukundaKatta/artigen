@@ -12,7 +12,7 @@ type Props = {
   currentUserId: string;
 };
 
-export function SuggestedUserCard({ user, currentUserId }: Props) {
+export const SuggestedUserCard = React.memo(function SuggestedUserCard({ user, currentUserId }: Props) {
   const router = useRouter();
   const { isFollowing, loading, toggleFollow } = useFollow(currentUserId, user.id);
 
@@ -37,7 +37,7 @@ export function SuggestedUserCard({ user, currentUserId }: Props) {
       />
     </TouchableOpacity>
   );
-}
+});
 
 const styles = StyleSheet.create({
   card: {

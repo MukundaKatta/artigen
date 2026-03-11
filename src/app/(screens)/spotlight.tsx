@@ -13,7 +13,7 @@ import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme
 function ResultItem({ item, index, onPress }: { item: SpotlightResult; index: number; onPress: () => void }) {
   const typeColors: Record<string, string> = {
     action: colors.primary,
-    screen: '#8B5CF6',
+    screen: colors.accent,
     user: '#10B981',
     community: '#F59E0B',
     post: '#FF6B6B',

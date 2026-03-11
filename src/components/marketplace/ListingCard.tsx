@@ -8,7 +8,7 @@ import { colors, spacing, fontSize, typography } from '@/lib/theme';
 
 type Props = { listing: any; onPress: () => void };
 
-export function ListingCard({ listing, onPress }: Props) {
+export const ListingCard = React.memo(function ListingCard({ listing, onPress }: Props) {
   return (
     <AnimatedPressable style={styles.card} onPress={() => {
       if (Platform.OS !== 'web') Haptics.selectionAsync();
@@ -26,7 +26,7 @@ export function ListingCard({ listing, onPress }: Props) {
       </View>
     </AnimatedPressable>
   );
-}
+});
 
 const styles = StyleSheet.create({
   card: { backgroundColor: colors.surface, borderRadius: 12, overflow: 'hidden' },

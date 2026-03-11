@@ -16,7 +16,7 @@ export function LinkSticker({ sticker, onRespond }: Props) {
   function handlePress() {
     onRespond({ clicked: true });
     if (config.url) {
-      Linking.openURL(config.url).catch(() => {});
+      Linking.openURL(config.url).catch((err) => console.warn('Failed to open URL:', err));
     }
   }
 

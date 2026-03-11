@@ -62,8 +62,8 @@ export function BattleTimer({ startedAt, timeLimitMinutes, status, onTimeUp }: P
   if (status === 'voting') {
     return (
       <View style={styles.container}>
-        <Ionicons name="thumbs-up" size={16} color="#8B5CF6" />
-        <Text style={[styles.timerText, { color: '#8B5CF6' }]}>Voting Phase</Text>
+        <Ionicons name="thumbs-up" size={16} color={colors.accent} />
+        <Text style={[styles.timerText, { color: colors.accent }]}>Voting Phase</Text>
       </View>
     );
   }
