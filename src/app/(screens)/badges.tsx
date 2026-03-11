@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { logger } from '@/lib/logger';
 import { Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInUp } from 'react-native-reanimated';
@@ -42,7 +43,7 @@ export default function BadgesRoute() {
         .eq('user_id', user.id)
         .order('earned_at', { ascending: false })
     ).then(({ data }) => setBadges(data || []))
-      .catch((err: unknown) => console.warn('Failed to load badges:', err));
+      .catch((err: unknown) => logger.warn('Failed to load badges:', err));
   }, [user?.id]);
 
   if (loading) {

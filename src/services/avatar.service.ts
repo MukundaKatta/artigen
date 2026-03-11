@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { logger } from '@/lib/logger';
 
 // ── Types ────────────────────────────────────────────
 
@@ -59,7 +60,7 @@ export async function createAvatarJob(
   // Fire-and-forget: invoke edge function to process the job
   if (data) {
     supabase.functions.invoke('generate-avatar', { body: { job_id: data.id } }).catch((err) => {
-      console.warn('Avatar generation invoke failed:', err);
+      logger.warn('Avatar generation invoke failed:', err);
       supabase.from('avatar_generation_jobs').update({ status: 'failed', error_message: 'Failed to start processing' }).eq('id', data.id);
     });
   }

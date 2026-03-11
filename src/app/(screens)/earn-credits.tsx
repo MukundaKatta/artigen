@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { logger } from '@/lib/logger';
 import { View, Text, StyleSheet, FlatList, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -36,7 +37,7 @@ export default function EarnCreditsScreen() {
       setRewards(history);
       setStreak(streakData);
     }).catch((err) => {
-      console.warn('Failed to load reward history:', err);
+      logger.warn('Failed to load reward history:', err);
     }).finally(() => setLoading(false));
   }, [user]);
 

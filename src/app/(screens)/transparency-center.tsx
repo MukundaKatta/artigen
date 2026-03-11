@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from '@/lib/logger';
 import {
   View,
   Text,
@@ -30,7 +31,7 @@ export default function TransparencyCenterScreen() {
         setRecords(data as any[]);
       })
       .catch((err) => {
-        console.warn('Failed to load provenance records:', err);
+        logger.warn('Failed to load provenance records:', err);
       })
       .finally(() => setLoading(false));
   }, [enabled, user]);

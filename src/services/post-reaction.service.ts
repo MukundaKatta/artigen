@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { createNotification } from '@/services/notification.service';
+import { logger } from '@/lib/logger';
 import type { ReactionType, ReactionSummary } from '@/types';
 
 export const REACTION_EMOJIS: Record<ReactionType, string> = {
@@ -66,10 +67,10 @@ export async function setReaction(userId: string, postId: string, reactionType: 
     ).then(({ data: post }) => {
         if (post && post.user_id !== userId) {
           createNotification({ type: 'like', senderId: userId, recipientId: post.user_id, postId })
-            .catch((err: unknown) => console.warn('Failed to create reaction notification:', err));
+            .catch((err: unknown) => logger.warn('Failed to create reaction notification:', err));
         }
       })
-      .catch((err: unknown) => console.warn('Failed to fetch post owner for notification:', err));
+      .catch((err: unknown) => logger.warn('Failed to fetch post owner for notification:', err));
   }
 
   return { data, error };

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { logger } from '@/lib/logger';
 import { MESSAGES_PAGE_SIZE } from '@/lib/constants';
 import {
   getMessages,
@@ -106,7 +107,7 @@ export function useChat(conversationId: string | undefined, userId: string | und
       if (data && data.length > 0) {
         setOtherLastReadAt(data[0].last_read_at);
       }
-    }).catch((err) => console.warn('Failed to fetch read status:', err));
+    }).catch((err) => logger.warn('Failed to fetch read status:', err));
   }, [conversationId, userId]);
 
   // Real-time subscription for new messages

@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { logger } from '@/lib/logger';
 
 export async function createText3DJob(
   userId: string,
@@ -22,7 +23,7 @@ export async function createText3DJob(
 
   if (data) {
     supabase.functions.invoke('text-to-3d', { body: { job_id: data.id } }).catch((err) => {
-      console.warn('Text-to-3D invoke failed:', err);
+      logger.warn('Text-to-3D invoke failed:', err);
       supabase.from('text_to_3d_jobs').update({ status: 'failed', error_message: 'Failed to start processing' }).eq('id', data.id);
     });
   }

@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { logger } from '@/lib/logger';
 
 export async function createUpscalingJob(params: {
   userId: string;
@@ -24,7 +25,7 @@ export async function createUpscalingJob(params: {
 
   if (data) {
     supabase.functions.invoke('upscale', { body: { job_id: data.id } }).catch((err) => {
-      console.warn('Upscale invoke failed:', err);
+      logger.warn('Upscale invoke failed:', err);
       supabase.from('upscaling_jobs').update({ status: 'failed', error_message: 'Failed to start processing' }).eq('id', data.id);
     });
   }

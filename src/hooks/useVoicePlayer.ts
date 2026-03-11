@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Audio } from 'expo-av';
+import { logger } from '@/lib/logger';
 
 export function useVoicePlayer() {
   const [playing, setPlaying] = useState(false);
@@ -78,7 +79,7 @@ export function useVoicePlayer() {
   useEffect(() => {
     return () => {
       if (soundRef.current) {
-        soundRef.current.unloadAsync().catch((err) => console.warn('Failed to unload sound:', err));
+        soundRef.current.unloadAsync().catch((err) => logger.warn('Failed to unload sound:', err));
         soundRef.current = null;
       }
     };

@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { logger } from '@/lib/logger';
 
 export async function createInpaintingJob(params: {
   userId: string;
@@ -24,7 +25,7 @@ export async function createInpaintingJob(params: {
 
   if (data) {
     supabase.functions.invoke('inpaint', { body: { job_id: data.id } }).catch((err) => {
-      console.warn('Inpaint invoke failed:', err);
+      logger.warn('Inpaint invoke failed:', err);
       supabase.from('inpainting_jobs').update({ status: 'failed', error_message: 'Failed to start processing' }).eq('id', data.id);
     });
   }

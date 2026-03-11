@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Audio } from 'expo-av';
+import { logger } from '@/lib/logger';
 
 export function useVoiceRecorder() {
   const [recording, setRecording] = useState(false);
@@ -80,7 +81,7 @@ export function useVoiceRecorder() {
       if (recordingRef.current) {
         recordingRef.current
           .stopAndUnloadAsync()
-          .catch((err) => console.warn('Failed to stop recording:', err));
+          .catch((err) => logger.warn('Failed to stop recording:', err));
         recordingRef.current = null;
       }
     };

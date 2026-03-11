@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { logger } from '@/lib/logger';
 import {
   View,
   Text,
@@ -236,7 +237,7 @@ export default function GenerateRoute() {
           generation_time_ms: genResult.generation_time_ms,
           credits_used: MODEL_CREDITS[selectedModel.id] ?? 0,
           settings: genResult.settings || {},
-        }).catch((err) => console.warn('Failed to save generation history:', err));
+        }).catch((err) => logger.warn('Failed to save generation history:', err));
       }
     }
   }

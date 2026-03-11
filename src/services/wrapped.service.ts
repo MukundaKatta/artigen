@@ -42,6 +42,67 @@ function determinePersonality(stats: Partial<WrappedStats>): string {
   return ART_PERSONALITIES.visionary.name;
 }
 
+async function fetchTopCollaborator(
+  userId: string,
+  startDate: string,
+  endDate: string
+): Promise<WrappedStats['topCollaborator']> {
+  // Find users who collaborated on the current user's posts this year
+  const { data: collabs } = await supabase
+    .from('post_collaborators')
+    .select('user_id, post:posts!inner(user_id, created_at)')
+    .eq('status', 'accepted')
+    .eq('posts.user_id', userId)
+    .gte('posts.created_at', startDate)
+    .lt('posts.created_at', endDate);
+
+  // Also find posts where the user was a collaborator on someone else's post
+  const { data: reverseCollabs } = await supabase
+    .from('post_collaborators')
+    .select('post:posts!inner(user_id, created_at)')
+    .eq('user_id', userId)
+    .eq('status', 'accepted')
+    .gte('posts.created_at', startDate)
+    .lt('posts.created_at', endDate);
+
+  // Count collaborations per user
+  const collabCounts: Record<string, number> = {};
+  type CollabRow = { user_id: string; post: { user_id: string; created_at: string } };
+  type ReverseCollabRow = { post: { user_id: string; created_at: string } };
+
+  ((collabs || []) as CollabRow[]).forEach((c) => {
+    const uid = c.user_id;
+    if (uid && uid !== userId) {
+      collabCounts[uid] = (collabCounts[uid] || 0) + 1;
+    }
+  });
+  ((reverseCollabs || []) as ReverseCollabRow[]).forEach((c) => {
+    const uid = c.post?.user_id;
+    if (uid && uid !== userId) {
+      collabCounts[uid] = (collabCounts[uid] || 0) + 1;
+    }
+  });
+
+  const topEntry = Object.entries(collabCounts).sort((a, b) => b[1] - a[1])[0];
+  if (!topEntry) return null;
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('id, username, avatar_url')
+    .eq('id', topEntry[0])
+    .single();
+
+  if (!profile) return null;
+
+  type ProfileRow = { id: string; username: string | null; avatar_url: string | null };
+  const p = profile as unknown as ProfileRow;
+  return {
+    id: p.id,
+    username: p.username || 'Unknown',
+    avatar: p.avatar_url || '',
+  };
+}
+
 export async function fetchWrappedStats(userId: string, year: number): Promise<WrappedStats> {
   const startDate = `${year}-01-01T00:00:00Z`;
   const endDate = `${year + 1}-01-01T00:00:00Z`;
@@ -57,8 +118,8 @@ export async function fetchWrappedStats(userId: string, year: number): Promise<W
   };
 
   // Fetch posts for the year
-  const { data: posts } = await (supabase
-    .from('posts') as any)
+  const { data: posts } = await supabase
+    .from('posts')
     .select('id, created_at, likes_count, views_count, ai_model, ai_style, media:post_media(media_url)')
     .eq('user_id', userId)
     .gte('created_at', startDate)
@@ -133,8 +194,8 @@ export async function fetchWrappedStats(userId: string, year: number): Promise<W
     .lt('joined_at', endDate);
 
   // Fetch streak data
-  const { data: streakData } = await (supabase
-    .from('streaks') as any)
+  const { data: streakData } = await supabase
+    .from('streaks')
     .select('longest_streak')
     .eq('user_id', userId)
     .single();
@@ -169,7 +230,7 @@ export async function fetchWrappedStats(userId: string, year: number): Promise<W
     uniqueStyles: Object.keys(styleCounts).length,
     communitiesJoined: communitiesCount || 0,
     badgesEarned: badgesCount || 0,
-    topCollaborator: null, // TODO: compute from collaboration data
+    topCollaborator: await fetchTopCollaborator(userId, startDate, endDate),
     percentileRank,
     totalGenerations: totalPosts, // Simplified
     favoriteTimeOfDay,

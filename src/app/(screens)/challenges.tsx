@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, Platform } from 'react-native';
+import { logger } from '@/lib/logger';
 import { useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -44,7 +45,7 @@ export default function ChallengesRoute() {
       setActive(activeRes.data);
       setChallenges(allRes.data || []);
     }).catch((err) => {
-      console.warn('Failed to load challenges:', err);
+      logger.warn('Failed to load challenges:', err);
     }).finally(() => setLoading(false));
   }, []);
 

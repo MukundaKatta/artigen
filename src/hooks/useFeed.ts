@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { FEED_PAGE_SIZE } from '@/lib/constants';
+import { logger } from '@/lib/logger';
 import {
   getFeed,
   likePost,
@@ -113,7 +114,7 @@ export function useFeed(userId: string | undefined) {
         );
       } else if (!wasLiked) {
         // Fire-and-forget engagement tracking for new likes
-        recordEngagement(userId, postId, 'like', post.ai_metadata?.style_tags || []).catch((err) => console.warn('Engagement tracking failed:', err));
+        recordEngagement(userId, postId, 'like', post.ai_metadata?.style_tags || []).catch((err) => logger.warn('Engagement tracking failed:', err));
       }
     },
     [userId, posts]
@@ -152,7 +153,7 @@ export function useFeed(userId: string | undefined) {
         );
       } else if (!wasSaved) {
         // Fire-and-forget engagement tracking for new saves
-        recordEngagement(userId, postId, 'save', post.ai_metadata?.style_tags || []).catch((err) => console.warn('Engagement tracking failed:', err));
+        recordEngagement(userId, postId, 'save', post.ai_metadata?.style_tags || []).catch((err) => logger.warn('Engagement tracking failed:', err));
       }
     },
     [userId, posts]

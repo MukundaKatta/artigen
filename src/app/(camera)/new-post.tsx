@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { logger } from '@/lib/logger';
 import {
   View,
   Text,
@@ -177,7 +178,7 @@ export default function NewPostRoute() {
 
     // Link post to challenge if applicable
     if (!error && postData && challengeId && (postData as any).id) {
-      await submitEntry(challengeId, (postData as any).id, user.id).catch((err) => console.warn('Challenge entry submission failed:', err));
+      await submitEntry(challengeId, (postData as any).id, user.id).catch((err) => logger.warn('Challenge entry submission failed:', err));
     }
 
     setSharing(false);

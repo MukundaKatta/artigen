@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { EXPLORE_PAGE_SIZE } from '@/lib/constants';
+import { logger } from '@/lib/logger';
 import { getExploreFeed, searchPosts, searchHashtags, searchByPrompt, searchByModel } from '@/services/explore.service';
 import { searchUsers } from '@/services/profile.service';
 import type { PostWithUser, Profile } from '@/types';
@@ -81,7 +82,7 @@ export function useExplore() {
         setSearchResultHashtags((hashtagsResult.data || []) as Hashtag[]);
         setSearchResultPrompts(promptsResult.data || []);
       } catch (err) {
-        console.warn('Search failed:', err);
+        logger.warn('Search failed:', err);
       } finally {
         setSearching(false);
       }
