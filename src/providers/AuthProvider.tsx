@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import type { Profile } from '@/types/database';
 import { getProfile, ensureProfile } from '@/services/profile.service';
 import { updateLastActive } from '@/services/activity.service';
+import { setUser as setErrorTrackingUser } from '@/lib/error-tracking';
 
 type AuthContextType = {
   session: Session | null;
@@ -81,6 +82,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (data) {
       setProfile(data as Profile);
       setLoading(false);
+      setErrorTrackingUser({ id: userId, username: data.username });
       // Update last active on login
       updateLastActive(userId);
       return;
@@ -137,6 +139,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function handleSignOut() {
     await supabase.auth.signOut();
     setProfile(null);
+    setErrorTrackingUser(null);
   }
 
   async function refreshProfile() {

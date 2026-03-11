@@ -32,8 +32,8 @@ export async function createMoodBoard(
   description: string = '',
   isPublic: boolean = true,
 ): Promise<string | null> {
-  const { data, error } = await (supabase
-    .from('mood_boards') as any)
+  const { data, error } = await supabase
+    .from('mood_boards')
     .insert({
       title,
       description,
@@ -48,8 +48,8 @@ export async function createMoodBoard(
 }
 
 export async function fetchUserMoodBoards(userId: string): Promise<MoodBoard[]> {
-  const { data } = await (supabase
-    .from('mood_boards') as any)
+  const { data } = await supabase
+    .from('mood_boards')
     .select('*, items:mood_board_items(*)')
     .eq('user_id', userId)
     .order('updated_at', { ascending: false });
@@ -58,8 +58,8 @@ export async function fetchUserMoodBoards(userId: string): Promise<MoodBoard[]> 
 }
 
 export async function fetchPublicMoodBoards(): Promise<MoodBoard[]> {
-  const { data } = await (supabase
-    .from('mood_boards') as any)
+  const { data } = await supabase
+    .from('mood_boards')
     .select('*, items:mood_board_items(*), user:profiles(username, avatar_url)')
     .eq('is_public', true)
     .order('likes_count', { ascending: false })
@@ -72,8 +72,8 @@ export async function addItemToBoard(
   boardId: string,
   item: Omit<MoodBoardItem, 'id'>,
 ): Promise<string | null> {
-  const { data, error } = await (supabase
-    .from('mood_board_items') as any)
+  const { data, error } = await supabase
+    .from('mood_board_items')
     .insert({ board_id: boardId, ...item })
     .select('id')
     .single();
@@ -85,11 +85,11 @@ export async function updateBoardItem(
   itemId: string,
   updates: Partial<Pick<MoodBoardItem, 'x' | 'y' | 'width' | 'height' | 'rotation' | 'zIndex'>>,
 ): Promise<void> {
-  await (supabase.from('mood_board_items') as any).update(updates).eq('id', itemId);
+  await supabase.from('mood_board_items').update(updates).eq('id', itemId);
 }
 
 export async function removeBoardItem(itemId: string): Promise<void> {
-  await (supabase.from('mood_board_items') as any).delete().eq('id', itemId);
+  await supabase.from('mood_board_items').delete().eq('id', itemId);
 }
 
 export async function generateMoodBoardFromPrompt(

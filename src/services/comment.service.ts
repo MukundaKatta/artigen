@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import { COMMENTS_PAGE_SIZE } from '@/lib/constants';
 import { createNotification } from '@/services/notification.service';
+import { sanitizeText } from '@/lib/sanitize';
 import { logger } from '@/lib/logger';
 import type { CommentWithUser } from '@/types';
 
@@ -42,7 +43,7 @@ export async function getReplyCount(commentIds: string[]) {
     .in('parent_comment_id', commentIds);
 
   const counts = new Map<string, number>();
-  (data || []).forEach((d: any) => {
+  (data || []).forEach((d) => {
     const id = d.parent_comment_id;
     counts.set(id, (counts.get(id) || 0) + 1);
   });
@@ -55,12 +56,13 @@ export async function addComment(
   content: string,
   parentCommentId?: string
 ) {
+  const sanitizedContent = sanitizeText(content);
   const { data, error } = await supabase
     .from('comments')
     .insert({
       user_id: userId,
       post_id: postId,
-      content,
+      content: sanitizedContent,
       parent_comment_id: parentCommentId || null,
     })
     .select('*, user:profiles!user_id(*)')
