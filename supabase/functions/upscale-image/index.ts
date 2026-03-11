@@ -5,6 +5,7 @@ import {
   requireAuth,
   checkRateLimit,
   rateLimitResponse,
+  validateImageUrl,
 } from '../_shared/auth.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -23,12 +24,8 @@ serve(async (req: Request) => {
   try {
     const { image_url, scale } = await req.json();
 
-    if (!image_url || typeof image_url !== 'string') {
-      return jsonResponse({ error: 'image_url is required' }, 400);
-    }
-    if (image_url.length > 10000) {
-      return jsonResponse({ error: 'image_url too long' }, 400);
-    }
+    const urlError = validateImageUrl(image_url);
+    if (urlError) return jsonResponse({ error: urlError }, 400);
 
     const upscaleScale = scale === 4 ? 4 : 2;
 

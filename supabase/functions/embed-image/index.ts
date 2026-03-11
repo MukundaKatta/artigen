@@ -1,4 +1,4 @@
-import { corsHeaders, jsonResponse, createServiceClient, requireAuth, checkRateLimit, rateLimitResponse } from '../_shared/auth.ts';
+import { corsHeaders, jsonResponse, createServiceClient, requireAuth, checkRateLimit, rateLimitResponse, validateImageUrl } from '../_shared/auth.ts';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
@@ -17,9 +17,8 @@ Deno.serve(async (req) => {
     if (!post_id || typeof post_id !== 'string') {
       return jsonResponse({ error: 'post_id is required' }, 400);
     }
-    if (!image_url || typeof image_url !== 'string') {
-      return jsonResponse({ error: 'image_url is required' }, 400);
-    }
+    const urlError = validateImageUrl(image_url);
+    if (urlError) return jsonResponse({ error: urlError }, 400);
 
     // Verify the post belongs to the authenticated user
     const { data: post } = await supabase

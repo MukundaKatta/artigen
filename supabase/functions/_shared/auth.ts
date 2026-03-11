@@ -54,6 +54,41 @@ export function sanitizeText(input: string, maxLength = 4000): string {
     .slice(0, maxLength);
 }
 
+/** Allowed domains for image URLs (SSRF prevention). */
+const IMAGE_URL_ALLOWED_DOMAINS = [
+  'supabase.co',
+  'supabase.in',
+  'replicate.delivery',
+  'replicate.com',
+  'pbxt.replicate.delivery',
+  'oaidalleapiprodscus.blob.core.windows.net',
+  'githubusercontent.com',
+  'cloudflare.com',
+  'firebasestorage.googleapis.com',
+];
+
+/**
+ * Validate an image URL: HTTPS-only, allowed domains, no private IPs.
+ * Returns an error message string if invalid, or null if valid.
+ */
+export function validateImageUrl(url: string, maxLength = 10000): string | null {
+  if (typeof url !== 'string' || !url) return 'image_url is required';
+  if (url.length > maxLength) return 'image_url too long';
+  if (!url.startsWith('https://')) return 'image_url must use HTTPS';
+  try {
+    const parsed = new URL(url);
+    const hostname = parsed.hostname;
+    if (/^(localhost|127\.|10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|0\.|::1|fc|fd|fe80)/i.test(hostname)) {
+      return 'Internal URLs are not allowed';
+    }
+    const domainAllowed = IMAGE_URL_ALLOWED_DOMAINS.some(d => hostname === d || hostname.endsWith('.' + d));
+    if (!domainAllowed) return 'image_url domain not allowed';
+  } catch {
+    return 'Invalid image_url';
+  }
+  return null;
+}
+
 /** Create a Supabase client using the service role key (for DB operations). */
 export function createServiceClient() {
   return createClient(

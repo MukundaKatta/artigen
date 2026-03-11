@@ -27,7 +27,8 @@ import { TrendingPromptsSection } from '@/components/search/TrendingPromptsSecti
 import { TrendingStyleChips } from '@/components/search/TrendingStyleChips';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useExplore } from '@/hooks/useExplore';
-import { useTrending } from '@/hooks/useTrending';
+import { useTrending, useTrendingPosts } from '@/hooks/useTrending';
+import { useAuth } from '@/providers/AuthProvider';
 import { useTheme } from '@/providers/ThemeProvider';
 import { POST_GRID_SIZE, POST_GRID_GAP } from '@/lib/constants';
 import { spacing, fontSize, borderRadius, typography } from '@/lib/theme';
@@ -56,6 +57,7 @@ function SearchSkeleton() {
 export default function SearchRoute() {
   const router = useRouter();
   const inputRef = useRef<TextInput>(null);
+  const { user } = useAuth();
   const { themeColors } = useTheme();
   const {
     query,
@@ -75,6 +77,13 @@ export default function SearchRoute() {
     toggleAiOnly,
   } = useExplore();
   const { prompts: trendingPrompts, styles: trendingStyles } = useTrending();
+  const {
+    posts: trendingPosts,
+    loading: trendingLoading,
+    loadingMore: trendingLoadingMore,
+    refresh: refreshTrending,
+    loadMore: loadMoreTrending,
+  } = useTrendingPosts(user?.id);
   const [activeTab, setActiveTab] = useState<SearchTab>('users');
 
   // Animated search bar focus
@@ -389,7 +398,21 @@ export default function SearchRoute() {
               <TrendingPromptsSection prompts={trendingPrompts.slice(0, 3)} onGenerate={(prompt: string) => router.push({ pathname: '/(camera)/generate', params: { prefillPrompt: prompt } })} />
             )}
           </View>
-          {explorePosts.length === 0 ? (
+          {trendingPosts.length > 0 && (
+            <View>
+              <View style={styles.sectionHeader}>
+                <Ionicons name="trending-up" size={18} color={themeColors.primary} />
+                <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Trending</Text>
+              </View>
+              <MasonryGrid
+                posts={trendingPosts}
+                onPostPress={handlePostPress}
+                onEndReached={loadMoreTrending}
+                loading={trendingLoadingMore}
+              />
+            </View>
+          )}
+          {trendingPosts.length === 0 && explorePosts.length === 0 ? (
             <View style={styles.emptyContainer}>
               <View style={[styles.emptyIconCircle, { backgroundColor: themeColors.backgroundSecondary }]}>
                 <Ionicons name="compass-outline" size={32} color={themeColors.textSecondary} />
@@ -397,14 +420,14 @@ export default function SearchRoute() {
               <Text style={[styles.emptyText, { color: themeColors.textSecondary }]}>No posts to explore yet</Text>
               <Text style={[styles.emptySubtext, { color: themeColors.textSecondary }]}>Follow creators to discover art</Text>
             </View>
-          ) : (
+          ) : trendingPosts.length === 0 ? (
             <MasonryGrid
               posts={explorePosts}
               onPostPress={handlePostPress}
               onEndReached={loadMore}
               loading={loadingMore}
             />
-          )}
+          ) : null}
         </View>
       )}
     </View>
@@ -523,6 +546,19 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.sm,
+  },
+  sectionTitle: {
+    fontSize: fontSize.lg,
+    fontFamily: typography.semiBold,
+    fontWeight: '600',
   },
   emptyContainer: {
     justifyContent: 'center',

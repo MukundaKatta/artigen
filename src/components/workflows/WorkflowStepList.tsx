@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
@@ -20,7 +20,108 @@ const STEP_CONFIG: Record<string, { icon: string; label: string; color: string }
   upscale: { icon: 'resize', label: 'Upscale', color: '#10B981' },
 };
 
-export function WorkflowStepList({
+type StepItemProps = {
+  step: WorkflowStep;
+  index: number;
+  totalSteps: number;
+  currentStep?: number;
+  editable: boolean;
+  onRemoveStep?: (index: number) => void;
+  onMoveStep?: (fromIndex: number, toIndex: number) => void;
+  onEditStep?: (index: number) => void;
+};
+
+const WorkflowStepItem = React.memo(function WorkflowStepItem({
+  step,
+  index,
+  totalSteps,
+  currentStep,
+  editable,
+  onRemoveStep,
+  onMoveStep,
+  onEditStep,
+}: StepItemProps) {
+  const config = STEP_CONFIG[step.type] || { icon: 'ellipsis-horizontal', label: step.type, color: colors.textSecondary };
+  const isActive = currentStep === index;
+  const isCompleted = currentStep !== undefined && index < currentStep;
+
+  const handleEdit = useCallback(() => {
+    if (editable) onEditStep?.(index);
+  }, [editable, index, onEditStep]);
+
+  const handleMoveUp = useCallback(() => onMoveStep?.(index, index - 1), [index, onMoveStep]);
+  const handleMoveDown = useCallback(() => onMoveStep?.(index, index + 1), [index, onMoveStep]);
+  const handleRemove = useCallback(() => onRemoveStep?.(index), [index, onRemoveStep]);
+
+  return (
+    <View>
+      <TouchableOpacity
+        style={[
+          styles.stepCard,
+          isActive && styles.activeStep,
+          isCompleted && styles.completedStep,
+        ]}
+        onPress={handleEdit}
+        activeOpacity={editable ? 0.7 : 1}
+        disabled={!editable}
+      >
+        {/* Step number + icon */}
+        <View style={[styles.stepBadge, { backgroundColor: config.color + '20' }]}>
+          {isCompleted ? (
+            <Ionicons name="checkmark" size={16} color={colors.success} />
+          ) : (
+            <Ionicons name={config.icon as any} size={16} color={config.color} />
+          )}
+        </View>
+
+        {/* Step info */}
+        <View style={styles.stepInfo}>
+          <View style={styles.stepHeader}>
+            <Text style={styles.stepNumber}>Step {index + 1}</Text>
+            <Text style={[styles.stepType, { color: config.color }]}>{config.label}</Text>
+          </View>
+          {step.prompt && (
+            <Text style={styles.stepPrompt} numberOfLines={2}>{step.prompt}</Text>
+          )}
+          {step.custom_prompt && (
+            <Text style={styles.stepPrompt} numberOfLines={2}>{step.custom_prompt}</Text>
+          )}
+          {step.type === 'upscale' && step.scale_factor && (
+            <Text style={styles.stepPrompt}>{step.scale_factor}x upscale</Text>
+          )}
+        </View>
+
+        {/* Edit controls */}
+        {editable && (
+          <View style={styles.editControls}>
+            {index > 0 && (
+              <TouchableOpacity onPress={handleMoveUp} hitSlop={8}>
+                <Ionicons name="chevron-up" size={18} color={colors.textSecondary} />
+              </TouchableOpacity>
+            )}
+            {index < totalSteps - 1 && (
+              <TouchableOpacity onPress={handleMoveDown} hitSlop={8}>
+                <Ionicons name="chevron-down" size={18} color={colors.textSecondary} />
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity onPress={handleRemove} hitSlop={8}>
+              <Ionicons name="close-circle" size={18} color={colors.error} />
+            </TouchableOpacity>
+          </View>
+        )}
+      </TouchableOpacity>
+
+      {/* Connector line */}
+      {index < totalSteps - 1 && (
+        <View style={styles.connector}>
+          <View style={[styles.connectorLine, isCompleted && styles.connectorCompleted]} />
+        </View>
+      )}
+    </View>
+  );
+});
+
+export const WorkflowStepList = React.memo(function WorkflowStepList({
   steps,
   currentStep,
   editable = false,
@@ -30,78 +131,19 @@ export function WorkflowStepList({
 }: Props) {
   return (
     <View style={styles.container}>
-      {steps.map((step, index) => {
-        const config = STEP_CONFIG[step.type] || { icon: 'ellipsis-horizontal', label: step.type, color: colors.textSecondary };
-        const isActive = currentStep === index;
-        const isCompleted = currentStep !== undefined && index < currentStep;
-
-        return (
-          <View key={index}>
-            <TouchableOpacity
-              style={[
-                styles.stepCard,
-                isActive && styles.activeStep,
-                isCompleted && styles.completedStep,
-              ]}
-              onPress={() => editable && onEditStep?.(index)}
-              activeOpacity={editable ? 0.7 : 1}
-              disabled={!editable}
-            >
-              {/* Step number + icon */}
-              <View style={[styles.stepBadge, { backgroundColor: config.color + '20' }]}>
-                {isCompleted ? (
-                  <Ionicons name="checkmark" size={16} color={colors.success} />
-                ) : (
-                  <Ionicons name={config.icon as any} size={16} color={config.color} />
-                )}
-              </View>
-
-              {/* Step info */}
-              <View style={styles.stepInfo}>
-                <View style={styles.stepHeader}>
-                  <Text style={styles.stepNumber}>Step {index + 1}</Text>
-                  <Text style={[styles.stepType, { color: config.color }]}>{config.label}</Text>
-                </View>
-                {step.prompt && (
-                  <Text style={styles.stepPrompt} numberOfLines={2}>{step.prompt}</Text>
-                )}
-                {step.custom_prompt && (
-                  <Text style={styles.stepPrompt} numberOfLines={2}>{step.custom_prompt}</Text>
-                )}
-                {step.type === 'upscale' && step.scale_factor && (
-                  <Text style={styles.stepPrompt}>{step.scale_factor}x upscale</Text>
-                )}
-              </View>
-
-              {/* Edit controls */}
-              {editable && (
-                <View style={styles.editControls}>
-                  {index > 0 && (
-                    <TouchableOpacity onPress={() => onMoveStep?.(index, index - 1)} hitSlop={8}>
-                      <Ionicons name="chevron-up" size={18} color={colors.textSecondary} />
-                    </TouchableOpacity>
-                  )}
-                  {index < steps.length - 1 && (
-                    <TouchableOpacity onPress={() => onMoveStep?.(index, index + 1)} hitSlop={8}>
-                      <Ionicons name="chevron-down" size={18} color={colors.textSecondary} />
-                    </TouchableOpacity>
-                  )}
-                  <TouchableOpacity onPress={() => onRemoveStep?.(index)} hitSlop={8}>
-                    <Ionicons name="close-circle" size={18} color={colors.error} />
-                  </TouchableOpacity>
-                </View>
-              )}
-            </TouchableOpacity>
-
-            {/* Connector line */}
-            {index < steps.length - 1 && (
-              <View style={styles.connector}>
-                <View style={[styles.connectorLine, isCompleted && styles.connectorCompleted]} />
-              </View>
-            )}
-          </View>
-        );
-      })}
+      {steps.map((step, index) => (
+        <WorkflowStepItem
+          key={index}
+          step={step}
+          index={index}
+          totalSteps={steps.length}
+          currentStep={currentStep}
+          editable={editable}
+          onRemoveStep={onRemoveStep}
+          onMoveStep={onMoveStep}
+          onEditStep={onEditStep}
+        />
+      ))}
 
       {steps.length === 0 && (
         <View style={styles.emptyContainer}>
@@ -111,7 +153,7 @@ export function WorkflowStepList({
       )}
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {

@@ -68,6 +68,15 @@ jobs:
       - name: Patch HTML (SEO, PWA, mobile CSS)
         run: node scripts/patch-web-html.js
 
+      - name: Bundle size report
+        run: |
+          echo "## Bundle Size Report" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          du -sh dist/ 2>/dev/null || du -sh web-build/ 2>/dev/null || echo "Build output not found"
+          find dist/ -name '*.js' -o -name '*.css' 2>/dev/null | head -20 | xargs ls -lhS 2>/dev/null || \
+          find web-build/ -name '*.js' -o -name '*.css' 2>/dev/null | head -20 | xargs ls -lhS 2>/dev/null || true
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
       - name: Deploy to Firebase Hosting (live)
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:

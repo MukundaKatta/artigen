@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, StyleSheet, FlatList, Pressable } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
@@ -21,6 +21,28 @@ export const PostCardMedia = React.memo(function PostCardMedia({
 }: PostCardMediaProps) {
   const [activeIndex, setActiveIndex] = useState(0);
 
+  const handleScrollEnd = useCallback((e: any) => {
+    const index = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
+    setActiveIndex(index);
+  }, []);
+
+  const renderCarouselItem = useCallback(
+    ({ item }: { item: PostMedia }) => (
+      <Image
+        source={{ uri: item.media_url }}
+        placeholder={item.blurhash ? { blurhash: item.blurhash } : undefined}
+        style={styles.postImage}
+        contentFit="cover"
+        cachePolicy="memory-disk"
+        transition={300}
+        recyclingKey={item.id}
+      />
+    ),
+    []
+  );
+
+  const keyExtractor = useCallback((item: PostMedia) => item.id, []);
+
   return (
     <>
       <Pressable onPress={onDoubleTap} accessibilityRole="image" accessibilityLabel="Post image, double tap to like">
@@ -41,24 +63,9 @@ export const PostCardMedia = React.memo(function PostCardMedia({
               horizontal
               pagingEnabled
               showsHorizontalScrollIndicator={false}
-              keyExtractor={(item) => item.id}
-              onMomentumScrollEnd={(e) => {
-                const index = Math.round(
-                  e.nativeEvent.contentOffset.x / SCREEN_WIDTH
-                );
-                setActiveIndex(index);
-              }}
-              renderItem={({ item }: { item: PostMedia }) => (
-                <Image
-                  source={{ uri: item.media_url }}
-                  placeholder={item.blurhash ? { blurhash: item.blurhash } : undefined}
-                  style={styles.postImage}
-                  contentFit="cover"
-                  cachePolicy="memory-disk"
-                  transition={300}
-                  recyclingKey={item.id}
-                />
-              )}
+              keyExtractor={keyExtractor}
+              onMomentumScrollEnd={handleScrollEnd}
+              renderItem={renderCarouselItem}
             />
           )}
 

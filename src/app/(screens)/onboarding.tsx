@@ -247,7 +247,22 @@ export default function OnboardingScreen() {
       }).catch(() => {});
     }
 
-    router.replace('/(tabs)');
+    // Direct new users to their first generation with a style-appropriate prompt
+    const firstStyle = stylesArr[0];
+    const firstTheme = themesArr[0];
+    if (firstStyle || firstTheme) {
+      const suggestedPrompt = firstTheme && firstStyle
+        ? `A beautiful ${firstTheme.toLowerCase()} scene in ${firstStyle.toLowerCase()} style, highly detailed`
+        : firstStyle
+          ? `A stunning artwork in ${firstStyle.toLowerCase()} style, highly detailed, masterpiece`
+          : `A beautiful ${firstTheme!.toLowerCase()} scene, highly detailed, masterpiece`;
+      router.replace({
+        pathname: '/(camera)/generate',
+        params: { prefillPrompt: suggestedPrompt },
+      } as never);
+    } else {
+      router.replace('/(tabs)');
+    }
   }, [selectedStyles, selectedThemes, user]);
 
   const toggleStyle = useCallback((style: string) => {

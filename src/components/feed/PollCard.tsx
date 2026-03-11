@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -53,7 +53,7 @@ function AnimatedBar({ percentage, isSelected, hasVoted }: {
 
 export const PollCard = React.memo(function PollCard({ question, options, userVoteOptionId, endsAt, onVote }: Props) {
   const hasVoted = !!userVoteOptionId;
-  const totalVotes = options.reduce((sum, o) => sum + o.vote_count, 0);
+  const totalVotes = useMemo(() => options.reduce((sum, o) => sum + o.vote_count, 0), [options]);
 
   const isExpired = endsAt ? new Date(endsAt) < new Date() : false;
   const canVote = !hasVoted && !isExpired;

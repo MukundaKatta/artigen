@@ -1,5 +1,7 @@
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { colors, spacing, fontSize, borderRadius, typography } from '@/lib/theme';
 
 type Props = {
@@ -25,15 +27,27 @@ export class ErrorBoundary extends React.Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // Log to telemetry/error tracking
-    if (__DEV__) {
-      console.error('[ErrorBoundary]', error.message, errorInfo.componentStack);
-    }
+    console.error(
+      '[ErrorBoundary] Caught error:',
+      error.message,
+      '\nComponent stack:',
+      errorInfo.componentStack,
+    );
     this.props.onError?.(error, errorInfo);
   }
 
   handleRetry = () => {
     this.setState({ hasError: false, error: null });
+  };
+
+  handleGoHome = () => {
+    this.setState({ hasError: false, error: null }, () => {
+      try {
+        router.replace('/(tabs)');
+      } catch {
+        // Navigation may not be ready; retry is still available
+      }
+    });
   };
 
   render() {
@@ -44,14 +58,33 @@ export class ErrorBoundary extends React.Component<Props, State> {
 
       return (
         <View style={styles.container}>
-          <Text style={styles.emoji}>!</Text>
+          <View style={styles.iconCircle}>
+            <Ionicons name="warning-outline" size={36} color={colors.error} />
+          </View>
           <Text style={styles.title}>Something went wrong</Text>
           <Text style={styles.message}>
             {__DEV__ ? this.state.error?.message : 'An unexpected error occurred. Please try again.'}
           </Text>
-          <Pressable style={styles.button} onPress={this.handleRetry}>
-            <Text style={styles.buttonText}>Try Again</Text>
-          </Pressable>
+          <View style={styles.buttonRow}>
+            <Pressable
+              style={styles.button}
+              onPress={this.handleRetry}
+              accessibilityRole="button"
+              accessibilityLabel="Try again"
+            >
+              <Ionicons name="refresh" size={18} color={colors.textLight} />
+              <Text style={styles.buttonText}>Try Again</Text>
+            </Pressable>
+            <Pressable
+              style={[styles.button, styles.secondaryButton]}
+              onPress={this.handleGoHome}
+              accessibilityRole="button"
+              accessibilityLabel="Go to home screen"
+            >
+              <Ionicons name="home-outline" size={18} color={colors.primary} />
+              <Text style={[styles.buttonText, styles.secondaryButtonText]}>Go Home</Text>
+            </Pressable>
+          </View>
         </View>
       );
     }
@@ -68,11 +101,14 @@ const styles = StyleSheet.create({
     padding: spacing.xxl,
     backgroundColor: colors.background,
   },
-  emoji: {
-    fontSize: 48,
-    fontFamily: typography.bold,
-    color: colors.error,
-    marginBottom: spacing.md,
+  iconCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: colors.backgroundSecondary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.lg,
   },
   title: {
     fontSize: fontSize.xl,
@@ -88,15 +124,31 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xl,
     lineHeight: 20,
   },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
   button: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
     backgroundColor: colors.primary,
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.md,
     borderRadius: borderRadius.md,
+    minHeight: 44,
   },
   buttonText: {
     color: colors.textLight,
     fontSize: fontSize.md,
     fontFamily: typography.semiBold,
+  },
+  secondaryButton: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: colors.primary,
+  },
+  secondaryButtonText: {
+    color: colors.primary,
   },
 });

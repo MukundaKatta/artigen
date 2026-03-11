@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
@@ -26,7 +26,7 @@ export const RepostCard = React.memo(function RepostCard({
   onUserPress,
   onPostPress,
 }: RepostCardProps) {
-  const firstMedia: PostMedia | undefined = sortMediaByOrder(post.media)[0];
+  const firstMedia: PostMedia | undefined = useMemo(() => sortMediaByOrder(post.media)[0], [post.media]);
 
   return (
     <View style={styles.container}>

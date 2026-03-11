@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
 
@@ -15,33 +15,60 @@ const MOODS = [
   { key: 'dark', label: 'Dark', icon: '🌑' },
 ] as const;
 
+type MoodKey = (typeof MOODS)[number]['key'];
+
 type Props = {
   selected: string | null;
   onSelect: (mood: string) => void;
 };
 
-export function MoodPicker({ selected, onSelect }: Props) {
+const MoodItem = React.memo(function MoodItem({
+  moodKey,
+  label,
+  icon,
+  isSelected,
+  onSelect,
+}: {
+  moodKey: string;
+  label: string;
+  icon: string;
+  isSelected: boolean;
+  onSelect: (mood: string) => void;
+}) {
+  const handlePress = useCallback(() => onSelect(moodKey), [moodKey, onSelect]);
+  return (
+    <TouchableOpacity
+      style={[styles.moodItem, isSelected && styles.moodItemSelected]}
+      onPress={handlePress}
+      activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityLabel={`${label} mood`}
+      accessibilityState={{ selected: isSelected }}
+    >
+      <Text style={styles.moodIcon}>{icon}</Text>
+      <Text style={[styles.moodLabel, isSelected && styles.moodLabelSelected]}>
+        {label}
+      </Text>
+    </TouchableOpacity>
+  );
+});
+
+export const MoodPicker = React.memo(function MoodPicker({ selected, onSelect }: Props) {
   return (
     <View style={styles.grid}>
       {MOODS.map((mood) => (
-        <TouchableOpacity
+        <MoodItem
           key={mood.key}
-          style={[styles.moodItem, selected === mood.key && styles.moodItemSelected]}
-          onPress={() => onSelect(mood.key)}
-          activeOpacity={0.7}
-          accessibilityRole="button"
-          accessibilityLabel={`${mood.label} mood`}
-          accessibilityState={{ selected: selected === mood.key }}
-        >
-          <Text style={styles.moodIcon}>{mood.icon}</Text>
-          <Text style={[styles.moodLabel, selected === mood.key && styles.moodLabelSelected]}>
-            {mood.label}
-          </Text>
-        </TouchableOpacity>
+          moodKey={mood.key}
+          label={mood.label}
+          icon={mood.icon}
+          isSelected={selected === mood.key}
+          onSelect={onSelect}
+        />
       ))}
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   grid: {

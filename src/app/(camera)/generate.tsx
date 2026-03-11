@@ -25,6 +25,7 @@ import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme
 import type { AiModel } from '@/types';
 import { createPrompt } from '@/services/prompt-library.service';
 import { enhancePrompt, describeToPrompt } from '@/services/text-ai.service';
+import { PromptBuilder } from '@/components/generate/PromptBuilder';
 import { MODEL_CREDITS } from '@/services/credits.service';
 import { saveGeneration } from '@/services/generation-history.service';
 import { upscaleImage, UPSCALE_CREDITS } from '@/services/upscale.service';
@@ -112,6 +113,7 @@ export default function GenerateRoute() {
   const [batchCount, setBatchCount] = useState(1);
   const [upscaling, setUpscaling] = useState(false);
   const [upscaledUrl, setUpscaledUrl] = useState<string | null>(null);
+  const [showPromptBuilder, setShowPromptBuilder] = useState(false);
 
   async function handleUpscale() {
     if (!result?.image_url || upscaling) return;
@@ -444,6 +446,22 @@ export default function GenerateRoute() {
             </Text>
           </Pressable>
         </View>
+
+        {/* Prompt Builder */}
+        {!showPromptBuilder && (
+          <Pressable
+            style={styles.enhancerBtn}
+            onPress={() => setShowPromptBuilder(true)}
+          >
+            <Ionicons name="build-outline" size={14} color={colors.primary} />
+            <Text style={styles.enhancerBtnText}>Prompt Builder · Free</Text>
+          </Pressable>
+        )}
+        <PromptBuilder
+          visible={showPromptBuilder}
+          onInsert={(text) => setPrompt((prev) => prev ? `${prev}, ${text}` : text)}
+          onClose={() => setShowPromptBuilder(false)}
+        />
 
         {/* Style Reference Image */}
         {supportsStyleRef && (

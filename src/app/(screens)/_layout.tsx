@@ -1,9 +1,11 @@
 import { Platform } from 'react-native';
 import { Stack } from 'expo-router';
 import { colors, shadows, typography } from '@/lib/theme';
+import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 
 export default function ScreensLayout() {
   return (
+    <ErrorBoundary>
     <Stack
       screenOptions={{
         headerStyle: {
@@ -114,5 +116,6 @@ export default function ScreensLayout() {
       <Stack.Screen name="generation-history" options={{ title: 'Generation History' }} />
       <Stack.Screen name="earn-credits" options={{ title: 'Earn Credits' }} />
     </Stack>
+    </ErrorBoundary>
   );
 }

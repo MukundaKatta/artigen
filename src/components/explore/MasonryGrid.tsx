@@ -12,7 +12,7 @@ import type { PostMedia } from '@/types/database';
 type MasonryPost = {
   id: string;
   media: PostMedia[];
-  ai_metadata?: unknown[] | null;
+  ai_metadata?: unknown;
 };
 
 type Props = {

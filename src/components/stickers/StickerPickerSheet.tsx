@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
@@ -29,6 +29,56 @@ type Props = {
   userId?: string;
 };
 
+const PackTabItem = React.memo(function PackTabItem({
+  pack,
+  isActive,
+  onPress,
+}: {
+  pack: Pack;
+  isActive: boolean;
+  onPress: (id: string) => void;
+}) {
+  const handlePress = useCallback(() => onPress(pack.id), [pack.id, onPress]);
+  return (
+    <TouchableOpacity
+      onPress={handlePress}
+      style={[styles.packTab, isActive && styles.packTabActive]}
+    >
+      {pack.cover_url ? (
+        <Image source={{ uri: pack.cover_url }} style={styles.packTabImage} contentFit="cover" />
+      ) : (
+        <View style={styles.packTabPlaceholder}>
+          <Ionicons name="happy-outline" size={16} color={colors.textSecondary} />
+        </View>
+      )}
+    </TouchableOpacity>
+  );
+});
+
+const StickerItem = React.memo(function StickerItem({
+  sticker,
+  onSelect,
+  onClose,
+}: {
+  sticker: Sticker;
+  onSelect: (sticker: Sticker) => void;
+  onClose: () => void;
+}) {
+  const handlePress = useCallback(() => {
+    onSelect(sticker);
+    onClose();
+  }, [sticker, onSelect, onClose]);
+  return (
+    <TouchableOpacity onPress={handlePress} activeOpacity={0.7}>
+      <Image
+        source={{ uri: sticker.image_url }}
+        style={styles.stickerImage}
+        contentFit="contain"
+      />
+    </TouchableOpacity>
+  );
+});
+
 export function StickerPickerSheet({ visible, onClose, onSelect, userId }: Props) {
   const [packs, setPacks] = useState<Pack[]>([]);
   const [selectedPack, setSelectedPack] = useState<string | null>(null);
@@ -54,6 +104,31 @@ export function StickerPickerSheet({ visible, onClose, onSelect, userId }: Props
     }
   }, [selectedPack]);
 
+  const handleSelectPack = useCallback((id: string) => setSelectedPack(id), []);
+
+  const renderPackTab = useCallback(
+    ({ item }: { item: Pack }) => (
+      <PackTabItem pack={item} isActive={selectedPack === item.id} onPress={handleSelectPack} />
+    ),
+    [selectedPack, handleSelectPack]
+  );
+
+  const renderSticker = useCallback(
+    ({ item }: { item: Sticker }) => (
+      <StickerItem sticker={item} onSelect={onSelect} onClose={onClose} />
+    ),
+    [onSelect, onClose]
+  );
+
+  const packKeyExtractor = useCallback((item: Pack) => item.id, []);
+  const stickerKeyExtractor = useCallback((item: Sticker) => item.id, []);
+
+  const emptyComponent = (
+    <Text style={styles.empty}>
+      {packs.length === 0 ? 'Save some sticker packs to use them here' : 'No stickers in this pack'}
+    </Text>
+  );
+
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <View style={styles.overlay}>
@@ -70,53 +145,25 @@ export function StickerPickerSheet({ visible, onClose, onSelect, userId }: Props
             data={packs}
             horizontal
             showsHorizontalScrollIndicator={false}
-            keyExtractor={(item) => item.id}
+            keyExtractor={packKeyExtractor}
             style={styles.packTabs}
             contentContainerStyle={styles.packTabsContent}
             removeClippedSubviews={true}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                onPress={() => setSelectedPack(item.id)}
-                style={[styles.packTab, selectedPack === item.id && styles.packTabActive]}
-              >
-                {item.cover_url ? (
-                  <Image source={{ uri: item.cover_url }} style={styles.packTabImage} contentFit="cover" />
-                ) : (
-                  <View style={styles.packTabPlaceholder}>
-                    <Ionicons name="happy-outline" size={16} color={colors.textSecondary} />
-                  </View>
-                )}
-              </TouchableOpacity>
-            )}
+            renderItem={renderPackTab}
           />
 
           {/* Sticker grid */}
           <FlatList
             data={stickers}
             numColumns={COLS}
-            keyExtractor={(item) => item.id}
+            keyExtractor={stickerKeyExtractor}
             contentContainerStyle={styles.stickerGrid}
             columnWrapperStyle={styles.stickerRow}
             removeClippedSubviews={true}
             maxToRenderPerBatch={10}
             windowSize={5}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                onPress={() => { onSelect(item); onClose(); }}
-                activeOpacity={0.7}
-              >
-                <Image
-                  source={{ uri: item.image_url }}
-                  style={styles.stickerImage}
-                  contentFit="contain"
-                />
-              </TouchableOpacity>
-            )}
-            ListEmptyComponent={
-              <Text style={styles.empty}>
-                {packs.length === 0 ? 'Save some sticker packs to use them here' : 'No stickers in this pack'}
-              </Text>
-            }
+            renderItem={renderSticker}
+            ListEmptyComponent={emptyComponent}
           />
         </View>
       </View>
