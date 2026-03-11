@@ -189,6 +189,8 @@ export const PostCard = React.memo(function PostCard({
           style={styles.remixBadge}
           onPress={() => onPostPress(post.remixOf!.id)}
           scaleValue={0.97}
+          accessibilityRole="link"
+          accessibilityLabel={`Remixed from ${post.remixOf!.user.username}`}
         >
           <Ionicons name="git-branch-outline" size={12} color={colors.accent} />
           <Text style={styles.remixBadgeText}>
@@ -242,6 +244,8 @@ export const PostCard = React.memo(function PostCard({
           onPress={() => router.push(`/(screens)/remixes/${post.id}`)}
           style={styles.remixCountRow}
           scaleValue={0.97}
+          accessibilityRole="link"
+          accessibilityLabel={`${post.remixCount} ${post.remixCount === 1 ? 'remix' : 'remixes'}, tap to view`}
         >
           <Ionicons name="git-branch-outline" size={14} color={colors.accent} />
           <Text style={styles.remixCountText}>
@@ -262,6 +266,8 @@ export const PostCard = React.memo(function PostCard({
       {post.caption ? (
         <Pressable
           onPress={() => setCaptionExpanded(!captionExpanded)}
+          accessibilityRole="button"
+          accessibilityLabel={captionExpanded ? 'Collapse caption' : 'Expand caption'}
         >
           <RichText
             style={styles.captionText}
@@ -286,7 +292,7 @@ export const PostCard = React.memo(function PostCard({
 
       {/* View comments link */}
       {post.comments_count > 0 && (
-        <Pressable onPress={() => onComment(post.id)}>
+        <Pressable onPress={() => onComment(post.id)} accessibilityRole="link" accessibilityLabel={`View all ${post.comments_count} comments`}>
           <Text style={styles.viewComments}>
             View all {formatNumber(post.comments_count)} comments
           </Text>

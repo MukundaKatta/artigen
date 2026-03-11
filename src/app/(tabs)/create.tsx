@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,8 +13,10 @@ import Animated, {
 } from 'react-native-reanimated';
 import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { useImagePicker } from '@/hooks/useImagePicker';
+import { useTheme } from '@/providers/ThemeProvider';
 import { showAlert } from '@/utils/alert';
-import { colors, spacing, fontSize, typography, borderRadius, shadows } from '@/lib/theme';
+import { spacing, fontSize, typography, borderRadius, shadows } from '@/lib/theme';
+import type { ThemeColors } from '@/lib/theme';
 
 type ToolCardProps = {
   icon: keyof typeof Ionicons.glyphMap;
@@ -23,9 +25,10 @@ type ToolCardProps = {
   onPress: () => void;
   gradient: [string, string];
   index: number;
+  themeColors: ThemeColors;
 };
 
-function ToolCard({ icon, title, subtitle, onPress, gradient, index }: ToolCardProps) {
+function ToolCard({ icon, title, subtitle, onPress, gradient, index, themeColors }: ToolCardProps) {
   const opacity = useSharedValue(0);
   const translateY = useSharedValue(24);
 
@@ -45,7 +48,7 @@ function ToolCard({ icon, title, subtitle, onPress, gradient, index }: ToolCardP
       <AnimatedPressable onPress={() => {
         if (Platform.OS !== 'web') Haptics.selectionAsync();
         onPress();
-      }} style={[styles.card, shadows.sm as any]}>
+      }} style={[styles.card, shadows.sm as any, { backgroundColor: themeColors.background, borderColor: themeColors.border }]}>
         <LinearGradient
           colors={gradient}
           start={{ x: 0, y: 0 }}
@@ -55,10 +58,10 @@ function ToolCard({ icon, title, subtitle, onPress, gradient, index }: ToolCardP
           <Ionicons name={icon} size={26} color="#fff" />
         </LinearGradient>
         <View style={styles.cardContent}>
-          <Text style={styles.cardTitle}>{title}</Text>
-          <Text style={styles.cardSubtitle}>{subtitle}</Text>
+          <Text style={[styles.cardTitle, { color: themeColors.text }]}>{title}</Text>
+          <Text style={[styles.cardSubtitle, { color: themeColors.textSecondary }]}>{subtitle}</Text>
         </View>
-        <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
+        <Ionicons name="chevron-forward" size={18} color={themeColors.textSecondary} />
       </AnimatedPressable>
     </Animated.View>
   );
@@ -67,6 +70,7 @@ function ToolCard({ icon, title, subtitle, onPress, gradient, index }: ToolCardP
 export default function CreateRoute() {
   const router = useRouter();
   const { pickFromGallery } = useImagePicker();
+  const { themeColors } = useTheme();
 
   async function handleUpload() {
     const { asset, error } = await pickFromGallery();
@@ -88,13 +92,13 @@ export default function CreateRoute() {
     }
   }
 
-  const TOOLS: Omit<ToolCardProps, 'index'>[] = [
+  const TOOLS: Omit<ToolCardProps, 'index' | 'themeColors'>[] = useMemo(() => [
     {
       icon: 'sparkles',
       title: 'Generate with AI',
       subtitle: 'Create images from text prompts',
       onPress: () => router.push('/(camera)/generate'),
-      gradient: [colors.accent, colors.accentDark],
+      gradient: [themeColors.accent, themeColors.accentDark],
     },
     {
       icon: 'cloud-upload-outline',
@@ -131,16 +135,20 @@ export default function CreateRoute() {
       onPress: () => router.push('/(screens)/ai-assistant'),
       gradient: ['#F77737', '#FD1D1D'],
     },
-  ];
+  ], [router, themeColors]);
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
-      <Text style={styles.title}>Create</Text>
-      <Text style={styles.subtitle}>Share AI art with the world</Text>
-      <View style={styles.divider} />
+    <ScrollView
+      style={[styles.container, { backgroundColor: themeColors.background }]}
+      contentContainerStyle={styles.contentContainer}
+      showsVerticalScrollIndicator={false}
+    >
+      <Text style={[styles.title, { color: themeColors.text }]}>Create</Text>
+      <Text style={[styles.subtitle, { color: themeColors.textSecondary }]}>Share AI art with the world</Text>
+      <View style={[styles.divider, { backgroundColor: themeColors.border }]} />
 
       {TOOLS.map((tool, index) => (
-        <ToolCard key={tool.title} {...tool} index={index} />
+        <ToolCard key={tool.title} {...tool} index={index} themeColors={themeColors} />
       ))}
     </ScrollView>
   );
@@ -149,7 +157,6 @@ export default function CreateRoute() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   contentContainer: {
     paddingHorizontal: spacing.xl,
@@ -159,29 +166,24 @@ const styles = StyleSheet.create({
   title: {
     fontSize: fontSize.xxl,
     fontFamily: typography.bold,
-    color: colors.text,
     marginBottom: spacing.xs,
   },
   subtitle: {
     fontSize: fontSize.md,
     fontFamily: typography.regular,
-    color: colors.textSecondary,
     marginBottom: spacing.md,
   },
   divider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: colors.border,
     marginBottom: spacing.xl,
   },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.background,
     borderRadius: borderRadius.lg,
     padding: spacing.lg,
     marginBottom: spacing.md,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
   },
   iconContainer: {
     width: 50,
@@ -197,12 +199,10 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: fontSize.lg,
     fontFamily: typography.semiBold,
-    color: colors.text,
     marginBottom: 2,
   },
   cardSubtitle: {
     fontSize: fontSize.sm,
     fontFamily: typography.regular,
-    color: colors.textSecondary,
   },
 });

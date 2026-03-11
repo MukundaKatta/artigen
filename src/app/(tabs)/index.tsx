@@ -285,6 +285,8 @@ export default function HomeRoute() {
           scrollToTop();
         }}
         scaleValue={0.9}
+        accessibilityRole="button"
+        accessibilityLabel="Scroll to top"
       >
         <Ionicons name="chevron-up" size={20} color="#fff" />
       </AnimatedPressable>

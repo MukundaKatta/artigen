@@ -17,11 +17,11 @@ CREATE POLICY IF NOT EXISTS notifications_update_own
   USING (recipient_id = auth.uid())
   WITH CHECK (recipient_id = auth.uid());
 
--- Only service_role and triggers can insert notifications
--- (notifications are created by the system, not by users directly)
+-- Only service_role can insert notifications
+-- (notifications are created by edge functions / triggers, not by users directly)
 CREATE POLICY IF NOT EXISTS notifications_insert_system
   ON notifications FOR INSERT
-  WITH CHECK (auth.role() = 'service_role' OR auth.uid() IS NOT NULL);
+  WITH CHECK (auth.role() = 'service_role');
 
 -- Users can delete their own notifications
 CREATE POLICY IF NOT EXISTS notifications_delete_own

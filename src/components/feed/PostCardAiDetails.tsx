@@ -56,6 +56,9 @@ export const PostCardAiDetails = React.memo(function PostCardAiDetails({
         onPress={onToggleDetails}
         style={styles.aiDetailsToggle}
         scaleValue={0.97}
+        accessibilityRole="button"
+        accessibilityLabel={showDetails ? 'Hide AI generation details' : 'View AI generation details'}
+        accessibilityState={{ expanded: showDetails }}
       >
         <Ionicons name="sparkles-outline" size={14} color={colors.accent} />
         <Text style={styles.aiDetailsToggleText}>

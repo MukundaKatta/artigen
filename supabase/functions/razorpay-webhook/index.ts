@@ -44,27 +44,23 @@ serve(async (req: Request) => {
         Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
       );
 
-      // Idempotency check: prevent duplicate processing of same payment
+      // Atomic idempotency: INSERT will fail on duplicate (unique PK), preventing race conditions
       const paymentId = payment.id;
       if (paymentId) {
-        const { data: existing } = await supabase
-          .from('webhook_events')
-          .select('id')
-          .eq('id', paymentId)
-          .maybeSingle();
-
-        if (existing) {
-          return new Response(JSON.stringify({ status: 'ok', duplicate: true }), {
-            headers: { 'Content-Type': 'application/json' },
-          });
-        }
-
-        await supabase.from('webhook_events').insert({
+        const { error: insertError } = await supabase.from('webhook_events').insert({
           id: paymentId,
           event_type: event.event,
           provider: 'razorpay',
           payload: { user_id: userId, credits, package_id: packageId },
         });
+
+        if (insertError?.code === '23505') {
+          // Unique violation = already processed
+          return new Response(JSON.stringify({ status: 'ok', duplicate: true }), {
+            headers: { 'Content-Type': 'application/json' },
+          });
+        }
+        if (insertError) throw insertError;
       }
 
       await supabase.rpc('add_credits', {

@@ -108,6 +108,8 @@ export const PostCardActions = React.memo(function PostCardActions({
               onRemix(post.id);
             }}
             scaleValue={0.85}
+            accessibilityRole="button"
+            accessibilityLabel="Remix this post"
           >
             <Ionicons
               name="git-branch-outline"

@@ -24,6 +24,8 @@ export const PostCardHeader = React.memo(function PostCardHeader({
         style={styles.headerLeft}
         onPress={() => onUserPress(post.user.id)}
         scaleValue={0.97}
+        accessibilityRole="button"
+        accessibilityLabel={`View ${post.user.username}'s profile`}
       >
         <Avatar uri={post.user.avatar_url} size="sm" />
         <View style={styles.headerText}>

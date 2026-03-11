@@ -4,9 +4,9 @@ import {
   Text,
   StyleSheet,
   TextInput,
-  FlatList,
   Platform,
 } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,7 +16,6 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
   Easing,
-  FadeIn,
 } from 'react-native-reanimated';
 import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { Avatar } from '@/components/ui/Avatar';
@@ -29,8 +28,9 @@ import { TrendingStyleChips } from '@/components/search/TrendingStyleChips';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useExplore } from '@/hooks/useExplore';
 import { useTrending } from '@/hooks/useTrending';
+import { useTheme } from '@/providers/ThemeProvider';
 import { POST_GRID_SIZE, POST_GRID_GAP } from '@/lib/constants';
-import { colors, spacing, fontSize, borderRadius, typography } from '@/lib/theme';
+import { spacing, fontSize, borderRadius, typography } from '@/lib/theme';
 import { formatNumber } from '@/utils/format-number';
 import type { PostWithUser } from '@/types';
 
@@ -56,6 +56,7 @@ function SearchSkeleton() {
 export default function SearchRoute() {
   const router = useRouter();
   const inputRef = useRef<TextInput>(null);
+  const { themeColors } = useTheme();
   const {
     query,
     isSearching,
@@ -121,7 +122,7 @@ export default function SearchRoute() {
           <Image
             source={{ uri: firstMedia?.media_url }}
             placeholder={firstMedia?.blurhash ? { blurhash: firstMedia.blurhash } : undefined}
-            style={styles.gridImage}
+            style={[styles.gridImage, { backgroundColor: themeColors.backgroundSecondary }]}
             contentFit="cover"
             transition={200}
           />
@@ -142,7 +143,7 @@ export default function SearchRoute() {
         </View>
       </AnimatedPressable>
     );
-  }, [handlePostPress]);
+  }, [handlePostPress, themeColors]);
 
   // Search result renderers
   const renderUserItem = useCallback(({ item }: { item: (typeof searchResultUsers)[0] }) => {
@@ -155,16 +156,16 @@ export default function SearchRoute() {
         <Avatar uri={item.avatar_url} size="md" />
         <View style={styles.userInfo}>
           <View style={styles.usernameRow}>
-            <Text style={styles.username}>{item.username}</Text>
+            <Text style={[styles.username, { color: themeColors.text }]}>{item.username}</Text>
             {item.is_verified && (
-              <Ionicons name="checkmark-circle" size={14} color={colors.primary} style={{ marginLeft: 4 }} />
+              <Ionicons name="checkmark-circle" size={14} color={themeColors.primary} style={{ marginLeft: 4 }} />
             )}
           </View>
-          <Text style={styles.fullName} numberOfLines={1}>{item.full_name}</Text>
+          <Text style={[styles.fullName, { color: themeColors.textSecondary }]} numberOfLines={1}>{item.full_name}</Text>
         </View>
       </AnimatedPressable>
     );
-  }, [handleUserPress]);
+  }, [handleUserPress, themeColors]);
 
   const renderHashtagItem = useCallback(({ item }: { item: { id: string; name: string; post_count: number } }) => {
     return (
@@ -173,16 +174,16 @@ export default function SearchRoute() {
         onPress={() => handleHashtagPress(item.name)}
         scaleValue={0.98}
       >
-        <View style={styles.hashtagIcon}>
-          <Text style={styles.hashSymbol}>#</Text>
+        <View style={[styles.hashtagIcon, { borderColor: themeColors.border }]}>
+          <Text style={[styles.hashSymbol, { color: themeColors.text }]}>#</Text>
         </View>
         <View style={styles.userInfo}>
-          <Text style={styles.username}>#{item.name}</Text>
-          <Text style={styles.fullName}>{formatNumber(item.post_count)} posts</Text>
+          <Text style={[styles.username, { color: themeColors.text }]}>#{item.name}</Text>
+          <Text style={[styles.fullName, { color: themeColors.textSecondary }]}>{formatNumber(item.post_count)} posts</Text>
         </View>
       </AnimatedPressable>
     );
-  }, [handleHashtagPress]);
+  }, [handleHashtagPress, themeColors]);
 
   const renderSearchPostItem = useCallback(({ item }: { item: PostWithUser }) => {
     const firstMedia = item.media?.[0];
@@ -195,25 +196,25 @@ export default function SearchRoute() {
       >
         <Image
           source={{ uri: firstMedia?.media_url }}
-          style={styles.postThumbnail}
+          style={[styles.postThumbnail, { backgroundColor: themeColors.backgroundSecondary }]}
           contentFit="cover"
         />
         <View style={styles.userInfo}>
           <View style={styles.usernameRow}>
-            <Text style={styles.username}>{item.user?.username}</Text>
+            <Text style={[styles.username, { color: themeColors.text }]}>{item.user?.username}</Text>
             {isAi && (
-              <View style={styles.aiBadgeSmall}>
+              <View style={[styles.aiBadgeSmall, { backgroundColor: themeColors.accent }]}>
                 <Ionicons name="sparkles" size={8} color="#fff" />
               </View>
             )}
           </View>
-          <Text style={styles.fullName} numberOfLines={1}>
+          <Text style={[styles.fullName, { color: themeColors.textSecondary }]} numberOfLines={1}>
             {item.caption || 'No caption'}
           </Text>
         </View>
       </AnimatedPressable>
     );
-  }, [handlePostPress]);
+  }, [handlePostPress, themeColors]);
 
   const renderPromptItem = useCallback(({ item }: { item: PostWithUser }) => {
     const firstMedia = item.media?.[0];
@@ -226,23 +227,23 @@ export default function SearchRoute() {
       >
         <Image
           source={{ uri: firstMedia?.media_url }}
-          style={styles.postThumbnail}
+          style={[styles.postThumbnail, { backgroundColor: themeColors.backgroundSecondary }]}
           contentFit="cover"
         />
         <View style={styles.userInfo}>
           <View style={styles.usernameRow}>
-            <Ionicons name="sparkles" size={12} color={colors.accent} />
-            <Text style={[styles.username, { marginLeft: 4 }]}>
+            <Ionicons name="sparkles" size={12} color={themeColors.accent} />
+            <Text style={[styles.username, { marginLeft: 4, color: themeColors.text }]}>
               {aiMeta?.model_name || 'AI'}
             </Text>
           </View>
-          <Text style={styles.fullName} numberOfLines={2}>
+          <Text style={[styles.fullName, { color: themeColors.textSecondary }]} numberOfLines={2}>
             {aiMeta?.prompt || 'No prompt'}
           </Text>
         </View>
       </AnimatedPressable>
     );
-  }, [handlePostPress]);
+  }, [handlePostPress, themeColors]);
 
   function getEmptyMessage() {
     switch (activeTab) {
@@ -263,16 +264,16 @@ export default function SearchRoute() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: themeColors.background }]}>
       {/* Search Bar */}
       <Animated.View style={searchBarStyle}>
-        <View style={styles.searchBar}>
-          <Ionicons name="search" size={18} color={colors.textSecondary} />
+        <View style={[styles.searchBar, { backgroundColor: themeColors.backgroundSecondary }]}>
+          <Ionicons name="search" size={18} color={themeColors.textSecondary} />
           <TextInput
             ref={inputRef}
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: themeColors.text }]}
             placeholder="Search users, tags, prompts..."
-            placeholderTextColor={colors.textSecondary}
+            placeholderTextColor={themeColors.textSecondary}
             value={query}
             onChangeText={search}
             onFocus={handleFocus}
@@ -283,7 +284,7 @@ export default function SearchRoute() {
           />
           {query.length > 0 && (
             <AnimatedPressable onPress={clearSearch} scaleValue={0.85}>
-              <Ionicons name="close-circle" size={18} color={colors.textSecondary} />
+              <Ionicons name="close-circle" size={18} color={themeColors.textSecondary} />
             </AnimatedPressable>
           )}
           <VisualSearchButton onPress={() => router.push('/(screens)/visual-search')} />
@@ -301,19 +302,20 @@ export default function SearchRoute() {
           {searching ? (
             <SearchSkeleton />
           ) : (
-            <FlatList
+            <FlashList
               data={getSearchData().data as any[]}
               keyExtractor={(item) => item.id}
               renderItem={getSearchData().render as any}
+              estimatedItemSize={64}
               ListEmptyComponent={
                 <View style={styles.emptyContainer}>
-                  <View style={styles.emptyIconCircle}>
-                    <Ionicons name="search-outline" size={28} color={colors.textSecondary} />
+                  <View style={[styles.emptyIconCircle, { backgroundColor: themeColors.backgroundSecondary }]}>
+                    <Ionicons name="search-outline" size={28} color={themeColors.textSecondary} />
                   </View>
-                  <Text style={styles.emptyText}>{getEmptyMessage()}</Text>
-                  <Text style={styles.emptySubtext}>Try a different search term</Text>
+                  <Text style={[styles.emptyText, { color: themeColors.textSecondary }]}>{getEmptyMessage()}</Text>
+                  <Text style={[styles.emptySubtext, { color: themeColors.textSecondary }]}>Try a different search term</Text>
                   <AnimatedPressable
-                    style={styles.emptyAction}
+                    style={[styles.emptyAction, { backgroundColor: themeColors.primary }]}
                     onPress={() => {
                       clearSearch();
                       inputRef.current?.focus();
@@ -337,7 +339,11 @@ export default function SearchRoute() {
           <View>
             <View style={styles.filterRow}>
               <AnimatedPressable
-                style={[styles.filterChip, aiOnly ? styles.filterChipActive : undefined]}
+                style={[
+                  styles.filterChip,
+                  { backgroundColor: themeColors.background, borderColor: 'rgba(139, 92, 246, 0.3)' },
+                  aiOnly && { backgroundColor: themeColors.accent, borderColor: themeColors.accent },
+                ]}
                 onPress={() => {
                   if (Platform.OS !== 'web') Haptics.selectionAsync();
                   toggleAiOnly();
@@ -347,33 +353,33 @@ export default function SearchRoute() {
                 <Ionicons
                   name="sparkles"
                   size={14}
-                  color={aiOnly ? '#fff' : colors.accent}
+                  color={aiOnly ? '#fff' : themeColors.accent}
                 />
-                <Text style={[styles.filterChipText, aiOnly && styles.filterChipTextActive]}>
+                <Text style={[styles.filterChipText, { color: themeColors.accent }, aiOnly && styles.filterChipTextActive]}>
                   AI Only
                 </Text>
               </AnimatedPressable>
               <AnimatedPressable
-                style={styles.filterChip}
+                style={[styles.filterChip, { backgroundColor: themeColors.background, borderColor: 'rgba(139, 92, 246, 0.3)' }]}
                 onPress={() => {
                   if (Platform.OS !== 'web') Haptics.selectionAsync();
                   router.push('/(screens)/trending');
                 }}
                 scaleValue={0.92}
               >
-                <Ionicons name="trending-up" size={14} color={colors.primary} />
-                <Text style={styles.filterChipText}>Trending</Text>
+                <Ionicons name="trending-up" size={14} color={themeColors.primary} />
+                <Text style={[styles.filterChipText, { color: themeColors.accent }]}>Trending</Text>
               </AnimatedPressable>
               <AnimatedPressable
-                style={styles.filterChip}
+                style={[styles.filterChip, { backgroundColor: themeColors.background, borderColor: 'rgba(139, 92, 246, 0.3)' }]}
                 onPress={() => {
                   if (Platform.OS !== 'web') Haptics.selectionAsync();
                   router.push('/(screens)/communities');
                 }}
                 scaleValue={0.92}
               >
-                <Ionicons name="people" size={14} color={colors.primary} />
-                <Text style={styles.filterChipText}>Communities</Text>
+                <Ionicons name="people" size={14} color={themeColors.primary} />
+                <Text style={[styles.filterChipText, { color: themeColors.accent }]}>Communities</Text>
               </AnimatedPressable>
             </View>
             {trendingStyles.length > 0 && (
@@ -385,11 +391,11 @@ export default function SearchRoute() {
           </View>
           {explorePosts.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <View style={styles.emptyIconCircle}>
-                <Ionicons name="compass-outline" size={32} color={colors.textSecondary} />
+              <View style={[styles.emptyIconCircle, { backgroundColor: themeColors.backgroundSecondary }]}>
+                <Ionicons name="compass-outline" size={32} color={themeColors.textSecondary} />
               </View>
-              <Text style={styles.emptyText}>No posts to explore yet</Text>
-              <Text style={styles.emptySubtext}>Follow creators to discover art</Text>
+              <Text style={[styles.emptyText, { color: themeColors.textSecondary }]}>No posts to explore yet</Text>
+              <Text style={[styles.emptySubtext, { color: themeColors.textSecondary }]}>Follow creators to discover art</Text>
             </View>
           ) : (
             <MasonryGrid
@@ -408,13 +414,11 @@ export default function SearchRoute() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
     paddingTop: Platform.OS === 'ios' ? 50 : spacing.md,
   },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.backgroundSecondary,
     marginHorizontal: spacing.lg,
     marginVertical: spacing.sm,
     paddingHorizontal: spacing.md,
@@ -426,7 +430,6 @@ const styles = StyleSheet.create({
     marginLeft: spacing.sm,
     fontSize: fontSize.md,
     fontFamily: typography.regular,
-    color: colors.text,
     paddingVertical: 0,
   },
   filterRow: {
@@ -443,17 +446,10 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: borderRadius.full,
     borderWidth: 1,
-    borderColor: 'rgba(139, 92, 246, 0.3)',
-    backgroundColor: colors.background,
-  },
-  filterChipActive: {
-    backgroundColor: colors.accent,
-    borderColor: colors.accent,
   },
   filterChipText: {
     fontSize: fontSize.sm,
     fontFamily: typography.medium,
-    color: colors.accent,
   },
   filterChipTextActive: {
     color: '#fff',
@@ -467,7 +463,6 @@ const styles = StyleSheet.create({
   gridImage: {
     width: '100%',
     height: '100%',
-    backgroundColor: colors.backgroundSecondary,
   },
   typeIcon: {
     position: 'absolute',
@@ -495,12 +490,10 @@ const styles = StyleSheet.create({
     fontSize: fontSize.md,
     fontFamily: typography.semiBold,
     fontWeight: '600',
-    color: colors.text,
   },
   fullName: {
     fontSize: fontSize.sm,
     fontFamily: typography.regular,
-    color: colors.textSecondary,
     marginTop: 2,
   },
   hashtagIcon: {
@@ -508,7 +501,6 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 22,
     borderWidth: 1,
-    borderColor: colors.border,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -516,16 +508,13 @@ const styles = StyleSheet.create({
     fontSize: fontSize.lg,
     fontFamily: typography.bold,
     fontWeight: '700',
-    color: colors.text,
   },
   postThumbnail: {
     width: 44,
     height: 44,
     borderRadius: 6,
-    backgroundColor: colors.backgroundSecondary,
   },
   aiBadgeSmall: {
-    backgroundColor: colors.accent,
     borderRadius: 4,
     padding: 2,
     marginLeft: 4,
@@ -544,21 +533,18 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: colors.backgroundSecondary,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: spacing.md,
   },
   emptyText: {
     textAlign: 'center',
-    color: colors.textSecondary,
     fontSize: fontSize.lg,
     fontFamily: typography.semiBold,
     marginTop: spacing.md,
   },
   emptySubtext: {
     textAlign: 'center',
-    color: colors.textSecondary,
     fontSize: fontSize.sm,
     marginTop: spacing.xs,
   },
@@ -566,7 +552,6 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.sm,
-    backgroundColor: colors.primary,
     borderRadius: borderRadius.full,
   },
   emptyActionText: {
