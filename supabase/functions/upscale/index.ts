@@ -14,7 +14,7 @@ Deno.serve(async (req) => {
     const supabase = createServiceClient();
     const { job_id } = await req.json();
 
-    if (!job_id) {
+    if (!job_id || typeof job_id !== 'string') {
       return jsonResponse({ error: 'job_id required' }, 400);
     }
 
