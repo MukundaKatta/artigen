@@ -17,6 +17,7 @@ import Animated, {
 import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { showConfirm } from '@/utils/alert';
 import { Avatar } from '@/components/ui/Avatar';
+import { useTheme } from '@/providers/ThemeProvider';
 import { colors, fontSize, spacing, typography } from '@/lib/theme';
 import { timeAgo } from '@/utils/format-date';
 import { formatNumber } from '@/utils/format-number';
@@ -47,6 +48,7 @@ export const CommentItem = React.memo(function CommentItem({
   replies,
   renderReply,
 }: Props) {
+  const { themeColors: tc } = useTheme();
   const likeScale = useSharedValue(1);
 
   const likeButtonStyle = useAnimatedStyle(() => ({
@@ -83,7 +85,7 @@ export const CommentItem = React.memo(function CommentItem({
           onPress={() => onUserPress(comment.user.id)}
         />
         <View style={styles.content}>
-          <Text style={styles.text}>
+          <Text style={[styles.text, { color: tc.text }]}>
             <Text
               style={styles.username}
               onPress={() => onUserPress(comment.user.id)}
@@ -115,7 +117,7 @@ export const CommentItem = React.memo(function CommentItem({
             <Ionicons
               name={comment.isLiked ? 'heart' : 'heart-outline'}
               size={14}
-              color={comment.isLiked ? colors.like : colors.textSecondary}
+              color={comment.isLiked ? colors.like : tc.textSecondary}
             />
           </Animated.View>
         </AnimatedPressable>

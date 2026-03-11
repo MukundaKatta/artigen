@@ -16,6 +16,7 @@ import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { Avatar } from '@/components/ui/Avatar';
 import { UserRowSkeleton } from '@/components/ui/Skeleton';
 import { timeAgo } from '@/utils/format-date';
+import { useTheme } from '@/providers/ThemeProvider';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
 import type { NotificationWithSender } from '@/types';
 
@@ -92,6 +93,7 @@ function groupNotifications(notifications: NotificationWithSender[]) {
 export default function NotificationsRoute() {
   const router = useRouter();
   const { user } = useAuth();
+  const { themeColors: tc } = useTheme();
   const {
     notifications,
     loading,
@@ -128,7 +130,7 @@ export default function NotificationsRoute() {
     return (
       <Animated.View entering={FadeInRight.delay(Math.min(index, 9) * 30).duration(250)}>
         <AnimatedPressable
-          style={[styles.row, !item.is_read && styles.unreadRow]}
+          style={[styles.row, { borderBottomColor: tc.border }, !item.is_read && { backgroundColor: tc.backgroundSecondary }]}
           onPress={() => handlePress(item)}
           scaleValue={0.98}
           accessibilityRole="button"
@@ -136,17 +138,17 @@ export default function NotificationsRoute() {
         >
           <View style={styles.avatarContainer}>
             <Avatar uri={item.sender?.avatar_url} size="md" />
-            <View style={[styles.notifIconBadge, { backgroundColor: icon.color }]}>
+            <View style={[styles.notifIconBadge, { backgroundColor: icon.color, borderColor: tc.background }]}>
               <Ionicons name={icon.name as any} size={10} color="#fff" />
             </View>
           </View>
           <View style={styles.content}>
-            <Text style={styles.text}>
+            <Text style={[styles.text, { color: tc.text }]}>
               <Text style={styles.username}>{item.sender?.username}</Text>
               {' '}
               {getNotificationText(item)}
             </Text>
-            <Text style={styles.time}>{timeAgo(item.created_at)}</Text>
+            <Text style={[styles.time, { color: tc.textSecondary }]}>{timeAgo(item.created_at)}</Text>
           </View>
           {!item.is_read && <View style={styles.unreadDot} />}
         </AnimatedPressable>
@@ -156,14 +158,14 @@ export default function NotificationsRoute() {
 
   function renderSectionHeader({ section }: { section: { title: string } }) {
     return (
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionHeaderText}>{section.title}</Text>
+      <View style={[styles.sectionHeader, { backgroundColor: tc.background }]}>
+        <Text style={[styles.sectionHeaderText, { color: tc.text }]}>{section.title}</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: tc.background }]}>
       <Stack.Screen
         options={{
           title: 'Notifications',
@@ -184,11 +186,11 @@ export default function NotificationsRoute() {
         </View>
       ) : notifications.length === 0 ? (
         <View style={styles.empty}>
-          <View style={styles.emptyIconCircle}>
-            <Ionicons name="notifications-outline" size={32} color={colors.textSecondary} />
+          <View style={[styles.emptyIconCircle, { backgroundColor: tc.backgroundSecondary }]}>
+            <Ionicons name="notifications-outline" size={32} color={tc.textSecondary} />
           </View>
-          <Text style={styles.emptyTitle}>No notifications yet</Text>
-          <Text style={styles.emptyText}>
+          <Text style={[styles.emptyTitle, { color: tc.text }]}>No notifications yet</Text>
+          <Text style={[styles.emptyText, { color: tc.textSecondary }]}>
             When someone interacts with you, you'll see it here
           </Text>
         </View>

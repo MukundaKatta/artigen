@@ -6,6 +6,7 @@ import Animated from 'react-native-reanimated';
 import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { TipButton } from '@/components/feed/TipButton';
 import { ProvenanceBadge } from '@/components/feed/ProvenanceBadge';
+import { useTheme } from '@/providers/ThemeProvider';
 import { colors, spacing } from '@/lib/theme';
 import type { FeedPost } from '@/types';
 import type { Router } from 'expo-router';
@@ -44,6 +45,7 @@ export const PostCardActions = React.memo(function PostCardActions({
   onLongPressSave,
   router,
 }: PostCardActionsProps) {
+  const { themeColors: tc } = useTheme();
   return (
     <View style={styles.actions}>
       <View style={styles.actionsLeft}>
@@ -61,7 +63,7 @@ export const PostCardActions = React.memo(function PostCardActions({
             <Ionicons
               name={post.isLiked ? 'heart' : 'heart-outline'}
               size={26}
-              color={post.isLiked ? colors.like : colors.text}
+              color={post.isLiked ? colors.like : tc.text}
             />
           </Animated.View>
         </AnimatedPressable>
@@ -79,7 +81,7 @@ export const PostCardActions = React.memo(function PostCardActions({
           <Ionicons
             name="chatbubble-outline"
             size={24}
-            color={colors.text}
+            color={tc.text}
           />
         </AnimatedPressable>
         <AnimatedPressable
@@ -96,7 +98,7 @@ export const PostCardActions = React.memo(function PostCardActions({
           <Ionicons
             name="paper-plane-outline"
             size={24}
-            color={colors.text}
+            color={tc.text}
           />
         </AnimatedPressable>
         {post.ai_metadata && onRemix && (
@@ -139,7 +141,7 @@ export const PostCardActions = React.memo(function PostCardActions({
             <Ionicons
               name={post.isSaved ? 'bookmark' : 'bookmark-outline'}
               size={24}
-              color={colors.text}
+              color={tc.text}
             />
           </Animated.View>
         </AnimatedPressable>

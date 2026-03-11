@@ -28,6 +28,7 @@ import { PostCardHeader } from '@/components/feed/PostCardHeader';
 import { PostCardMedia } from '@/components/feed/PostCardMedia';
 import { PostCardActions } from '@/components/feed/PostCardActions';
 import { PostCardAiDetails } from '@/components/feed/PostCardAiDetails';
+import { useTheme } from '@/providers/ThemeProvider';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
 import { formatNumber } from '@/utils/format-number';
 import { timeAgo } from '@/utils/format-date';
@@ -79,6 +80,7 @@ export const PostCard = React.memo(function PostCard({
   onPromptRemix,
 }: PostCardProps) {
   const router = useRouter();
+  const { themeColors: tc } = useTheme();
   const [captionExpanded, setCaptionExpanded] = useState(false);
   const [showActionSheet, setShowActionSheet] = useState(false);
   const [showAiDetails, setShowAiDetails] = useState(false);
@@ -175,7 +177,7 @@ export const PostCard = React.memo(function PostCard({
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: tc.background, borderBottomColor: tc.border }]}>
       {/* Header */}
       <PostCardHeader
         post={post}
@@ -233,7 +235,7 @@ export const PostCard = React.memo(function PostCard({
       {post.reactionSummary && post.reactionSummary.length > 0 ? (
         <ReactionSummary summary={post.reactionSummary} totalCount={post.likes_count} />
       ) : post.likes_count > 0 ? (
-        <Text style={styles.likesText}>
+        <Text style={[styles.likesText, { color: tc.text }]}>
           {formatNumber(post.likes_count)} {post.likes_count === 1 ? 'like' : 'likes'}
         </Text>
       ) : null}
@@ -270,7 +272,7 @@ export const PostCard = React.memo(function PostCard({
           accessibilityLabel={captionExpanded ? 'Collapse caption' : 'Expand caption'}
         >
           <RichText
-            style={styles.captionText}
+            style={[styles.captionText, { color: tc.text }]}
             numberOfLines={captionExpanded ? undefined : 2}
             username={post.user.username}
           >
@@ -293,14 +295,14 @@ export const PostCard = React.memo(function PostCard({
       {/* View comments link */}
       {post.comments_count > 0 && (
         <Pressable onPress={() => onComment(post.id)} accessibilityRole="link" accessibilityLabel={`View all ${post.comments_count} comments`}>
-          <Text style={styles.viewComments}>
+          <Text style={[styles.viewComments, { color: tc.textSecondary }]}>
             View all {formatNumber(post.comments_count)} comments
           </Text>
         </Pressable>
       )}
 
       {/* Timestamp */}
-      <Text style={styles.timestamp}>{timeAgo(post.created_at)}</Text>
+      <Text style={[styles.timestamp, { color: tc.textSecondary }]}>{timeAgo(post.created_at)}</Text>
 
       {/* Reaction Picker */}
       <ReactionPicker

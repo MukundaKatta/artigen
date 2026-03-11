@@ -33,8 +33,10 @@ import { colors, spacing, fontSize, typography, borderRadius, shadows } from '@/
 import type { FeedPost } from '@/types';
 
 function FeedSkeleton() {
+  // Uses ThemeProvider for dark mode support
+  const { themeColors: tc } = useTheme();
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: tc.background }]}>
       <StoryBarSkeleton />
       <PostCardSkeleton />
       <PostCardSkeleton />
@@ -75,13 +77,14 @@ function LoadingDots() {
 }
 
 function FeedError({ message, onRetry }: { message: string; onRetry: () => void }) {
+  const { themeColors: tc } = useTheme();
   return (
-    <View style={styles.errorContainer}>
-      <View style={styles.errorIconCircle}>
-        <Ionicons name="cloud-offline-outline" size={28} color={colors.textSecondary} />
+    <View style={[styles.errorContainer, { backgroundColor: tc.background }]}>
+      <View style={[styles.errorIconCircle, { backgroundColor: tc.backgroundSecondary }]}>
+        <Ionicons name="cloud-offline-outline" size={28} color={tc.textSecondary} />
       </View>
-      <Text style={styles.errorTitle}>Couldn't load your feed</Text>
-      <Text style={styles.errorMessage}>{message}</Text>
+      <Text style={[styles.errorTitle, { color: tc.text }]}>Couldn't load your feed</Text>
+      <Text style={[styles.errorMessage, { color: tc.textSecondary }]}>{message}</Text>
       <AnimatedPressable
         style={styles.retryButton}
         onPress={() => {
@@ -152,8 +155,12 @@ export default function HomeRoute() {
     router.push(`/(screens)/post/${postId}`);
   }, [router]);
 
+  // Use ref to avoid re-creating callback (and re-rendering all PostCards) when posts change
+  const postsRef = useRef(posts);
+  postsRef.current = posts;
+
   const onPromptRemix = useCallback((postId: string) => {
-    const post = posts.find((p) => p.id === postId);
+    const post = postsRef.current.find((p) => p.id === postId);
     if (!post?.ai_metadata) return;
     router.push({
       pathname: '/(camera)/generate',
@@ -163,9 +170,14 @@ export default function HomeRoute() {
         remixOfPostId: postId,
       },
     });
-  }, [posts, router]);
+  }, [router]);
 
   const currentUserId = user?.id || '';
+
+  const listContentStyle = useMemo(
+    () => ({ paddingBottom: 80, backgroundColor: themeColors.background }),
+    [themeColors.background],
+  );
 
   const renderItem = useCallback(({ item, index }: { item: FeedPost; index: number }) => (
     <AnimatedListItem index={index}>
@@ -207,10 +219,10 @@ export default function HomeRoute() {
       ListEmptyComponent={
         <View style={styles.empty}>
           <View style={styles.emptyIconCircle}>
-            <Ionicons name="sparkles" size={32} color={colors.primary} />
+            <Ionicons name="sparkles" size={32} color={themeColors.primary} />
           </View>
-          <Text style={styles.emptyTitle}>Welcome to Artigen</Text>
-          <Text style={styles.emptyText}>
+          <Text style={[styles.emptyTitle, { color: themeColors.text }]}>Welcome to Artigen</Text>
+          <Text style={[styles.emptyText, { color: themeColors.textSecondary }]}>
             Follow creators to see their AI art here, or create your own masterpiece.
           </Text>
           <View style={styles.emptyCTAs}>
@@ -228,7 +240,7 @@ export default function HomeRoute() {
               <Text style={styles.emptyCTAPrimaryText}>Create Artwork</Text>
             </AnimatedPressable>
             <AnimatedPressable
-              style={styles.emptyCTASecondary}
+              style={[styles.emptyCTASecondary, { backgroundColor: themeColors.backgroundSecondary, borderColor: themeColors.border }]}
               onPress={() => {
                 if (Platform.OS !== 'web') Haptics.selectionAsync();
                 router.push('/(tabs)/search');
@@ -254,7 +266,7 @@ export default function HomeRoute() {
       viewabilityConfig={viewabilityConfig}
       showsVerticalScrollIndicator={false}
       drawDistance={500}
-      contentContainerStyle={{ paddingBottom: 80, backgroundColor: themeColors.background }}
+      contentContainerStyle={listContentStyle}
     />
     {(showScrollTop || newPostCount > 0) && (
       <Animated.View entering={FadeInUp.duration(300)} exiting={FadeOutUp.duration(200)}>

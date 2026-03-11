@@ -22,6 +22,7 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useAiGeneration } from '@/hooks/useAiGeneration';
 import { AI_MODELS } from '@/services/ai.service';
 import { showAlert } from '@/utils/alert';
+import { useTheme } from '@/providers/ThemeProvider';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
 import type { AiModel } from '@/types';
 import { createPrompt } from '@/services/prompt-library.service';
@@ -66,6 +67,7 @@ function getAspectDimensions(ratio: AspectRatio, model: AiModel) {
 export default function GenerateRoute() {
   const router = useRouter();
   const { user } = useAuth();
+  const { themeColors } = useTheme();
   const params = useLocalSearchParams<{
     remixOfPostId?: string;
     remixPrompt?: string;
@@ -364,7 +366,7 @@ export default function GenerateRoute() {
         onSave={confirmSavePrompt}
       />
       <KeyboardAvoidingView
-        style={styles.container}
+        style={[styles.container, { backgroundColor: themeColors.background }]}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
       <ScrollView
@@ -389,21 +391,21 @@ export default function GenerateRoute() {
 
         {/* Prompt */}
         <View style={styles.promptLabelRow}>
-          <Text style={styles.label}>Prompt</Text>
+          <Text style={[styles.label, { color: themeColors.textSecondary }]}>Prompt</Text>
           <Pressable
             style={styles.describeModeToggle}
             onPress={() => { setDescribeMode(!describeMode); setPrompt(''); }}
           >
-            <Ionicons name={describeMode ? 'sparkles' : 'create-outline'} size={14} color={colors.primary} />
+            <Ionicons name={describeMode ? 'sparkles' : 'create-outline'} size={14} color={themeColors.primary} />
             <Text style={styles.describeModeText}>{describeMode ? 'Prompt mode' : 'Describe mode'}</Text>
           </Pressable>
         </View>
         <TextInput
-          style={styles.promptInput}
+          style={[styles.promptInput, { borderColor: themeColors.border, color: themeColors.text, backgroundColor: themeColors.backgroundSecondary }]}
           placeholder={describeMode
             ? 'Describe in plain English what you want (AI will write the prompt)...'
             : 'Describe the image you want to create...'}
-          placeholderTextColor={colors.textSecondary}
+          placeholderTextColor={themeColors.textSecondary}
           value={prompt}
           onChangeText={setPrompt}
           multiline

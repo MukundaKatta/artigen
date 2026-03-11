@@ -10,6 +10,7 @@ import { useStories } from '@/hooks/useStories';
 import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { StoryBarSkeleton } from '@/components/ui/Skeleton';
 import { CloseFriendsRing } from '@/components/stories/CloseFriendsRing';
+import { useTheme } from '@/providers/ThemeProvider';
 import { colors, fontSize, spacing, typography, gradients, shadows } from '@/lib/theme';
 import { AVATAR_SIZES } from '@/lib/constants';
 
@@ -21,6 +22,7 @@ export function StoryBar() {
   const { profile, user } = useAuth();
   const { stories, loading } = useStories(user?.id);
   const router = useRouter();
+  const { themeColors: tc } = useTheme();
 
   const myStories = stories.find((s) => s.userId === user?.id);
   const otherStories = stories.filter((s) => s.userId !== user?.id);
@@ -44,7 +46,7 @@ export function StoryBar() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: tc.background, borderBottomColor: tc.border }]}>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -75,7 +77,7 @@ export function StoryBar() {
               </LinearGradient>
             )}
           </View>
-          <Text style={styles.label} numberOfLines={1}>
+          <Text style={[styles.label, { color: tc.text }]} numberOfLines={1}>
             Your Story
           </Text>
         </AnimatedPressable>
@@ -116,12 +118,12 @@ export function StoryBar() {
                     </LinearGradient>
                   )
                 ) : (
-                  <View style={styles.storyRingViewed}>
+                  <View style={[styles.storyRingViewed, { borderColor: tc.border }]}>
                     <View style={styles.storyRingInner} />
                   </View>
                 )}
               </View>
-              <Text style={styles.label} numberOfLines={1}>
+              <Text style={[styles.label, { color: tc.text }]} numberOfLines={1}>
                 {userStory.username}
               </Text>
             </AnimatedPressable>

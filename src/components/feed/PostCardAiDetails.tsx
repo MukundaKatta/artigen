@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
+import { useTheme } from '@/providers/ThemeProvider';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
 import type { AiMetadata } from '@/types/database';
 
@@ -21,6 +22,7 @@ export const PostCardAiDetails = React.memo(function PostCardAiDetails({
   onPromptRemix,
   postId,
 }: PostCardAiDetailsProps) {
+  const { themeColors: tc } = useTheme();
   return (
     <>
       {/* AI Prompt Preview */}
@@ -30,7 +32,7 @@ export const PostCardAiDetails = React.memo(function PostCardAiDetails({
             <Ionicons name="sparkles" size={12} color={colors.accent} />
             <Text style={styles.promptPreviewLabel}>{aiMetadata.model_name}</Text>
           </View>
-          <Text style={styles.promptPreviewText} numberOfLines={2} selectable>
+          <Text style={[styles.promptPreviewText, { color: tc.text }]} numberOfLines={2} selectable>
             {aiMetadata.prompt}
           </Text>
           {onPromptRemix && (
@@ -68,19 +70,19 @@ export const PostCardAiDetails = React.memo(function PostCardAiDetails({
 
       {/* AI Details (expanded) */}
       {showDetails && (
-        <View style={styles.aiDetailsContainer}>
+        <View style={[styles.aiDetailsContainer, { backgroundColor: tc.backgroundSecondary }]}>
           <View style={styles.aiDetailRow}>
-            <Text style={styles.aiDetailLabel}>Model</Text>
-            <Text style={styles.aiDetailValue}>{aiMetadata.model_name}</Text>
+            <Text style={[styles.aiDetailLabel, { color: tc.textSecondary }]}>Model</Text>
+            <Text style={[styles.aiDetailValue, { color: tc.text }]}>{aiMetadata.model_name}</Text>
           </View>
           <View style={styles.aiDetailRow}>
-            <Text style={styles.aiDetailLabel}>Prompt</Text>
-            <Text style={styles.aiDetailValue} selectable>{aiMetadata.prompt}</Text>
+            <Text style={[styles.aiDetailLabel, { color: tc.textSecondary }]}>Prompt</Text>
+            <Text style={[styles.aiDetailValue, { color: tc.text }]} selectable>{aiMetadata.prompt}</Text>
           </View>
           {aiMetadata.negative_prompt ? (
             <View style={styles.aiDetailRow}>
-              <Text style={styles.aiDetailLabel}>Neg. Prompt</Text>
-              <Text style={styles.aiDetailValue}>{aiMetadata.negative_prompt}</Text>
+              <Text style={[styles.aiDetailLabel, { color: tc.textSecondary }]}>Neg. Prompt</Text>
+              <Text style={[styles.aiDetailValue, { color: tc.text }]}>{aiMetadata.negative_prompt}</Text>
             </View>
           ) : null}
           {(aiMetadata.style_tags as string[])?.length > 0 && (
@@ -94,16 +96,16 @@ export const PostCardAiDetails = React.memo(function PostCardAiDetails({
           )}
           <View style={styles.aiSettingsRow}>
             {(aiMetadata.settings as any)?.steps != null && (
-              <Text style={styles.aiSettingChip}>Steps: {(aiMetadata.settings as any).steps}</Text>
+              <Text style={[styles.aiSettingChip, { color: tc.textSecondary, backgroundColor: tc.background }]}>Steps: {(aiMetadata.settings as any).steps}</Text>
             )}
             {(aiMetadata.settings as any)?.cfg_scale != null && (
-              <Text style={styles.aiSettingChip}>CFG: {(aiMetadata.settings as any).cfg_scale}</Text>
+              <Text style={[styles.aiSettingChip, { color: tc.textSecondary, backgroundColor: tc.background }]}>CFG: {(aiMetadata.settings as any).cfg_scale}</Text>
             )}
             {(aiMetadata.settings as any)?.seed != null && (
-              <Text style={styles.aiSettingChip}>Seed: {(aiMetadata.settings as any).seed}</Text>
+              <Text style={[styles.aiSettingChip, { color: tc.textSecondary, backgroundColor: tc.background }]}>Seed: {(aiMetadata.settings as any).seed}</Text>
             )}
             {aiMetadata.generation_time_ms != null && (
-              <Text style={styles.aiSettingChip}>
+              <Text style={[styles.aiSettingChip, { color: tc.textSecondary, backgroundColor: tc.background }]}>
                 {(aiMetadata.generation_time_ms / 1000).toFixed(1)}s
               </Text>
             )}

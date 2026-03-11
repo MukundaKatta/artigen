@@ -150,6 +150,14 @@ export const AI_MODELS: AiModel[] = [
 
 // ── Generate Image ───────────────────────────────────────────
 
+const GENERATION_TIMEOUT_MS = 120_000; // 2 minutes
+
+function timeoutPromise(ms: number): Promise<never> {
+  return new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('Generation timed out. Please try again.')), ms),
+  );
+}
+
 export async function generateImage(
   request: GenerateImageRequest
 ): Promise<{ data: GenerateImageResponse | null; error: string | null }> {
@@ -162,9 +170,24 @@ export async function generateImage(
     height: request.height ?? 0,
   });
 
-  const { data, error } = await supabase.functions.invoke('generate', {
-    body: request,
-  });
+  let data, error;
+  try {
+    const result = await Promise.race([
+      supabase.functions.invoke('generate', { body: request }),
+      timeoutPromise(GENERATION_TIMEOUT_MS),
+    ]);
+    data = result.data;
+    error = result.error;
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Generation failed';
+    trackEvent(TELEMETRY_EVENTS.generation_failed, {
+      model_id: request.model_id,
+      provider: request.provider,
+      error_message: msg.slice(0, 200),
+      duration_ms: Date.now() - startTime,
+    });
+    return { data: null, error: msg };
+  }
 
   const durationMs = Date.now() - startTime;
 

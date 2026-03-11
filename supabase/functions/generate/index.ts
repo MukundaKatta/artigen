@@ -201,68 +201,36 @@ async function generateWithDallE(modelId: string, prompt: string, width?: number
   };
 }
 
-// ── Gemini Imagen 3 ───────────────────────────────────────────
-async function generateWithImagen(prompt: string, width?: number, height?: number) {
-  const apiKey = Deno.env.get('GOOGLE_AI_API_KEY');
-  if (!apiKey) throw new Error('Google AI API key not configured');
+// ── Imagen model configs ──────────────────────────────────────
+const IMAGEN_MODELS: Record<string, { endpoint: string; name: string; idPrefix: string }> = {
+  'imagen-3': { endpoint: 'imagen-3.0-generate-001', name: 'Imagen 3', idPrefix: 'imagen' },
+  'imagen-4': { endpoint: 'imagen-4.0-generate-001', name: 'Imagen 4', idPrefix: 'imagen4' },
+};
 
-  const aspectRatio = (() => {
-    if (!width || !height) return '1:1';
-    const r = width / height;
-    if (r > 1.4) return '16:9';
-    if (r < 0.75) return '9:16';
-    if (r > 1.1) return '4:3';
-    if (r < 0.9) return '3:4';
-    return '1:1';
-  })();
-
-  const startTime = Date.now();
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict?key=${apiKey}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ instances: [{ prompt }], parameters: { sampleCount: 1, aspectRatio } }),
-    }
-  );
-
-  if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err.error?.message || `Imagen API error: ${res.status}`);
-  }
-
-  const data = await res.json();
-  const b64 = data.predictions?.[0]?.bytesBase64Encoded;
-  if (!b64) throw new Error('No image returned by Imagen');
-
-  return {
-    image_url: `data:image/png;base64,${b64}`,
-    prediction_id: `imagen_${Date.now()}`,
-    generation_time_ms: Date.now() - startTime,
-    model_id: 'imagen-3',
-    model_name: 'Imagen 3',
-    settings: { aspectRatio, width, height },
-  };
+/** Compute aspect ratio string from pixel dimensions. */
+function getAspectRatioString(width?: number, height?: number): string {
+  if (!width || !height) return '1:1';
+  const r = width / height;
+  if (r > 1.4) return '16:9';
+  if (r < 0.75) return '9:16';
+  if (r > 1.1) return '4:3';
+  if (r < 0.9) return '3:4';
+  return '1:1';
 }
 
-// ── Gemini Imagen 4 ───────────────────────────────────────────
-async function generateWithImagen4(prompt: string, width?: number, height?: number) {
+// ── Google Imagen (unified for v3 and v4) ─────────────────────
+async function generateWithImagen(modelId: string, prompt: string, width?: number, height?: number) {
   const apiKey = Deno.env.get('GOOGLE_AI_API_KEY');
   if (!apiKey) throw new Error('Google AI API key not configured');
 
-  const aspectRatio = (() => {
-    if (!width || !height) return '1:1';
-    const r = width / height;
-    if (r > 1.4) return '16:9';
-    if (r < 0.75) return '9:16';
-    if (r > 1.1) return '4:3';
-    if (r < 0.9) return '3:4';
-    return '1:1';
-  })();
+  const model = IMAGEN_MODELS[modelId];
+  if (!model) throw new Error(`Unsupported Imagen model: ${modelId}`);
+
+  const aspectRatio = getAspectRatioString(width, height);
 
   const startTime = Date.now();
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/${model.endpoint}:predict?key=${apiKey}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -272,19 +240,19 @@ async function generateWithImagen4(prompt: string, width?: number, height?: numb
 
   if (!res.ok) {
     const err = await res.json();
-    throw new Error(err.error?.message || `Imagen 4 API error: ${res.status}`);
+    throw new Error(err.error?.message || `${model.name} API error: ${res.status}`);
   }
 
   const data = await res.json();
   const b64 = data.predictions?.[0]?.bytesBase64Encoded;
-  if (!b64) throw new Error('No image returned by Imagen 4');
+  if (!b64) throw new Error(`No image returned by ${model.name}`);
 
   return {
     image_url: `data:image/png;base64,${b64}`,
-    prediction_id: `imagen4_${Date.now()}`,
+    prediction_id: `${model.idPrefix}_${Date.now()}`,
     generation_time_ms: Date.now() - startTime,
-    model_id: 'imagen-4',
-    model_name: 'Imagen 4',
+    model_id: modelId,
+    model_name: model.name,
     settings: { aspectRatio, width, height },
   };
 }
@@ -403,9 +371,7 @@ serve(async (req: Request) => {
       } else if (provider === 'openai') {
         result = await generateWithDallE(model_id, prompt, width, height);
       } else if (provider === 'gemini') {
-        result = model_id === 'imagen-4'
-          ? await generateWithImagen4(prompt, width, height)
-          : await generateWithImagen(prompt, width, height);
+        result = await generateWithImagen(model_id, prompt, width, height);
       } else {
         result = await generateWithReplicate(model_id, prompt, negative_prompt, width, height, steps, cfg_scale, seed, scheduler, style_image_url, img2img_strength, num_outputs);
       }
