@@ -28,7 +28,7 @@ serve(async (req: Request) => {
   try {
     const { action, reference_id } = await req.json();
 
-    if (!action || !REWARD_CONFIG[action]) {
+    if (!action || typeof action !== 'string' || !REWARD_CONFIG[action]) {
       return jsonResponse({ error: 'Invalid action' }, 400);
     }
 
@@ -36,27 +36,20 @@ serve(async (req: Request) => {
     const userId = authResult.userId;
     const config = REWARD_CONFIG[action];
 
-    // Check daily limit
-    const today = new Date().toISOString().split('T')[0];
-    const { count } = await (supabase.from('engagement_rewards') as any)
-      .select('id', { count: 'exact', head: true })
-      .eq('user_id', userId)
-      .eq('action', action)
-      .gte('created_at', `${today}T00:00:00Z`)
-      .lte('created_at', `${today}T23:59:59Z`);
-
-    if ((count ?? 0) >= config.dailyLimit) {
-      return jsonResponse({ error: 'daily_limit_reached', credits_earned: 0 }, 200);
-    }
-
     let creditsToEarn = config.credits;
+    let streakInfo: { current_streak: number } | null = null;
 
     // Handle daily login + streak
     if (action === 'daily_login') {
+      const today = new Date().toISOString().split('T')[0];
       const { data: streak } = await (supabase.from('login_streaks') as any)
         .select('*')
         .eq('user_id', userId)
         .maybeSingle();
+
+      if (streak?.last_login_date === today) {
+        return jsonResponse({ error: 'already_claimed', credits_earned: 0, streak: streak.current_streak }, 200);
+      }
 
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
@@ -64,10 +57,6 @@ serve(async (req: Request) => {
 
       let newStreak = 1;
       let longestStreak = streak?.longest_streak ?? 0;
-
-      if (streak?.last_login_date === today) {
-        return jsonResponse({ error: 'already_claimed', credits_earned: 0, streak: streak.current_streak }, 200);
-      }
 
       if (streak?.last_login_date === yesterdayStr) {
         newStreak = (streak.current_streak ?? 0) + 1;
@@ -79,6 +68,7 @@ serve(async (req: Request) => {
       const streakBonus = Math.min(newStreak * 2, 20);
       creditsToEarn += streakBonus;
 
+      // Upsert streak (atomic — last_login_date acts as natural dedup)
       await (supabase.from('login_streaks') as any).upsert({
         user_id: userId,
         current_streak: newStreak,
@@ -87,62 +77,62 @@ serve(async (req: Request) => {
         updated_at: new Date().toISOString(),
       });
 
-      // Record streak bonus separately if > 0
+      streakInfo = { current_streak: newStreak };
+    }
+
+    // Use atomic insert with conflict handling for deduplication
+    // For reference-based rewards, the unique index on (user_id, action, reference_id) prevents duplicates
+    // For daily rewards, the unique partial index on (user_id, action, date) prevents duplicates
+    const insertPayload: Record<string, unknown> = {
+      user_id: userId,
+      action,
+      credits_earned: action === 'daily_login' ? config.credits : creditsToEarn,
+      reference_id: reference_id || null,
+    };
+
+    const { error: insertError } = await (supabase.from('engagement_rewards') as any)
+      .insert(insertPayload);
+
+    if (insertError) {
+      // Unique violation = duplicate claim attempt
+      if (insertError.code === '23505') {
+        return jsonResponse({ error: 'already_rewarded', credits_earned: 0 }, 200);
+      }
+      throw insertError;
+    }
+
+    // Record streak bonus separately if > 0 and daily_login
+    if (action === 'daily_login') {
+      const streakBonus = creditsToEarn - config.credits;
       if (streakBonus > 0) {
         await (supabase.from('engagement_rewards') as any).insert({
           user_id: userId,
           action: 'streak_bonus',
           credits_earned: streakBonus,
-          reference_id: `streak_${newStreak}`,
+          reference_id: `streak_${streakInfo?.current_streak ?? 1}`,
         });
       }
     }
 
-    // Prevent duplicate reward for same reference
-    if (reference_id) {
-      const { data: existing } = await (supabase.from('engagement_rewards') as any)
-        .select('id')
-        .eq('user_id', userId)
-        .eq('action', action)
-        .eq('reference_id', reference_id)
-        .maybeSingle();
+    // Credit the user's wallet atomically using RPC (prevents read-then-update race)
+    const { error: walletError } = await supabase.rpc('add_wallet_credits' as any, {
+      p_user_id: userId,
+      p_amount: creditsToEarn,
+      p_description: `Engagement: ${action}`,
+    } as any);
 
-      if (existing) {
-        return jsonResponse({ error: 'already_rewarded', credits_earned: 0 }, 200);
-      }
-    }
-
-    // Record the reward
-    await (supabase.from('engagement_rewards') as any).insert({
-      user_id: userId,
-      action,
-      credits_earned: action === 'daily_login' ? config.credits : creditsToEarn,
-      reference_id,
-    });
-
-    // Credit the user's wallet
-    const { data: wallet } = await supabase
-      .from('wallets')
-      .select('id, balance_cents')
-      .eq('user_id', userId)
-      .maybeSingle();
-
-    if (wallet) {
-      await supabase
-        .from('wallets')
-        .update({ balance_cents: wallet.balance_cents + creditsToEarn })
-        .eq('id', wallet.id);
-    } else {
-      await supabase.from('wallets').insert({
+    // Fallback: create wallet if RPC fails because wallet doesn't exist
+    if (walletError) {
+      await supabase.from('wallets').upsert({
         user_id: userId,
         balance_cents: creditsToEarn,
-      });
+      }, { onConflict: 'user_id' });
     }
 
     return jsonResponse({
       credits_earned: creditsToEarn,
       action,
-      ...(action === 'daily_login' ? { streak: (await (supabase.from('login_streaks') as any).select('current_streak').eq('user_id', userId).single()).data?.current_streak ?? 1 } : {}),
+      ...(streakInfo ? { streak: streakInfo.current_streak } : {}),
     });
   } catch (err: any) {
     return jsonResponse({ error: 'Internal server error' }, 500);
