@@ -32,8 +32,26 @@ export function jsonResponse(body: Record<string, unknown>, status = 200, req?: 
   const headers = req ? getCorsHeaders(req) : corsHeaders;
   return new Response(JSON.stringify(body), {
     status,
-    headers: { 'Content-Type': 'application/json', ...headers },
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY',
+      ...headers,
+    },
   });
+}
+
+/**
+ * Sanitize user-provided text to prevent stored XSS.
+ * Strips HTML tags and limits length.
+ */
+export function sanitizeText(input: string, maxLength = 4000): string {
+  return input
+    .replace(/<[^>]*>/g, '')
+    .replace(/javascript:/gi, '')
+    .replace(/on\w+\s*=/gi, '')
+    .trim()
+    .slice(0, maxLength);
 }
 
 /** Create a Supabase client using the service role key (for DB operations). */

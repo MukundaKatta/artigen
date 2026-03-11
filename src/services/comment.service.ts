@@ -67,12 +67,13 @@ export async function addComment(
 
   // Background notification with proper error handling
   if (data && !error) {
-    supabase
-      .from('posts')
-      .select('user_id')
-      .eq('id', postId)
-      .single()
-      .then(({ data: post }) => {
+    Promise.resolve(
+      supabase
+        .from('posts')
+        .select('user_id')
+        .eq('id', postId)
+        .single()
+    ).then(({ data: post }) => {
         if (post && post.user_id !== userId) {
           createNotification({
             type: 'comment',

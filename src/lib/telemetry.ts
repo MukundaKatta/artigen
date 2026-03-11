@@ -79,7 +79,7 @@ async function flushEvents() {
   const batch = eventQueue.splice(0, BATCH_SIZE);
 
   try {
-    await supabase.from('analytics_events').insert(
+    await (supabase.from as any)('analytics_events').insert(
       batch.map((e) => ({
         event_name: e.event,
         properties: e.payload,

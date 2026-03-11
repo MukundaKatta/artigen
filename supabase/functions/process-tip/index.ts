@@ -1,4 +1,4 @@
-import { corsHeaders, jsonResponse, createServiceClient, requireAuth, checkRateLimit, rateLimitResponse } from '../_shared/auth.ts';
+import { corsHeaders, jsonResponse, createServiceClient, requireAuth, checkRateLimit, rateLimitResponse, sanitizeText } from '../_shared/auth.ts';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
@@ -33,131 +33,39 @@ Deno.serve(async (req) => {
     }
 
     const fee_cents = Math.floor(amount_cents * 0.05); // 5% platform fee
-    const net_amount = amount_cents - fee_cents;
+    const sanitizedMessage = message ? sanitizeText(String(message), 500) : null;
 
-    // Atomic debit: conditional update ensures balance is sufficient (prevents race conditions)
-    const { data: debitedWallet, error: debitError } = await supabase
-      .from('wallets')
-      .update({
-        balance_cents: supabase.rpc ? undefined : 0, // placeholder — real decrement below
-      })
-      .eq('user_id', sender_id)
-      .gte('balance_cents', amount_cents)
-      .select('id, balance_cents')
-      .single();
-
-    // Use raw SQL via RPC for atomic decrement to prevent race conditions
-    const { data: debitResult, error: rpcError } = await supabase.rpc('debit_wallet', {
-      p_user_id: sender_id,
+    // Use atomic RPC to process entire tip in a single transaction
+    // This prevents race conditions by locking wallet rows
+    const { data: tipId, error: rpcError } = await supabase.rpc('process_tip_atomic', {
+      p_sender_id: sender_id,
+      p_recipient_id: recipient_id,
       p_amount: amount_cents,
+      p_fee: fee_cents,
+      p_post_id: post_id || null,
+      p_message: sanitizedMessage,
     });
 
     if (rpcError) {
-      // Fallback: conditional update
-      const { data: senderWallet } = await supabase
-        .from('wallets')
-        .select('id, balance_cents, lifetime_spent_cents')
-        .eq('user_id', sender_id)
-        .single();
-
-      if (!senderWallet || senderWallet.balance_cents < amount_cents) {
+      const msg = rpcError.message || '';
+      if (msg.includes('insufficient_credits')) {
         return jsonResponse({ error: 'Insufficient balance' }, 400);
       }
-
-      const { data: updated, error: updateErr } = await supabase
-        .from('wallets')
-        .update({
-          balance_cents: senderWallet.balance_cents - amount_cents,
-          lifetime_spent_cents: senderWallet.lifetime_spent_cents + amount_cents,
-        })
-        .eq('id', senderWallet.id)
-        .gte('balance_cents', amount_cents)
-        .select('id')
-        .single();
-
-      if (updateErr || !updated) {
-        return jsonResponse({ error: 'Insufficient balance' }, 400);
+      if (msg.includes('wallet_not_found') || msg.includes('sender_wallet_not_found')) {
+        return jsonResponse({ error: 'Wallet not found. Please add credits first.' }, 400);
       }
+      throw rpcError;
     }
 
-    // Get sender wallet ID for transaction records
-    const { data: senderWalletData } = await supabase
-      .from('wallets')
-      .select('id')
-      .eq('user_id', sender_id)
-      .single();
-
-    // Get or create recipient wallet, then credit atomically
-    let { data: recipientWallet } = await supabase
-      .from('wallets')
-      .select('id, balance_cents, lifetime_earned_cents')
-      .eq('user_id', recipient_id)
-      .single();
-
-    if (!recipientWallet) {
-      const { data: created } = await supabase
-        .from('wallets')
-        .insert({ user_id: recipient_id, balance_cents: 0, lifetime_earned_cents: 0, lifetime_spent_cents: 0 })
-        .select('id, balance_cents, lifetime_earned_cents')
-        .single();
-      recipientWallet = created;
-    }
-
-    if (!recipientWallet) {
-      // Refund sender if we can't credit recipient
-      await supabase.rpc('refund_generation_credits', { p_user_id: sender_id, p_cost: amount_cents }).catch(() => {});
-      return jsonResponse({ error: 'Could not find or create recipient wallet' }, 500);
-    }
-
-    // Credit recipient
-    await supabase.from('wallets').update({
-      balance_cents: recipientWallet.balance_cents + net_amount,
-      lifetime_earned_cents: recipientWallet.lifetime_earned_cents + net_amount,
-    }).eq('id', recipientWallet.id);
-
-    // Create transaction records, tip record, and notification in parallel
-    const [senderTxResult] = await Promise.all([
-      supabase.from('wallet_transactions').insert({
-        wallet_id: senderWalletData?.id,
-        type: 'tip_sent',
-        amount_cents,
-        fee_cents: 0,
-        counterparty_id: recipient_id,
-        post_id: post_id || null,
-        description: 'Tip to creator',
-        status: 'completed',
-      }).select('id').single(),
-
-      supabase.from('wallet_transactions').insert({
-        wallet_id: recipientWallet.id,
-        type: 'tip_received',
-        amount_cents: net_amount,
-        fee_cents,
-        counterparty_id: sender_id,
-        post_id: post_id || null,
-        description: 'Tip received',
-        status: 'completed',
-      }),
-
-      supabase.from('notifications').insert({
-        notification_type: 'tip',
-        sender_id,
-        recipient_id,
-        post_id: post_id || null,
-      }),
-    ]);
-
-    // Create tip record
-    await supabase.from('tips').insert({
+    // Create notification (fire-and-forget, non-critical)
+    supabase.from('notifications').insert({
+      notification_type: 'tip',
       sender_id,
       recipient_id,
       post_id: post_id || null,
-      amount_cents,
-      message: message || '',
-      transaction_id: senderTxResult.data?.id || null,
-    });
+    }).then(() => {}).catch(() => {});
 
-    return jsonResponse({ success: true });
+    return jsonResponse({ success: true, tip_id: tipId });
   } catch (err) {
     return jsonResponse({ error: 'Internal server error' }, 500);
   }

@@ -87,7 +87,7 @@ export async function fetchStyleEvolution(userId: string): Promise<StyleEvolutio
   const styleChanges = phases.filter((p, i) => i > 0 && p.dominantStyle !== phases[i - 1].dominantStyle).length;
   const currentFavorite = phases[phases.length - 1]?.dominantStyle || 'None';
 
-  let styleJourney = '';
+  let styleJourney: string;
   if (styleChanges === 0) styleJourney = `You've been consistent with ${currentFavorite} — true dedication to your craft.`;
   else if (styleChanges <= 2) styleJourney = `You've evolved through ${styleChanges + 1} creative phases, settling on ${currentFavorite}.`;
   else styleJourney = `A true explorer! You've gone through ${styleChanges + 1} different style phases. Currently loving ${currentFavorite}.`;

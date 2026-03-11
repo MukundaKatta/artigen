@@ -8,12 +8,13 @@ export async function likeComment(userId: string, commentId: string) {
 
   // Background notification with proper error handling
   if (!error) {
-    supabase
-      .from('comments')
-      .select('user_id, post_id')
-      .eq('id', commentId)
-      .single()
-      .then(({ data: comment }) => {
+    Promise.resolve(
+      supabase
+        .from('comments')
+        .select('user_id, post_id')
+        .eq('id', commentId)
+        .single()
+    ).then(({ data: comment }) => {
         if (comment && comment.user_id !== userId) {
           createNotification({
             type: 'comment_like',
@@ -22,10 +23,10 @@ export async function likeComment(userId: string, commentId: string) {
             commentId,
             postId: comment.post_id,
           })
-            .catch((err) => console.warn('Failed to create comment like notification:', err));
+            .catch((err: unknown) => console.warn('Failed to create comment like notification:', err));
         }
       })
-      .catch((err) => console.warn('Failed to fetch comment owner for notification:', err));
+      .catch((err: unknown) => console.warn('Failed to fetch comment owner for notification:', err));
   }
 
   return { error };

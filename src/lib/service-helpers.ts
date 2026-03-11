@@ -144,15 +144,14 @@ export async function toggleRelation(
 ): Promise<ServiceResult<boolean>> {
   try {
     if (shouldExist) {
-      let query = supabase.from(table).insert(matchColumns);
-      const { error } = await query;
+      const { error } = await supabase.from(table as any).insert(matchColumns as any);
       if (error) {
         // Ignore duplicate key errors (already exists)
         if (error.code === '23505') return ok(true);
         throw new Error(error.message);
       }
     } else {
-      let query = supabase.from(table).delete();
+      let query = supabase.from(table as any).delete();
       for (const [col, val] of Object.entries(matchColumns)) {
         query = query.eq(col, val);
       }
