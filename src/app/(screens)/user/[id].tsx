@@ -8,6 +8,7 @@ import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import { ProfilePostGrid } from '@/components/profile/ProfilePostGrid';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { supabase } from '@/lib/supabase';
+import { useTheme } from '@/providers/ThemeProvider';
 import { colors, spacing } from '@/lib/theme';
 import type { Post, PostMedia } from '@/types/database';
 
@@ -46,6 +47,7 @@ function ProfileSkeleton() {
 export default function UserProfileRoute() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user } = useAuth();
+  const { themeColors: tc } = useTheme();
   const router = useRouter();
   const navigation = useNavigation();
   const { profile, loading: profileLoading } = useProfile(id);
@@ -81,7 +83,7 @@ export default function UserProfileRoute() {
 
   if (profileLoading || !profile) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: tc.background }]}>
         <ProfileSkeleton />
       </View>
     );
@@ -93,7 +95,7 @@ export default function UserProfileRoute() {
     <FlatList
       data={[]}
       renderItem={null}
-      style={styles.container}
+      style={[styles.container, { backgroundColor: tc.background }]}
       ListHeaderComponent={
         <>
           <ProfileHeader

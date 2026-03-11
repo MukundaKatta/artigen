@@ -23,9 +23,10 @@ type SettingRowProps = {
 };
 
 function SettingRow({ icon, iconColor, label, onPress, value, destructive, rightElement }: SettingRowProps) {
+  const { themeColors: tc } = useTheme();
   return (
     <AnimatedPressable
-      style={styles.row}
+      style={[styles.row, { backgroundColor: tc.background, borderBottomColor: tc.border }]}
       onPress={() => {
         if (onPress) {
           if (Platform.OS !== 'web') Haptics.selectionAsync();
@@ -44,12 +45,12 @@ function SettingRow({ icon, iconColor, label, onPress, value, destructive, right
           color={destructive ? colors.error : (iconColor || colors.primary)}
         />
       </View>
-      <Text style={[styles.rowText, destructive && { color: colors.error }]}>{label}</Text>
+      <Text style={[styles.rowText, { color: tc.text }, destructive && { color: colors.error }]}>{label}</Text>
       <View style={styles.rowRight}>
-        {value && <Text style={styles.rowValue}>{value}</Text>}
+        {value && <Text style={[styles.rowValue, { color: tc.textSecondary }]}>{value}</Text>}
         {rightElement}
         {onPress && !rightElement && (
-          <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
+          <Ionicons name="chevron-forward" size={16} color={tc.textSecondary} />
         )}
       </View>
     </AnimatedPressable>
@@ -57,17 +58,19 @@ function SettingRow({ icon, iconColor, label, onPress, value, destructive, right
 }
 
 function SectionHeader({ title }: { title: string }) {
+  const { themeColors: tc } = useTheme();
   if (!title) return <View style={{ height: spacing.lg }} />;
-  return <Text style={styles.sectionHeader}>{title}</Text>;
+  return <Text style={[styles.sectionHeader, { color: tc.textSecondary }]}>{title}</Text>;
 }
 
 function SectionCard({ children }: { children: React.ReactNode }) {
-  return <View style={styles.sectionCard}>{children}</View>;
+  const { themeColors: tc } = useTheme();
+  return <View style={[styles.sectionCard, { backgroundColor: tc.background }]}>{children}</View>;
 }
 
 export default function SettingsRoute() {
   const { signOut, profile, user } = useAuth();
-  const { themePreference, setTheme } = useTheme();
+  const { themePreference, setTheme, themeColors: tc } = useTheme();
   const router = useRouter();
   const [showLogout, setShowLogout] = useState(false);
   const [showTheme, setShowTheme] = useState(false);
@@ -91,7 +94,7 @@ export default function SettingsRoute() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+    <ScrollView style={[styles.container, { backgroundColor: tc.backgroundSecondary }]} contentContainerStyle={styles.contentContainer}>
       <Stack.Screen options={{ title: 'Settings' }} />
 
       <SectionHeader title="Account" />

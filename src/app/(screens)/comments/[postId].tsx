@@ -22,6 +22,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { commentSchema } from '@/utils/validation';
 import type { CommentFormData } from '@/utils/validation';
+import { useTheme } from '@/providers/ThemeProvider';
 import { colors, fontSize, spacing, typography } from '@/lib/theme';
 import type { CommentWithUser } from '@/types';
 
@@ -29,6 +30,7 @@ export default function CommentsRoute() {
   const { postId } = useLocalSearchParams<{ postId: string }>();
   const { user, profile } = useAuth();
   const router = useRouter();
+  const { themeColors: tc } = useTheme();
   const inputRef = useRef<TextInput>(null);
   const [replyingTo, setReplyingTo] = useState<{ commentId: string; username: string } | null>(null);
 
@@ -109,7 +111,7 @@ export default function CommentsRoute() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: tc.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={90}
     >
@@ -139,11 +141,11 @@ export default function CommentsRoute() {
         )}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <View style={styles.emptyIconCircle}>
-              <Ionicons name="chatbubble-outline" size={28} color={colors.textSecondary} />
+            <View style={[styles.emptyIconCircle, { backgroundColor: tc.backgroundSecondary }]}>
+              <Ionicons name="chatbubble-outline" size={28} color={tc.textSecondary} />
             </View>
-            <Text style={styles.emptyTitle}>No comments yet</Text>
-            <Text style={styles.emptySubtitle}>Be the first to comment!</Text>
+            <Text style={[styles.emptyTitle, { color: tc.text }]}>No comments yet</Text>
+            <Text style={[styles.emptySubtitle, { color: tc.textSecondary }]}>Be the first to comment!</Text>
           </View>
         }
         ListFooterComponent={
@@ -158,18 +160,18 @@ export default function CommentsRoute() {
 
       {/* Replying indicator */}
       {replyingTo && (
-        <View style={styles.replyingBar}>
-          <Text style={styles.replyingText}>
-            Replying to <Text style={styles.replyingUsername}>@{replyingTo.username}</Text>
+        <View style={[styles.replyingBar, { backgroundColor: tc.backgroundSecondary, borderTopColor: tc.border }]}>
+          <Text style={[styles.replyingText, { color: tc.textSecondary }]}>
+            Replying to <Text style={[styles.replyingUsername, { color: tc.text }]}>@{replyingTo.username}</Text>
           </Text>
           <AnimatedPressable onPress={cancelReply} scaleValue={0.85}>
-            <Ionicons name="close" size={18} color={colors.textSecondary} />
+            <Ionicons name="close" size={18} color={tc.textSecondary} />
           </AnimatedPressable>
         </View>
       )}
 
       {/* Input bar */}
-      <View style={styles.inputBar}>
+      <View style={[styles.inputBar, { borderTopColor: tc.border, backgroundColor: tc.background }]}>
         <Avatar uri={profile?.avatar_url} size="sm" />
         <Controller
           control={control}
@@ -177,9 +179,9 @@ export default function CommentsRoute() {
           render={({ field: { onChange, value } }) => (
             <TextInput
               ref={inputRef}
-              style={styles.input}
+              style={[styles.input, { color: tc.text }]}
               placeholder={replyingTo ? `Reply to @${replyingTo.username}...` : 'Add a comment...'}
-              placeholderTextColor={colors.textSecondary}
+              placeholderTextColor={tc.textSecondary}
               value={value}
               onChangeText={onChange}
               multiline
