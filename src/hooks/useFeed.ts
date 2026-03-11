@@ -79,7 +79,12 @@ export function useFeed(userId: string | undefined) {
     const nextPage = page + 1;
     const { data, error: loadError } = await getFeed(userId, nextPage);
     if (!loadError) {
-      setPosts((prev) => [...prev, ...data]);
+      // Deduplicate: only add posts not already in the list
+      setPosts((prev) => {
+        const existingIds = new Set(prev.map((p) => p.id));
+        const newPosts = data.filter((p) => !existingIds.has(p.id));
+        return [...prev, ...newPosts];
+      });
       setPage(nextPage);
       setHasMore(data.length >= FEED_PAGE_SIZE);
     }

@@ -1,11 +1,37 @@
 import { supabase } from '@/lib/supabase';
 import { EXPLORE_PAGE_SIZE } from '@/lib/constants';
-import type { FeedPost, PostWithUser } from '@/types';
+import type { FeedPost, PostWithUser, PostMedia } from '@/types';
 
 // ── Trending Posts (engagement-scored) ────────────────────────────
 
 export type TrendingPost = FeedPost & {
   trending_score: number;
+};
+
+/** Shape of rows returned by the get_trending_posts RPC function. */
+type TrendingRpcRow = {
+  id: string;
+  user_id: string;
+  username: string;
+  full_name: string;
+  avatar_url: string | null;
+  is_verified: boolean;
+  caption: string | null;
+  post_type: string;
+  created_at: string;
+  likes_count: number;
+  comments_count: number;
+  trending_score: number;
+  is_liked: boolean;
+  is_saved: boolean;
+  is_archived: boolean;
+  is_draft: boolean;
+  is_pinned: boolean;
+  pinned_at: string | null;
+  audience: string;
+  location: string | null;
+  scheduled_at: string | null;
+  remix_of_post_id: string | null;
 };
 
 /**
@@ -20,6 +46,7 @@ export async function getTrendingPosts(
   const offset = page * pageSize;
 
   // Try the database function first (may not be deployed yet)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: rpcData, error: rpcError } = await (supabase.rpc as any)(
     'get_trending_posts',
     {
@@ -30,8 +57,9 @@ export async function getTrendingPosts(
   );
 
   if (!rpcError && rpcData) {
-    // RPC returns flat rows; we need to re-shape into TrendingPost format
-    const posts: TrendingPost[] = (rpcData as any[]).map((row: any) => ({
+    // RPC returns flat rows; re-shape into TrendingPost format
+    const rows = rpcData as unknown as TrendingRpcRow[];
+    const posts: TrendingPost[] = rows.map((row) => ({
       ...row,
       trending_score: row.trending_score ?? 0,
       isLiked: row.is_liked ?? false,
@@ -43,7 +71,7 @@ export async function getTrendingPosts(
         avatar_url: row.avatar_url,
         is_verified: row.is_verified,
       },
-      media: [],
+      media: [] as PostMedia[],
     } as unknown as TrendingPost));
 
     // Batch-fetch media for all returned posts
@@ -56,14 +84,15 @@ export async function getTrendingPosts(
         .order('sort_order', { ascending: true });
 
       if (mediaData) {
-        const mediaByPost = new Map<string, typeof mediaData>();
+        const mediaByPost = new Map<string, PostMedia[]>();
         for (const m of mediaData) {
           const list = mediaByPost.get(m.post_id) || [];
-          list.push(m);
+          list.push(m as PostMedia);
           mediaByPost.set(m.post_id, list);
         }
         for (const post of posts) {
-          (post as any).media = mediaByPost.get(post.id) || [];
+          // Assign fetched media to each post
+          Object.assign(post, { media: mediaByPost.get(post.id) || [] });
         }
       }
     }

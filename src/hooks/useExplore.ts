@@ -41,7 +41,12 @@ export function useExplore() {
     setLoadingMore(true);
     const nextPage = page + 1;
     const { data } = await getExploreFeed(nextPage, aiOnly);
-    setExplorePosts((prev) => [...prev, ...data]);
+    // Deduplicate: only add posts not already in the list
+    setExplorePosts((prev) => {
+      const existingIds = new Set(prev.map((p) => p.id));
+      const newPosts = data.filter((p) => !existingIds.has(p.id));
+      return [...prev, ...newPosts];
+    });
     setPage(nextPage);
     setHasMore(data.length >= EXPLORE_PAGE_SIZE);
     setLoadingMore(false);
