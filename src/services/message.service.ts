@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { MESSAGES_PAGE_SIZE } from '@/lib/constants';
+import { sanitizeText } from '@/lib/sanitize';
 import type { Profile, Message, MessageWithSender, Conversation } from '@/types/database';
 import type { ConversationPreview } from '@/types';
 
@@ -183,12 +184,15 @@ export async function sendMessage(
   mediaUrl?: string,
   sharedPostId?: string
 ) {
+  // Sanitize user-provided content to strip HTML/control characters
+  const sanitizedContent = content ? sanitizeText(content) : null;
+
   const { data, error } = await supabase
     .from('messages')
     .insert({
       conversation_id: conversationId,
       sender_id: senderId,
-      content,
+      content: sanitizedContent,
       message_type: messageType,
       media_url: mediaUrl || null,
       shared_post_id: sharedPostId || null,

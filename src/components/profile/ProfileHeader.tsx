@@ -20,6 +20,7 @@ import { StreakBadge } from '@/components/profile/StreakBadge';
 import { useStreak } from '@/hooks/useStreak';
 import { formatNumber } from '@/utils/format-number';
 import type { Profile } from '@/types/database';
+import { logger } from '@/lib/logger';
 
 type Props = {
   profile: Profile;
@@ -61,10 +62,10 @@ export function ProfileHeader({
   useEffect(() => {
     getHighlights(profile.id)
       .then(({ data }) => setHighlights(data as HighlightWithStories[]))
-      .catch((err) => console.warn('Failed to load highlights:', err));
+      .catch((err) => logger.warn('Failed to load highlights:', err));
     getTopFriends(profile.id)
       .then(({ data }) => { if (data) setTopFriends(data || []); })
-      .catch((err) => console.warn('Failed to load top friends:', err));
+      .catch((err) => logger.warn('Failed to load top friends:', err));
   }, [profile.id]);
 
   return (

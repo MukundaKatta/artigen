@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { generateCaption, CAPTION_TONES, TONE_LABELS } from '@/services/caption.service';
 import type { CaptionTone } from '@/services/caption.service';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
+import { logger } from '@/lib/logger';
 
 type Props = {
   visible: boolean;
@@ -23,7 +24,7 @@ export function CaptionGenerator({ visible, onClose, onUse, imageUri }: Props) {
       const { data } = await generateCaption(imageUri, selectedTone);
       setCaption(data);
     } catch (error) {
-      console.error('Failed to generate caption:', error);
+      logger.error('Failed to generate caption:', error);
     } finally {
       setGenerating(false);
     }

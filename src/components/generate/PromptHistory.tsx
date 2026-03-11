@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getGenerationHistory, GenerationRecord } from '@/services/generation-history.service';
 import { colors, spacing, fontSize, borderRadius } from '@/lib/theme';
+import { logger } from '@/lib/logger';
 
 type Props = {
   userId: string;
@@ -16,7 +17,7 @@ export function PromptHistory({ userId, onSelect }: Props) {
   useEffect(() => {
     getGenerationHistory(userId, 0, 10)
       .then(setHistory)
-      .catch((err: unknown) => console.warn('Failed to load prompt history:', err));
+      .catch((err: unknown) => logger.warn('Failed to load prompt history:', err));
   }, [userId]);
 
   if (history.length === 0) return null;

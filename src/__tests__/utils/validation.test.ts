@@ -1,6 +1,7 @@
 import {
   loginSchema,
   registerSchema,
+  passwordSchema,
   editProfileSchema,
   commentSchema,
   captionSchema,
@@ -13,22 +14,22 @@ import {
 
 describe('loginSchema', () => {
   it('accepts valid credentials', () => {
-    const result = loginSchema.safeParse({ email: 'user@example.com', password: 'secret123' });
+    const result = loginSchema.safeParse({ email: 'user@example.com', password: 'Secret123' });
     expect(result.success).toBe(true);
   });
 
   it('rejects invalid email', () => {
-    const result = loginSchema.safeParse({ email: 'not-email', password: 'secret123' });
+    const result = loginSchema.safeParse({ email: 'not-email', password: 'Secret123' });
     expect(result.success).toBe(false);
   });
 
-  it('rejects short password', () => {
-    const result = loginSchema.safeParse({ email: 'user@example.com', password: '12345' });
+  it('rejects empty password', () => {
+    const result = loginSchema.safeParse({ email: 'user@example.com', password: '' });
     expect(result.success).toBe(false);
   });
 
   it('rejects empty email', () => {
-    const result = loginSchema.safeParse({ email: '', password: 'secret123' });
+    const result = loginSchema.safeParse({ email: '', password: 'Secret123' });
     expect(result.success).toBe(false);
   });
 });
@@ -38,7 +39,7 @@ describe('registerSchema', () => {
     email: 'user@example.com',
     username: 'john_doe',
     fullName: 'John Doe',
-    password: 'secret123',
+    password: 'Secret123',
   };
 
   it('accepts valid registration data', () => {
@@ -64,6 +65,44 @@ describe('registerSchema', () => {
 
   it('rejects empty fullName', () => {
     expect(registerSchema.safeParse({ ...valid, fullName: '' }).success).toBe(false);
+  });
+
+  it('rejects password without uppercase', () => {
+    expect(registerSchema.safeParse({ ...valid, password: 'secret123' }).success).toBe(false);
+  });
+
+  it('rejects password without lowercase', () => {
+    expect(registerSchema.safeParse({ ...valid, password: 'SECRET123' }).success).toBe(false);
+  });
+
+  it('rejects password without number', () => {
+    expect(registerSchema.safeParse({ ...valid, password: 'SecretPass' }).success).toBe(false);
+  });
+
+  it('rejects password shorter than 8 chars', () => {
+    expect(registerSchema.safeParse({ ...valid, password: 'Sec1' }).success).toBe(false);
+  });
+});
+
+describe('passwordSchema', () => {
+  it('accepts strong password', () => {
+    expect(passwordSchema.safeParse('MyPass123').success).toBe(true);
+  });
+
+  it('rejects all lowercase', () => {
+    expect(passwordSchema.safeParse('password123').success).toBe(false);
+  });
+
+  it('rejects no digits', () => {
+    expect(passwordSchema.safeParse('SecretPass').success).toBe(false);
+  });
+
+  it('rejects too short', () => {
+    expect(passwordSchema.safeParse('Ab1').success).toBe(false);
+  });
+
+  it('rejects over 128 chars', () => {
+    expect(passwordSchema.safeParse('Aa1' + 'x'.repeat(126)).success).toBe(false);
   });
 });
 

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { FEED_PAGE_SIZE } from '@/lib/constants';
 import { logger } from '@/lib/logger';
+import { getCached, setCached, cacheKey } from '@/lib/api-cache';
 import {
   getFeed,
   likePost,
@@ -13,13 +14,20 @@ import { trackView } from '@/services/insights.service';
 import { recordEngagement } from '@/services/taste-profile.service';
 import type { FeedPost, ReactionType } from '@/types';
 
+const FEED_CACHE_TTL = 2 * 60 * 1000; // 2 minutes
+
 export function useFeed(userId: string | undefined) {
   // Guards to prevent concurrent requests on the same post
   const pendingLikes = useRef(new Set<string>());
   const pendingSaves = useRef(new Set<string>());
   const pendingReactions = useRef(new Set<string>());
-  const [posts, setPosts] = useState<FeedPost[]>([]);
-  const [loading, setLoading] = useState(true);
+
+  // Initialize from cache for instant display (stale-while-revalidate)
+  const feedCacheKey = userId ? cacheKey('feed', userId) : '';
+  const cachedPosts = userId ? getCached<FeedPost[]>(feedCacheKey) : undefined;
+
+  const [posts, setPosts] = useState<FeedPost[]>(cachedPosts ?? []);
+  const [loading, setLoading] = useState(!cachedPosts);
   const [refreshing, setRefreshing] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [page, setPage] = useState(0);
@@ -31,7 +39,10 @@ export function useFeed(userId: string | undefined) {
       setLoading(false);
       return;
     }
-    setLoading(true);
+    // Only show loading spinner if no cached data
+    if (!getCached<FeedPost[]>(cacheKey('feed', userId))) {
+      setLoading(true);
+    }
     setError(null);
     const { data, error: fetchError } = await getFeed(userId, 0);
     if (fetchError) {
@@ -39,6 +50,8 @@ export function useFeed(userId: string | undefined) {
     } else {
       setPosts(data);
       setHasMore(data.length >= FEED_PAGE_SIZE);
+      // Cache first page for instant display on next visit
+      setCached(cacheKey('feed', userId), data, FEED_CACHE_TTL);
     }
     setPage(0);
     setLoading(false);
@@ -55,6 +68,7 @@ export function useFeed(userId: string | undefined) {
       setPage(0);
       setHasMore(data.length >= FEED_PAGE_SIZE);
       setError(null);
+      setCached(cacheKey('feed', userId), data, FEED_CACHE_TTL);
     }
     setRefreshing(false);
   }, [userId]);
