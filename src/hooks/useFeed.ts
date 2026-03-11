@@ -17,7 +17,8 @@ import type { FeedPost, ReactionType } from '@/types';
 const FEED_CACHE_TTL = 2 * 60 * 1000; // 2 minutes
 
 export function useFeed(userId: string | undefined) {
-  // Guards to prevent concurrent requests on the same post
+  // Guards to prevent concurrent requests
+  const loadingMoreRef = useRef(false);
   const pendingLikes = useRef(new Set<string>());
   const pendingSaves = useRef(new Set<string>());
   const pendingReactions = useRef(new Set<string>());
@@ -74,7 +75,8 @@ export function useFeed(userId: string | undefined) {
   }, [userId]);
 
   const loadMore = useCallback(async () => {
-    if (!userId || loadingMore || !hasMore) return;
+    if (!userId || loadingMoreRef.current || !hasMore) return;
+    loadingMoreRef.current = true;
     setLoadingMore(true);
     const nextPage = page + 1;
     const { data, error: loadError } = await getFeed(userId, nextPage);
@@ -89,7 +91,8 @@ export function useFeed(userId: string | undefined) {
       setHasMore(data.length >= FEED_PAGE_SIZE);
     }
     setLoadingMore(false);
-  }, [userId, page, loadingMore, hasMore]);
+    loadingMoreRef.current = false;
+  }, [userId, page, hasMore]);
 
   const toggleLike = useCallback(
     async (postId: string) => {

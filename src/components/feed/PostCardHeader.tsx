@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { Avatar } from '@/components/ui/Avatar';
 import { LocationTag } from '@/components/feed/LocationTag';
+import { useTheme } from '@/providers/ThemeProvider';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
 import type { FeedPost } from '@/types';
 
@@ -18,6 +19,7 @@ export const PostCardHeader = React.memo(function PostCardHeader({
   onUserPress,
   onMore,
 }: PostCardHeaderProps) {
+  const { themeColors: tc } = useTheme();
   return (
     <View style={styles.header}>
       <AnimatedPressable
@@ -30,7 +32,7 @@ export const PostCardHeader = React.memo(function PostCardHeader({
         <Avatar uri={post.user.avatar_url} size="sm" />
         <View style={styles.headerText}>
           <View style={styles.usernameRow}>
-            <Text style={styles.username}>{post.user.username}</Text>
+            <Text style={[styles.username, { color: tc.text }]}>{post.user.username}</Text>
             {post.ai_metadata && (
               <View style={styles.aiBadge}>
                 <Ionicons name="sparkles" size={10} color="#fff" />
@@ -47,7 +49,7 @@ export const PostCardHeader = React.memo(function PostCardHeader({
         <Ionicons
           name="ellipsis-horizontal"
           size={20}
-          color={colors.text}
+          color={tc.text}
         />
       </AnimatedPressable>
     </View>

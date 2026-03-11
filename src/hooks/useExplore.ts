@@ -21,6 +21,7 @@ export function useExplore() {
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [aiOnly, setAiOnly] = useState(false);
+  const loadingMoreRef = useRef(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
   const isSearching = query.trim().length > 0;
@@ -37,7 +38,8 @@ export function useExplore() {
   }, [aiOnly]);
 
   const loadMore = useCallback(async () => {
-    if (loadingMore || !hasMore || isSearching) return;
+    if (loadingMoreRef.current || !hasMore || isSearching) return;
+    loadingMoreRef.current = true;
     setLoadingMore(true);
     const nextPage = page + 1;
     const { data } = await getExploreFeed(nextPage, aiOnly);
@@ -50,7 +52,8 @@ export function useExplore() {
     setPage(nextPage);
     setHasMore(data.length >= EXPLORE_PAGE_SIZE);
     setLoadingMore(false);
-  }, [page, loadingMore, hasMore, isSearching, aiOnly]);
+    loadingMoreRef.current = false;
+  }, [page, hasMore, isSearching, aiOnly]);
 
   const toggleAiOnly = useCallback(() => {
     const newValue = !aiOnly;

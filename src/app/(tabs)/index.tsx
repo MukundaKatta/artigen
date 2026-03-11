@@ -155,8 +155,12 @@ export default function HomeRoute() {
     router.push(`/(screens)/post/${postId}`);
   }, [router]);
 
+  // Use ref to avoid re-creating callback (and re-rendering all PostCards) when posts change
+  const postsRef = useRef(posts);
+  postsRef.current = posts;
+
   const onPromptRemix = useCallback((postId: string) => {
-    const post = posts.find((p) => p.id === postId);
+    const post = postsRef.current.find((p) => p.id === postId);
     if (!post?.ai_metadata) return;
     router.push({
       pathname: '/(camera)/generate',
@@ -166,9 +170,14 @@ export default function HomeRoute() {
         remixOfPostId: postId,
       },
     });
-  }, [posts, router]);
+  }, [router]);
 
   const currentUserId = user?.id || '';
+
+  const listContentStyle = useMemo(
+    () => ({ paddingBottom: 80, backgroundColor: themeColors.background }),
+    [themeColors.background],
+  );
 
   const renderItem = useCallback(({ item, index }: { item: FeedPost; index: number }) => (
     <AnimatedListItem index={index}>
@@ -257,7 +266,7 @@ export default function HomeRoute() {
       viewabilityConfig={viewabilityConfig}
       showsVerticalScrollIndicator={false}
       drawDistance={500}
-      contentContainerStyle={{ paddingBottom: 80, backgroundColor: themeColors.background }}
+      contentContainerStyle={listContentStyle}
     />
     {(showScrollTop || newPostCount > 0) && (
       <Animated.View entering={FadeInUp.duration(300)} exiting={FadeOutUp.duration(200)}>
