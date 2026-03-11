@@ -14,6 +14,7 @@ import Animated, {
 import { Image } from 'expo-image';
 import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { useAuth } from '@/providers/AuthProvider';
+import { useTheme } from '@/providers/ThemeProvider';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import { ProfilePostGrid } from '@/components/profile/ProfilePostGrid';
 import { CollectionGrid } from '@/components/profile/CollectionGrid';
@@ -23,7 +24,7 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useCollections } from '@/hooks/useCollections';
 import { supabase } from '@/lib/supabase';
 import { useScrollToTopOnTabPress } from '@/app/(tabs)/_layout';
-import { colors, spacing, fontSize, typography } from '@/lib/theme';
+import { spacing, fontSize, typography } from '@/lib/theme';
 import type { Post, PostMedia } from '@/types/database';
 
 type GridPost = Post & { media: PostMedia[] };
@@ -55,6 +56,7 @@ const skeletonStyles = StyleSheet.create({
 
 export function ProfileScreen() {
   const { profile, user } = useAuth();
+  const { themeColors } = useTheme();
   const router = useRouter();
   const [posts, setPosts] = useState<GridPost[]>([]);
   const [loading, setLoading] = useState(true);
@@ -149,7 +151,7 @@ export function ProfileScreen() {
         <Ionicons
           name="grid-outline"
           size={22}
-          color={activeTab === 'posts' ? colors.text : colors.textSecondary}
+          color={activeTab === 'posts' ? themeColors.text : themeColors.textSecondary}
         />
       ),
     },
@@ -160,14 +162,14 @@ export function ProfileScreen() {
         <Ionicons
           name="bookmark-outline"
           size={22}
-          color={activeTab === 'saved' ? colors.text : colors.textSecondary}
+          color={activeTab === 'saved' ? themeColors.text : themeColors.textSecondary}
         />
       ),
     },
   ];
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: themeColors.background }]}>
       <Animated.ScrollView
         ref={scrollRef}
         onScroll={scrollHandler}
@@ -188,7 +190,7 @@ export function ProfileScreen() {
                 transition={300}
               />
             ) : (
-              <View style={styles.coverGradient}>
+              <View style={[styles.coverGradient, { backgroundColor: themeColors.primary }]}>
                 <Ionicons name="sparkles" size={32} color="rgba(255,255,255,0.3)" />
               </View>
             )}
@@ -221,11 +223,11 @@ export function ProfileScreen() {
             <PostGridSkeleton />
           ) : posts.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <View style={styles.emptyIconCircle}>
-                <Ionicons name="camera-outline" size={32} color={colors.textSecondary} />
+              <View style={[styles.emptyIconCircle, { backgroundColor: themeColors.backgroundSecondary }]}>
+                <Ionicons name="camera-outline" size={32} color={themeColors.textSecondary} />
               </View>
-              <Text style={styles.emptyTitle}>No posts yet</Text>
-              <Text style={styles.emptySubtext}>
+              <Text style={[styles.emptyTitle, { color: themeColors.text }]}>No posts yet</Text>
+              <Text style={[styles.emptySubtext, { color: themeColors.textSecondary }]}>
                 Tap the + button to create your first AI artwork
               </Text>
             </View>
@@ -239,11 +241,11 @@ export function ProfileScreen() {
           <PostGridSkeleton />
         ) : collections.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <View style={styles.emptyIconCircle}>
-              <Ionicons name="bookmark-outline" size={32} color={colors.textSecondary} />
+            <View style={[styles.emptyIconCircle, { backgroundColor: themeColors.backgroundSecondary }]}>
+              <Ionicons name="bookmark-outline" size={32} color={themeColors.textSecondary} />
             </View>
-            <Text style={styles.emptyTitle}>No saved posts</Text>
-            <Text style={styles.emptySubtext}>
+            <Text style={[styles.emptyTitle, { color: themeColors.text }]}>No saved posts</Text>
+            <Text style={[styles.emptySubtext, { color: themeColors.textSecondary }]}>
               Save posts you love to find them here
             </Text>
           </View>
@@ -266,9 +268,9 @@ export function ProfileScreen() {
             accessibilityLabel="View scheduled posts and insights"
             accessibilityRole="button"
           >
-            <Ionicons name="bar-chart-outline" size={18} color={colors.primary} />
-            <Text style={styles.insightsText}>Scheduled Posts & Insights</Text>
-            <Ionicons name="chevron-forward" size={16} color={colors.primary} />
+            <Ionicons name="bar-chart-outline" size={18} color={themeColors.primary} />
+            <Text style={[styles.insightsText, { color: themeColors.primary }]}>Scheduled Posts & Insights</Text>
+            <Ionicons name="chevron-forward" size={16} color={themeColors.primary} />
           </AnimatedPressable>
         </Animated.View>
       </Animated.ScrollView>
@@ -279,7 +281,6 @@ export function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   parallaxWrapper: {
     height: PARALLAX_HEIGHT,
@@ -296,7 +297,6 @@ const styles = StyleSheet.create({
   coverGradient: {
     width: '100%',
     height: '100%',
-    backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -313,7 +313,6 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: colors.backgroundSecondary,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: spacing.md,
@@ -321,13 +320,11 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: fontSize.lg,
     fontFamily: typography.semiBold,
-    color: colors.text,
     marginTop: spacing.md,
   },
   emptySubtext: {
     fontSize: fontSize.sm,
     fontFamily: typography.regular,
-    color: colors.textSecondary,
     marginTop: spacing.xs,
     textAlign: 'center',
     paddingHorizontal: spacing.xxxl,
@@ -342,6 +339,5 @@ const styles = StyleSheet.create({
   insightsText: {
     fontSize: fontSize.sm,
     fontFamily: typography.medium,
-    color: colors.primary,
   },
 });

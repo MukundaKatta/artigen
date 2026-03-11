@@ -99,7 +99,7 @@ function ReelItem({
 
   return (
     <View style={styles.reelContainer}>
-      <Pressable onPress={handleDoubleTap} style={StyleSheet.absoluteFill}>
+      <Pressable onPress={handleDoubleTap} style={StyleSheet.absoluteFill} accessibilityRole="image" accessibilityLabel="Reel image, double tap to like">
         <Image
           source={{ uri: firstMedia?.media_url }}
           placeholder={firstMedia?.blurhash ? { blurhash: firstMedia.blurhash } : undefined}
@@ -183,6 +183,8 @@ function ReelItem({
             onUserPress(item.user.id);
           }}
           scaleValue={0.97}
+          accessibilityRole="button"
+          accessibilityLabel={`View ${item.user.username}'s profile`}
         >
           <Avatar uri={item.user.avatar_url} size="sm" />
           <Text style={styles.username}>{item.user.username}</Text>

@@ -503,7 +503,7 @@ create policy "Participants can send messages" on public.messages for insert
 -- NOTIFICATIONS
 alter table public.notifications enable row level security;
 create policy "Users can view own notifications" on public.notifications for select using (auth.uid() = recipient_id);
-create policy "Authenticated users can create notifications" on public.notifications for insert with check (auth.uid() = sender_id);
+create policy "Only service_role can create notifications" on public.notifications for insert with check (auth.role() = 'service_role');
 create policy "Users can update own notifications (mark read)" on public.notifications for update using (auth.uid() = recipient_id);
 
 -- ============================================================

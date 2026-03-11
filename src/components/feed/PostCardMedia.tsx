@@ -23,7 +23,7 @@ export const PostCardMedia = React.memo(function PostCardMedia({
 
   return (
     <>
-      <Pressable onPress={onDoubleTap}>
+      <Pressable onPress={onDoubleTap} accessibilityRole="image" accessibilityLabel="Post image, double tap to like">
         <View>
           {media.length === 1 ? (
             <Image

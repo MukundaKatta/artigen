@@ -86,56 +86,33 @@ export async function awardEngagementCredits(
 ): Promise<{ data: AwardResult | null; error: string | null }> {
   const creditsForAction = ENGAGEMENT_CREDITS[action];
 
-  // 1. Check daily cap
-  const { remaining, error: capError } = await getDailyCreditCap(userId);
-  if (capError) return { data: null, error: capError };
-  if (remaining <= 0) return { data: null, error: 'daily_cap_reached' };
+  // Use atomic RPC to prevent race conditions (check + insert + credit in one transaction)
+  const actionCap = action === 'receive_like' ? RECEIVE_LIKE_DAILY_CAP : null;
 
-  // 2. Deduplicate — prevent double-claiming the same action today
-  const isDuplicate = await checkDuplicate(userId, action, metadata);
-  if (isDuplicate) return { data: null, error: 'already_claimed' };
+  const { data: rpcResult, error: rpcError } = await supabase.rpc(
+    'award_engagement_credits' as any,
+    {
+      p_user_id: userId,
+      p_action: action,
+      p_credits: creditsForAction,
+      p_metadata: metadata ?? null,
+      p_daily_cap: DAILY_CREDIT_CAP,
+      p_action_cap: actionCap,
+    } as any,
+  );
 
-  // 3. For receive_like, enforce per-action daily cap
-  if (action === 'receive_like') {
-    const likeCount = await getTodayActionCount(userId, 'receive_like');
-    if (likeCount >= RECEIVE_LIKE_DAILY_CAP) return { data: null, error: 'action_daily_limit' };
+  if (rpcError) return { data: null, error: rpcError.message };
+
+  const result = Array.isArray(rpcResult) ? rpcResult[0] : rpcResult;
+
+  if (result?.error_code) {
+    return { data: null, error: result.error_code };
   }
-
-  // 4. Clamp to remaining daily cap
-  const actualCredits = Math.min(creditsForAction, remaining);
-
-  // 5. Record the engagement credit event
-  const { error: insertError } = await (supabase
-    .from('engagement_credits' as any)
-    .insert({
-      user_id: userId,
-      action,
-      credits: actualCredits,
-      metadata: metadata ?? null,
-    }) as any);
-
-  if (insertError) return { data: null, error: insertError.message };
-
-  // 6. Add credits to wallet via RPC
-  const { error: walletError } = await supabase.rpc('add_wallet_credits' as any, {
-    p_user_id: userId,
-    p_amount: actualCredits,
-    p_description: `Engagement: ${ACTION_LABELS[action]}`,
-  } as any);
-
-  if (walletError) return { data: null, error: walletError.message };
-
-  // 7. Fetch updated balance
-  const { data: updatedWallet } = await supabase
-    .from('wallets')
-    .select('balance_cents')
-    .eq('user_id', userId)
-    .maybeSingle();
 
   return {
     data: {
-      credits_awarded: actualCredits,
-      new_balance: updatedWallet?.balance_cents ?? 0,
+      credits_awarded: result?.credits_awarded ?? 0,
+      new_balance: result?.new_balance ?? 0,
       action,
     },
     error: null,
