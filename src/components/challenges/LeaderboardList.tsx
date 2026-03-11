@@ -20,7 +20,7 @@ const LeaderboardItem = React.memo(function LeaderboardItem({
 }) {
   const handlePress = useCallback(() => {
     if (Platform.OS !== 'web') Haptics.selectionAsync();
-    onPress?.(item.user?.id!);
+    if (item.user?.id) onPress?.(item.user.id);
   }, [item.user?.id, onPress]);
 
   return (
