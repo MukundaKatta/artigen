@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FlatList, View, Text, StyleSheet, ViewabilityConfig, Platform, NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
+import { FlashList, ViewToken } from '@shopify/flash-list';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
   useSharedValue,
@@ -23,9 +24,11 @@ import { StoryBar } from '@/components/feed/StoryBar';
 import { StoryBarSkeleton, PostCardSkeleton } from '@/components/ui/Skeleton';
 import { AnimatedListItem } from '@/components/ui/AnimatedListItem';
 import { useChallenge } from '@/hooks/useChallenge';
+import { useRealtimeFeed } from '@/hooks/useRealtimeFeed';
 import { useScrollToTopOnTabPress } from '@/app/(tabs)/_layout';
 import { ResponsiveContainer } from '@/components/layout/ResponsiveContainer';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { useTheme } from '@/providers/ThemeProvider';
 import { colors, spacing, fontSize, typography, borderRadius, shadows } from '@/lib/theme';
 import type { FeedPost } from '@/types';
 
@@ -96,6 +99,7 @@ function FeedError({ message, onRetry }: { message: string; onRetry: () => void 
 
 export default function HomeRoute() {
   const { user } = useAuth();
+  const { themeColors } = useTheme();
   const router = useRouter();
   const flatListRef = useRef<FlatList>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -118,6 +122,7 @@ export default function HomeRoute() {
     minimumViewTime: 1000,
   }).current;
   const { todayChallenge } = useChallenge(user?.id);
+  const { newPostCount, resetCount } = useRealtimeFeed(user?.id);
 
   const shortcuts = useMemo(() => ({
     '/': () => router.push('/(tabs)/search'),
@@ -186,11 +191,12 @@ export default function HomeRoute() {
 
   return (
     <ResponsiveContainer>
-    <FlatList<FeedPost>
-      ref={flatListRef}
+    <FlashList<FeedPost>
+      ref={flatListRef as any}
       data={posts}
       keyExtractor={(item) => item.id}
       renderItem={renderItem}
+      estimatedItemSize={500}
       ListHeaderComponent={
         <>
           <StoryBar />
@@ -247,15 +253,10 @@ export default function HomeRoute() {
       onViewableItemsChanged={onViewableItemsChanged}
       viewabilityConfig={viewabilityConfig}
       showsVerticalScrollIndicator={false}
-      windowSize={7}
-      maxToRenderPerBatch={5}
-      updateCellsBatchingPeriod={50}
-      initialNumToRender={5}
-      removeClippedSubviews
-      style={styles.container}
-      contentContainerStyle={{ paddingBottom: 80 }}
+      drawDistance={500}
+      contentContainerStyle={{ paddingBottom: 80, backgroundColor: themeColors.background }}
     />
-    {showScrollTop && (
+    {(showScrollTop || newPostCount > 0) && (
       <Animated.View entering={FadeInUp.duration(300)} exiting={FadeOutUp.duration(200)}>
         <AnimatedPressable
           style={styles.newPostsPill}
@@ -263,13 +264,16 @@ export default function HomeRoute() {
             if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             scrollToTop();
             refresh();
+            resetCount();
           }}
           scaleValue={0.95}
-          accessibilityLabel="Scroll to top and refresh feed"
+          accessibilityLabel={newPostCount > 0 ? `${newPostCount} new posts, tap to refresh` : 'Scroll to top and refresh feed'}
           accessibilityRole="button"
         >
           <Ionicons name="arrow-up" size={14} color="#fff" />
-          <Text style={styles.newPostsPillText}>New Posts</Text>
+          <Text style={styles.newPostsPillText}>
+            {newPostCount > 0 ? `${newPostCount} New Post${newPostCount > 1 ? 's' : ''}` : 'New Posts'}
+          </Text>
         </AnimatedPressable>
       </Animated.View>
     )}

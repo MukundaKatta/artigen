@@ -14,12 +14,12 @@ type ToastContextType = {
 const ToastContext = createContext<ToastContextType | null>(null);
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
-  const { toasts, show, success, error, info, warning, dismiss } = useToast();
+  const { show, success, error, info, warning, dismiss } = useToast();
 
   return (
     <ToastContext.Provider value={{ show, success, error, info, warning, dismiss }}>
       {children}
-      <ToastContainer toasts={toasts} onDismiss={dismiss} />
+      <ToastContainer />
     </ToastContext.Provider>
   );
 }

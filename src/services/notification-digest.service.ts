@@ -78,7 +78,7 @@ export async function fetchNotificationDigest(userId: string): Promise<Notificat
       const firstPost = typeItems.find((n) => n.post);
       const postMedia = firstPost?.post?.media as { media_url: string }[] | undefined;
 
-      let subtitle = '';
+      let subtitle: string;
       if (typeItems.length === 1) {
         subtitle = `@${preview[0]?.username} ${getActionVerb(type)} your post`;
       } else if (typeItems.length === 2) {

@@ -275,18 +275,19 @@ export async function likePost(userId: string, postId: string) {
 
   // Background notification with proper error handling
   if (!error) {
-    supabase
-      .from('posts')
-      .select('user_id')
-      .eq('id', postId)
-      .single()
-      .then(({ data: post }) => {
+    Promise.resolve(
+      supabase
+        .from('posts')
+        .select('user_id')
+        .eq('id', postId)
+        .single()
+    ).then(({ data: post }) => {
         if (post && post.user_id !== userId) {
           createNotification({ type: 'like', senderId: userId, recipientId: post.user_id, postId })
-            .catch((err) => console.warn('Failed to create like notification:', err));
+            .catch((err: unknown) => console.warn('Failed to create like notification:', err));
         }
       })
-      .catch((err) => console.warn('Failed to fetch post owner for notification:', err));
+      .catch((err: unknown) => console.warn('Failed to fetch post owner for notification:', err));
   }
 
   return { error };
