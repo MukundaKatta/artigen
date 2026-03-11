@@ -31,8 +31,8 @@ export async function fetchNotificationDigest(userId: string): Promise<Notificat
     post: { id: string; media: { media_url: string }[] } | null;
   };
 
-  const { data: notifications } = await (supabase
-    .from('notifications') as any)
+  const { data: notifications } = await supabase
+    .from('notifications')
     .select(`
       id, type, created_at, read,
       actor:profiles!actor_id(username, avatar_url),

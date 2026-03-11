@@ -29,7 +29,7 @@ export async function saveGeneration(
     settings: Record<string, unknown>;
   },
 ): Promise<void> {
-  await (supabase.from('generation_history') as any).insert({
+  await supabase.from('generation_history').insert({
     user_id: userId,
     ...data,
   });
@@ -40,7 +40,7 @@ export async function getGenerationHistory(
   page = 0,
   limit = 20,
 ): Promise<GenerationRecord[]> {
-  const { data } = await (supabase.from('generation_history') as any)
+  const { data } = await supabase.from('generation_history')
     .select('*')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
@@ -50,7 +50,7 @@ export async function getGenerationHistory(
 }
 
 export async function deleteGeneration(id: string, userId: string): Promise<boolean> {
-  const { error } = await (supabase.from('generation_history') as any)
+  const { error } = await supabase.from('generation_history')
     .delete()
     .eq('id', id)
     .eq('user_id', userId);

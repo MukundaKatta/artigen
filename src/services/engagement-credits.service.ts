@@ -90,7 +90,7 @@ export async function awardEngagementCredits(
   const actionCap = action === 'receive_like' ? RECEIVE_LIKE_DAILY_CAP : null;
 
   const { data: rpcResult, error: rpcError } = await supabase.rpc(
-    'award_engagement_credits' as any,
+    'award_engagement_credits',
     {
       p_user_id: userId,
       p_action: action,
@@ -98,7 +98,7 @@ export async function awardEngagementCredits(
       p_metadata: metadata ?? null,
       p_daily_cap: DAILY_CREDIT_CAP,
       p_action_cap: actionCap,
-    } as any,
+    },
   );
 
   if (rpcError) return { data: null, error: rpcError.message };
@@ -128,12 +128,12 @@ export async function getEngagementSummary(
   const end = todayEnd();
 
   // Today's engagement credit records
-  const { data: records, error } = await (supabase
-    .from('engagement_credits' as any)
+  const { data: records, error } = await supabase
+    .from('engagement_credits')
     .select('action, credits')
     .eq('user_id', userId)
     .gte('created_at', start)
-    .lte('created_at', end) as any);
+    .lte('created_at', end);
 
   if (error) return { data: null, error: error.message };
 
@@ -158,13 +158,13 @@ export async function getEngagementSummary(
 
   // Streak info (reuse existing table if available)
   let streakDays = 0;
-  const { data: streak } = await (supabase
-    .from('login_streaks' as any)
+  const { data: streak } = await supabase
+    .from('login_streaks')
     .select('current_streak')
     .eq('user_id', userId)
-    .maybeSingle() as any);
+    .maybeSingle();
 
-  if (streak) streakDays = (streak as any).current_streak ?? 0;
+  if (streak) streakDays = streak?.current_streak ?? 0;
 
   return {
     data: {
@@ -186,12 +186,12 @@ export async function getDailyCreditCap(
   const start = todayStart();
   const end = todayEnd();
 
-  const { data, error } = await (supabase
-    .from('engagement_credits' as any)
+  const { data, error } = await supabase
+    .from('engagement_credits')
     .select('credits')
     .eq('user_id', userId)
     .gte('created_at', start)
-    .lte('created_at', end) as any);
+    .lte('created_at', end);
 
   if (error) return { remaining: 0, error: error.message };
 
@@ -218,29 +218,29 @@ async function checkDuplicate(
   ];
 
   if (oncePerDay.includes(action)) {
-    const { data } = await (supabase
-      .from('engagement_credits' as any)
+    const { data } = await supabase
+      .from('engagement_credits')
       .select('id')
       .eq('user_id', userId)
       .eq('action', action)
       .gte('created_at', start)
       .lte('created_at', end)
-      .limit(1) as any);
+      .limit(1);
 
-    return ((data as any[])?.length ?? 0) > 0;
+    return ((data as { id: string }[] | null)?.length ?? 0) > 0;
   }
 
   // For reference-based actions (vote, like, critique, refer), dedupe by metadata
   if (metadata?.reference_id) {
-    const { data } = await (supabase
-      .from('engagement_credits' as any)
+    const { data } = await supabase
+      .from('engagement_credits')
       .select('id')
       .eq('user_id', userId)
       .eq('action', action)
       .contains('metadata', { reference_id: metadata.reference_id })
-      .limit(1) as any);
+      .limit(1);
 
-    return ((data as any[])?.length ?? 0) > 0;
+    return ((data as { id: string }[] | null)?.length ?? 0) > 0;
   }
 
   return false;
@@ -255,15 +255,15 @@ async function getTodayActionCount(
   const start = todayStart();
   const end = todayEnd();
 
-  const { data } = await (supabase
-    .from('engagement_credits' as any)
+  const { data } = await supabase
+    .from('engagement_credits')
     .select('id')
     .eq('user_id', userId)
     .eq('action', action)
     .gte('created_at', start)
-    .lte('created_at', end) as any);
+    .lte('created_at', end);
 
-  return (data as any[])?.length ?? 0;
+  return (data as { id: string }[] | null)?.length ?? 0;
 }
 
 // ── Info array for UI display ────────────────────────

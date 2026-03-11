@@ -99,8 +99,8 @@ export function getNextRank(currentRank: Rank): Rank | null {
 
 export async function fetchUserRank(userId: string): Promise<UserRank> {
   // Get total XP
-  const { data: xpData } = await (supabase
-    .from('user_xp') as any)
+  const { data: xpData } = await supabase
+    .from('user_xp')
     .select('total_xp')
     .eq('user_id', userId)
     .single();
@@ -115,8 +115,8 @@ export async function fetchUserRank(userId: string): Promise<UserRank> {
   const xpToNextRank = nextRank ? nextRank.minXp - totalXp : 0;
 
   // Get rank history
-  const { data: history } = await (supabase
-    .from('rank_history') as any)
+  const { data: history } = await supabase
+    .from('rank_history')
     .select('rank_name, achieved_at')
     .eq('user_id', userId)
     .order('achieved_at', { ascending: true });

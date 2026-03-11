@@ -50,8 +50,8 @@ export async function createCollabRoom(
   prompt: string,
   maxParticipants: number = 4,
 ): Promise<string | null> {
-  const { data, error } = await (supabase
-    .from('collab_rooms') as any)
+  const { data, error } = await supabase
+    .from('collab_rooms')
     .insert({
       name,
       host_id: hostId,
@@ -65,7 +65,7 @@ export async function createCollabRoom(
   if (error) return null;
 
   // Auto-join host
-  await (supabase.from('collab_room_participants') as any).insert({
+  await supabase.from('collab_room_participants').insert({
     room_id: (data as { id: string }).id,
     user_id: hostId,
     is_ready: true,
@@ -75,24 +75,24 @@ export async function createCollabRoom(
 }
 
 export async function joinCollabRoom(roomId: string, userId: string): Promise<boolean> {
-  const { error } = await (supabase
-    .from('collab_room_participants') as any)
+  const { error } = await supabase
+    .from('collab_room_participants')
     .insert({ room_id: roomId, user_id: userId, is_ready: false });
 
   return !error;
 }
 
 export async function leaveCollabRoom(roomId: string, userId: string): Promise<void> {
-  await (supabase
-    .from('collab_room_participants') as any)
+  await supabase
+    .from('collab_room_participants')
     .delete()
     .eq('room_id', roomId)
     .eq('user_id', userId);
 }
 
 export async function setReady(roomId: string, userId: string, ready: boolean): Promise<void> {
-  await (supabase
-    .from('collab_room_participants') as any)
+  await supabase
+    .from('collab_room_participants')
     .update({ is_ready: ready })
     .eq('room_id', roomId)
     .eq('user_id', userId);
@@ -104,7 +104,7 @@ export async function submitToRound(
   imageUrl: string,
   promptUsed: string,
 ): Promise<void> {
-  await (supabase.from('collab_submissions') as any).insert({
+  await supabase.from('collab_submissions').insert({
     round_id: roundId,
     user_id: userId,
     image_url: imageUrl,
@@ -113,15 +113,15 @@ export async function submitToRound(
 }
 
 export async function voteOnSubmission(submissionId: string, userId: string): Promise<void> {
-  await (supabase.from('collab_votes') as any).insert({
+  await supabase.from('collab_votes').insert({
     submission_id: submissionId,
     user_id: userId,
   });
 }
 
 export async function fetchActiveRooms(): Promise<CollabRoom[]> {
-  const { data } = await (supabase
-    .from('collab_rooms') as any)
+  const { data } = await supabase
+    .from('collab_rooms')
     .select(`
       *,
       host:profiles!host_id(username, avatar_url),
@@ -142,8 +142,8 @@ export async function fetchActiveRooms(): Promise<CollabRoom[]> {
 }
 
 export async function fetchRoom(roomId: string): Promise<CollabRoom | null> {
-  const { data } = await (supabase
-    .from('collab_rooms') as any)
+  const { data } = await supabase
+    .from('collab_rooms')
     .select(`
       *,
       host:profiles!host_id(username, avatar_url),

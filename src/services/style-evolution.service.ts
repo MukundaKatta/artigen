@@ -31,8 +31,8 @@ export async function fetchStyleEvolution(userId: string): Promise<StyleEvolutio
     media: { media_url: string }[];
   };
 
-  const { data: posts } = await (supabase
-    .from('posts') as any)
+  const { data: posts } = await supabase
+    .from('posts')
     .select('id, created_at, ai_style, ai_model, likes_count, media:post_media(media_url)')
     .eq('user_id', userId)
     .gte('created_at', sixMonthsAgo.toISOString())

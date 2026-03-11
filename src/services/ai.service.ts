@@ -1,4 +1,6 @@
 import { supabase } from '@/lib/supabase';
+import { trackEvent, TELEMETRY_EVENTS } from '@/lib/telemetry';
+import { captureException } from '@/lib/error-tracking';
 import type { GenerateImageRequest, GenerateImageResponse, AiModel } from '@/types';
 
 // ── Available Models ─────────────────────────────────────────
@@ -151,9 +153,20 @@ export const AI_MODELS: AiModel[] = [
 export async function generateImage(
   request: GenerateImageRequest
 ): Promise<{ data: GenerateImageResponse | null; error: string | null }> {
+  const startTime = Date.now();
+
+  trackEvent(TELEMETRY_EVENTS.generation_started, {
+    model_id: request.model_id,
+    provider: request.provider,
+    width: request.width ?? 0,
+    height: request.height ?? 0,
+  });
+
   const { data, error } = await supabase.functions.invoke('generate', {
     body: request,
   });
+
+  const durationMs = Date.now() - startTime;
 
   if (error) {
     // Try to extract the real error from the response body
@@ -166,12 +179,37 @@ export async function generateImage(
     } catch {
       // use default message
     }
+
+    trackEvent(TELEMETRY_EVENTS.generation_failed, {
+      model_id: request.model_id,
+      provider: request.provider,
+      error_message: msg.slice(0, 200),
+      duration_ms: durationMs,
+    });
+    captureException(new Error(`Generation failed: ${msg}`), {
+      model_id: request.model_id,
+      provider: request.provider,
+    });
+
     return { data: null, error: msg };
   }
 
   if (data?.error) {
+    trackEvent(TELEMETRY_EVENTS.generation_failed, {
+      model_id: request.model_id,
+      provider: request.provider,
+      error_message: String(data.error).slice(0, 200),
+      duration_ms: durationMs,
+    });
     return { data: null, error: data.error };
   }
+
+  trackEvent(TELEMETRY_EVENTS.generation_completed, {
+    model_id: request.model_id,
+    provider: request.provider,
+    duration_ms: durationMs,
+    generation_time_ms: (data as GenerateImageResponse).generation_time_ms ?? durationMs,
+  });
 
   return { data: data as GenerateImageResponse, error: null };
 }

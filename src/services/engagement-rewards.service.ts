@@ -41,7 +41,7 @@ export async function getRewardHistory(
   userId: string,
   limit = 50,
 ): Promise<EngagementReward[]> {
-  const { data } = await (supabase.from('engagement_rewards') as any)
+  const { data } = await supabase.from('engagement_rewards')
     .select('*')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
@@ -50,7 +50,7 @@ export async function getRewardHistory(
 }
 
 export async function getLoginStreak(userId: string): Promise<{ current_streak: number; longest_streak: number } | null> {
-  const { data } = await (supabase.from('login_streaks') as any)
+  const { data } = await supabase.from('login_streaks')
     .select('current_streak, longest_streak')
     .eq('user_id', userId)
     .maybeSingle();

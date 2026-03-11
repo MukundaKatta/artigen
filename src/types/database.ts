@@ -3038,6 +3038,367 @@ export type Database = {
         };
         Relationships: [];
       };
+      // ── Mood Boards ─────────────────────────────────────
+      mood_boards: {
+        Row: {
+          id: string;
+          title: string;
+          description: string;
+          user_id: string;
+          is_public: boolean;
+          background_color: string;
+          likes_count: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          description?: string;
+          user_id: string;
+          is_public?: boolean;
+          background_color?: string;
+          likes_count?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          title?: string;
+          description?: string;
+          is_public?: boolean;
+          background_color?: string;
+          likes_count?: number;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      mood_board_items: {
+        Row: {
+          id: string;
+          board_id: string;
+          type: string;
+          content: string;
+          x: number;
+          y: number;
+          width: number;
+          height: number;
+          rotation: number;
+          zIndex: number;
+          metadata: Record<string, string> | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          board_id: string;
+          type: string;
+          content: string;
+          x: number;
+          y: number;
+          width: number;
+          height: number;
+          rotation: number;
+          zIndex: number;
+          metadata?: Record<string, string> | null;
+          created_at?: string;
+        };
+        Update: {
+          x?: number;
+          y?: number;
+          width?: number;
+          height?: number;
+          rotation?: number;
+          zIndex?: number;
+          metadata?: Record<string, string> | null;
+        };
+        Relationships: [];
+      };
+      // ── Art Chains ──────────────────────────────────────
+      art_chains: {
+        Row: {
+          id: string;
+          title: string;
+          description: string;
+          theme: string;
+          starter_id: string;
+          max_links: number;
+          status: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          description?: string;
+          theme: string;
+          starter_id: string;
+          max_links?: number;
+          status?: string;
+          created_at?: string;
+        };
+        Update: {
+          title?: string;
+          description?: string;
+          status?: string;
+          max_links?: number;
+        };
+        Relationships: [];
+      };
+      art_chain_links: {
+        Row: {
+          id: string;
+          chain_id: string;
+          user_id: string;
+          position: number;
+          image_url: string;
+          prompt_used: string;
+          likes_count: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          chain_id: string;
+          user_id: string;
+          position: number;
+          image_url: string;
+          prompt_used: string;
+          likes_count?: number;
+          created_at?: string;
+        };
+        Update: {
+          likes_count?: number;
+        };
+        Relationships: [];
+      };
+      // ── Collab Rooms ────────────────────────────────────
+      collab_rooms: {
+        Row: {
+          id: string;
+          name: string;
+          host_id: string;
+          prompt: string;
+          style: string | null;
+          max_participants: number;
+          status: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          host_id: string;
+          prompt: string;
+          style?: string | null;
+          max_participants?: number;
+          status?: string;
+          created_at?: string;
+        };
+        Update: {
+          status?: string;
+          style?: string | null;
+        };
+        Relationships: [];
+      };
+      collab_room_participants: {
+        Row: {
+          id: string;
+          room_id: string;
+          user_id: string;
+          is_ready: boolean;
+          joined_at: string;
+        };
+        Insert: {
+          id?: string;
+          room_id: string;
+          user_id: string;
+          is_ready?: boolean;
+          joined_at?: string;
+        };
+        Update: {
+          is_ready?: boolean;
+        };
+        Relationships: [];
+      };
+      collab_rounds: {
+        Row: {
+          id: string;
+          room_id: string;
+          round_number: number;
+          prompt_modifier: string;
+          status: string;
+          winner_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          room_id: string;
+          round_number: number;
+          prompt_modifier?: string;
+          status?: string;
+          winner_id?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          status?: string;
+          winner_id?: string | null;
+        };
+        Relationships: [];
+      };
+      collab_submissions: {
+        Row: {
+          id: string;
+          round_id: string;
+          user_id: string;
+          image_url: string;
+          prompt_used: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          round_id: string;
+          user_id: string;
+          image_url: string;
+          prompt_used: string;
+          created_at?: string;
+        };
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      collab_votes: {
+        Row: {
+          id: string;
+          submission_id: string;
+          user_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          submission_id: string;
+          user_id: string;
+          created_at?: string;
+        };
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      // ── Generation History ──────────────────────────────
+      generation_history: {
+        Row: {
+          id: string;
+          user_id: string;
+          prompt: string;
+          negative_prompt: string | null;
+          model_id: string;
+          model_name: string;
+          provider: string;
+          image_url: string;
+          generation_time_ms: number;
+          credits_used: number;
+          settings: Record<string, unknown>;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          prompt: string;
+          negative_prompt?: string | null;
+          model_id: string;
+          model_name: string;
+          provider: string;
+          image_url: string;
+          generation_time_ms: number;
+          credits_used: number;
+          settings?: Record<string, unknown>;
+          created_at?: string;
+        };
+        Update: {
+          prompt?: string;
+          negative_prompt?: string | null;
+        };
+        Relationships: [];
+      };
+      // ── Engagement Credits ──────────────────────────────
+      engagement_credits: {
+        Row: {
+          id: string;
+          user_id: string;
+          action: string;
+          credits: number;
+          metadata: Record<string, unknown> | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          action: string;
+          credits: number;
+          metadata?: Record<string, unknown> | null;
+          created_at?: string;
+        };
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      login_streaks: {
+        Row: {
+          id: string;
+          user_id: string;
+          current_streak: number;
+          longest_streak: number;
+          last_login_date: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          current_streak?: number;
+          longest_streak?: number;
+          last_login_date?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          current_streak?: number;
+          longest_streak?: number;
+          last_login_date?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      engagement_rewards: {
+        Row: {
+          id: string;
+          user_id: string;
+          action: string;
+          credits_earned: number;
+          reference_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          action: string;
+          credits_earned: number;
+          reference_id?: string | null;
+          created_at?: string;
+        };
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      rank_history: {
+        Row: {
+          id: string;
+          user_id: string;
+          rank_name: string;
+          rank_level: number;
+          achieved_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          rank_name: string;
+          rank_level: number;
+          achieved_at?: string;
+        };
+        Update: Record<string, never>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -3098,6 +3459,21 @@ export type Database = {
       refresh_trending: {
         Args: Record<string, never>;
         Returns: undefined;
+      };
+      award_engagement_credits: {
+        Args: {
+          p_user_id: string;
+          p_action: string;
+          p_credits: number;
+          p_metadata: Record<string, unknown> | null;
+          p_daily_cap: number;
+          p_action_cap: number | null;
+        };
+        Returns: {
+          credits_awarded: number;
+          new_balance: number;
+          error_code: string | null;
+        };
       };
     };
     Enums: Record<string, never>;
@@ -3221,6 +3597,22 @@ export type PortfolioItem = Database['public']['Tables']['portfolio_items']['Row
 export type CrossPostAccount = Database['public']['Tables']['cross_post_accounts']['Row'];
 export type CrossPost = Database['public']['Tables']['cross_posts']['Row'];
 export type ArPreview = Database['public']['Tables']['ar_previews']['Row'];
+
+// Batch 9: Mood Boards, Art Chains, Collab Rooms, Engagement
+export type MoodBoard = Database['public']['Tables']['mood_boards']['Row'];
+export type MoodBoardItem = Database['public']['Tables']['mood_board_items']['Row'];
+export type ArtChainRow = Database['public']['Tables']['art_chains']['Row'];
+export type ArtChainLink = Database['public']['Tables']['art_chain_links']['Row'];
+export type CollabRoomRow = Database['public']['Tables']['collab_rooms']['Row'];
+export type CollabRoomParticipant = Database['public']['Tables']['collab_room_participants']['Row'];
+export type CollabRound = Database['public']['Tables']['collab_rounds']['Row'];
+export type CollabSubmissionRow = Database['public']['Tables']['collab_submissions']['Row'];
+export type CollabVote = Database['public']['Tables']['collab_votes']['Row'];
+export type GenerationHistoryRow = Database['public']['Tables']['generation_history']['Row'];
+export type EngagementCredit = Database['public']['Tables']['engagement_credits']['Row'];
+export type LoginStreak = Database['public']['Tables']['login_streaks']['Row'];
+export type EngagementReward = Database['public']['Tables']['engagement_rewards']['Row'];
+export type RankHistory = Database['public']['Tables']['rank_history']['Row'];
 
 // Extended types with relationships (what you get from joins)
 export type PostWithUser = Post & {
