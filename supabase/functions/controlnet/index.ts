@@ -1,4 +1,4 @@
-import { corsHeaders, jsonResponse, createServiceClient, requireAuth } from '../_shared/auth.ts';
+import { corsHeaders, jsonResponse, createServiceClient, requireAuth, checkRateLimit, rateLimitResponse } from '../_shared/auth.ts';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
@@ -7,6 +7,10 @@ Deno.serve(async (req) => {
     // Verify authentication
     const authResult = await requireAuth(req);
     if (authResult instanceof Response) return authResult;
+
+    if (!checkRateLimit(authResult.userId, 'controlnet', 10, 60)) {
+      return rateLimitResponse();
+    }
 
     const supabase = createServiceClient();
     const { job_id } = await req.json();
