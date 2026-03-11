@@ -61,28 +61,23 @@ serve(async (req: Request) => {
         Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
       );
 
-      // Idempotency check: prevent duplicate processing of same event
+      // Atomic idempotency: INSERT will fail on duplicate (unique PK), preventing race conditions
       const eventId = event.id;
       if (eventId) {
-        const { data: existing } = await supabase
-          .from('webhook_events')
-          .select('id')
-          .eq('id', eventId)
-          .maybeSingle();
-
-        if (existing) {
-          return new Response(JSON.stringify({ received: true, duplicate: true }), {
-            headers: { 'Content-Type': 'application/json' },
-          });
-        }
-
-        // Record this event before processing
-        await supabase.from('webhook_events').insert({
+        const { error: insertError } = await supabase.from('webhook_events').insert({
           id: eventId,
           event_type: event.type,
           provider: 'stripe',
           payload: { user_id: userId, credits, package_id: packageId },
         });
+
+        if (insertError?.code === '23505') {
+          // Unique violation = already processed
+          return new Response(JSON.stringify({ received: true, duplicate: true }), {
+            headers: { 'Content-Type': 'application/json' },
+          });
+        }
+        if (insertError) throw insertError;
       }
 
       await supabase.rpc('add_credits', {
