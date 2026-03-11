@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
+import { logger } from '@/lib/logger';
 
 const MAX_NOTE_LENGTH = 60;
 
@@ -37,7 +38,7 @@ export function NoteComposer({ visible, onClose, onShare }: Props) {
       setContent('');
       setSelectedEmoji('');
     } catch (error) {
-      console.error('Failed to share note:', error);
+      logger.error('Failed to share note:', error);
     } finally {
       setSharing(false);
     }

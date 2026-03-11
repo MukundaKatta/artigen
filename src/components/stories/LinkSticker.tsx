@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native'
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
 import type { StorySticker } from '@/types';
+import { logger } from '@/lib/logger';
 
 type Props = {
   sticker: StorySticker;
@@ -16,7 +17,7 @@ export function LinkSticker({ sticker, onRespond }: Props) {
   function handlePress() {
     onRespond({ clicked: true });
     if (config.url) {
-      Linking.openURL(config.url).catch((err) => console.warn('Failed to open URL:', err));
+      Linking.openURL(config.url).catch((err) => logger.warn('Failed to open URL:', err));
     }
   }
 

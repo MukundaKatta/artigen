@@ -2,6 +2,7 @@ import { supabase } from '@/lib/supabase';
 import { FEED_PAGE_SIZE, EXPLORE_PAGE_SIZE } from '@/lib/constants';
 import { uploadFile } from '@/services/upload.service';
 import { extractHashtags } from '@/utils/extract-hashtags';
+import { sanitizeText } from '@/lib/sanitize';
 import { createNotification } from '@/services/notification.service';
 import { updateStreak } from '@/services/streak.service';
 import { checkAndAwardPostBadges } from './badge.service';
@@ -134,6 +135,10 @@ export async function createPost({
   mediaFiles,
   aiMetadata,
 }: CreatePostParams) {
+  // Sanitize user-provided text fields
+  const sanitizedCaption = sanitizeText(caption);
+  const sanitizedLocation = location ? sanitizeText(location) : null;
+
   const postType =
     mediaFiles.length > 1
       ? 'carousel'
@@ -146,9 +151,9 @@ export async function createPost({
     .from('posts')
     .insert({
       user_id: userId,
-      caption,
+      caption: sanitizedCaption,
       post_type: postType as Post['post_type'],
-      location: location || null,
+      location: sanitizedLocation,
       remix_of_post_id: remixOfPostId || null,
       audience: audience || 'everyone',
     })

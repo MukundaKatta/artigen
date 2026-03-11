@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { getTrendingPrompts } from '@/services/prompt-library.service';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
+import { logger } from '@/lib/logger';
 
 type TrendingPrompt = {
   id: string;
@@ -24,7 +25,7 @@ export function TrendingPrompts({ onSelect }: Props) {
   useEffect(() => {
     getTrendingPrompts(6).then(({ data }) => {
       if (data.length > 0) setPrompts(data as TrendingPrompt[]);
-    }).catch((err) => console.warn('Failed to load trending prompts:', err));
+    }).catch((err) => logger.warn('Failed to load trending prompts:', err));
   }, []);
 
   if (prompts.length === 0) return null;

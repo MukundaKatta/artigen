@@ -1,13 +1,17 @@
 import { supabase } from '@/lib/supabase';
 import * as FileSystem from 'expo-file-system';
-import { STORAGE_BUCKETS } from '@/lib/constants';
+import { STORAGE_BUCKETS, MAX_IMAGE_SIZE_MB, MAX_VIDEO_SIZE_MB } from '@/lib/constants';
 import { decode } from 'base64-arraybuffer';
 
 type BucketName = keyof typeof STORAGE_BUCKETS;
 
+const ALLOWED_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'gif', 'webp', 'mp4', 'mov']);
+const IMAGE_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'gif', 'webp']);
+
 /**
  * Uploads a file to Supabase Storage.
  * Files are stored in a folder named after the user's ID for security (matches RLS policies).
+ * Validates file extension and size before uploading.
  */
 export async function uploadFile(
   bucket: BucketName,
@@ -15,17 +19,34 @@ export async function uploadFile(
   fileUri: string,
   fileName: string
 ) {
+  // Validate file extension
+  const ext = fileName.split('.').pop()?.toLowerCase() || '';
+  if (!ALLOWED_EXTENSIONS.has(ext)) {
+    return { url: null, error: { message: `File type ".${ext}" is not allowed. Accepted: ${[...ALLOWED_EXTENSIONS].join(', ')}` } };
+  }
+
+  // Sanitize filename — strip path traversal and special characters
+  const sanitizedName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
+
   // Read the file as base64
   const base64 = await FileSystem.readAsStringAsync(fileUri, {
     encoding: FileSystem.EncodingType.Base64,
   });
 
-  // Determine the content type from the file extension
-  const ext = fileName.split('.').pop()?.toLowerCase() || 'jpg';
+  // Validate file size
+  const sizeBytes = (base64.length * 3) / 4; // approximate decoded size
+  const maxBytes = IMAGE_EXTENSIONS.has(ext)
+    ? MAX_IMAGE_SIZE_MB * 1024 * 1024
+    : MAX_VIDEO_SIZE_MB * 1024 * 1024;
+  if (sizeBytes > maxBytes) {
+    const maxMB = IMAGE_EXTENSIONS.has(ext) ? MAX_IMAGE_SIZE_MB : MAX_VIDEO_SIZE_MB;
+    return { url: null, error: { message: `File exceeds ${maxMB}MB size limit` } };
+  }
+
   const contentType = getContentType(ext);
 
   // Create a unique path: userId/timestamp_filename
-  const filePath = `${userId}/${Date.now()}_${fileName}`;
+  const filePath = `${userId}/${Date.now()}_${sanitizedName}`;
 
   const { data, error } = await supabase.storage
     .from(STORAGE_BUCKETS[bucket])

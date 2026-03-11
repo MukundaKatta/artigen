@@ -3,6 +3,8 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { colors, spacing, fontSize, borderRadius, typography } from '@/lib/theme';
+import { logger } from '@/lib/logger';
+import { trackEvent, TELEMETRY_EVENTS } from '@/lib/telemetry';
 
 type Props = {
   children: React.ReactNode;
@@ -27,12 +29,20 @@ export class ErrorBoundary extends React.Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error(
+    logger.error(
       '[ErrorBoundary] Caught error:',
       error.message,
       '\nComponent stack:',
       errorInfo.componentStack,
     );
+
+    // Report to telemetry for production monitoring
+    trackEvent(TELEMETRY_EVENTS.error_boundary_triggered, {
+      error_name: error.name,
+      error_message: error.message.slice(0, 500),
+      component_stack: errorInfo.componentStack?.slice(0, 500) ?? '',
+    });
+
     this.props.onError?.(error, errorInfo);
   }
 

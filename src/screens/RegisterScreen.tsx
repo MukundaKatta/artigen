@@ -65,8 +65,8 @@ export function RegisterScreen() {
     if (error) {
       showAlert('Sign Up Failed', error.message);
     } else {
-      showAlert('Success', 'Account created! You can now log in.');
-      router.back();
+      // Navigate to onboarding to set up taste profile
+      router.replace('/(auth)/onboarding');
     }
   }
 
