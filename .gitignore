@@ -1,6 +1,7 @@
 node_modules/
 .expo/
 .claude/
+coverage/
 supabase/.temp/
 dist/
 npm-debug.*
