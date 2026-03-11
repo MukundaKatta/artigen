@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
+import { logger } from '@/lib/logger';
 import { useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { getNearbyLocations } from '@/services/location.service';
@@ -16,7 +17,7 @@ export default function ExploreMapRoute() {
     getNearbyLocations(0, 0, 99999).then(({ data }) => {
       setLocations(data);
     }).catch((err) => {
-      console.warn('Failed to load locations:', err);
+      logger.warn('Failed to load locations:', err);
     }).finally(() => setLoading(false));
   }, []);
 

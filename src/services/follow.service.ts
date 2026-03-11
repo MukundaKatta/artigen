@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { createNotification } from '@/services/notification.service';
+import { logger } from '@/lib/logger';
 
 export async function followUser(followerId: string, followingId: string) {
   const { error } = await supabase
@@ -9,7 +10,7 @@ export async function followUser(followerId: string, followingId: string) {
   // Create notification (fire-and-forget with error logging)
   if (!error) {
     createNotification({ type: 'follow', senderId: followerId, recipientId: followingId })
-      .catch((err) => console.warn('Failed to create follow notification:', err));
+      .catch((err) => logger.warn('Failed to create follow notification:', err));
   }
 
   return { error };

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { logger } from '@/lib/logger';
 import {
   awardEngagementCredits,
   getEngagementSummary,
@@ -56,7 +57,7 @@ export function useEngagementCredits(userId: string | undefined): UseEngagementC
   }, [userId]);
 
   useEffect(() => {
-    refresh().catch((err) => console.warn('Failed to load engagement summary:', err));
+    refresh().catch((err) => logger.warn('Failed to load engagement summary:', err));
   }, [refresh]);
 
   // ── Award credits ─────────────────────────────────
@@ -79,7 +80,7 @@ export function useEngagementCredits(userId: string | undefined): UseEngagementC
         ) {
           return null;
         }
-        console.warn('Engagement credit error:', error);
+        logger.warn('Engagement credit error:', error);
         return null;
       }
 

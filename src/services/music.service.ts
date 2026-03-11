@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { logger } from '@/lib/logger';
 
 export async function createMusicJob(
   userId: string,
@@ -26,7 +27,7 @@ export async function createMusicJob(
 
   if (data) {
     supabase.functions.invoke('generate-music', { body: { job_id: data.id } }).catch((err) => {
-      console.warn('Music generation invoke failed:', err);
+      logger.warn('Music generation invoke failed:', err);
       supabase.from('music_generation_jobs').update({ status: 'failed', error_message: 'Failed to start processing' }).eq('id', data.id);
     });
   }

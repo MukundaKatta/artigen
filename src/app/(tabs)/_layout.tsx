@@ -1,4 +1,5 @@
 import React, { useCallback, useContext, useEffect, useRef } from 'react';
+import { logger } from '@/lib/logger';
 import { View, StyleSheet, Platform } from 'react-native';
 import { Tabs, Slot } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -107,7 +108,7 @@ export default function TabLayout() {
   useEffect(() => {
     if (user && !dailyLoginClaimed.current) {
       dailyLoginClaimed.current = true;
-      claimDailyLogin().catch((err) => console.warn('Daily login reward claim failed:', err));
+      claimDailyLogin().catch((err) => logger.warn('Daily login reward claim failed:', err));
     }
   }, [user]);
 

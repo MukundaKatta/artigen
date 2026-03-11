@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { logger } from '@/lib/logger';
 import { Image } from 'expo-image';
 import { useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -21,7 +22,7 @@ export default function CollabInviteRoute() {
     getPendingInvites(user.id).then(({ data }) => {
       setInvites(data);
     }).catch((err) => {
-      console.warn('Failed to load invites:', err);
+      logger.warn('Failed to load invites:', err);
     }).finally(() => setLoading(false));
   }, [user?.id]);
 

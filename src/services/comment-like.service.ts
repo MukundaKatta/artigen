@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { createNotification } from '@/services/notification.service';
+import { logger } from '@/lib/logger';
 
 export async function likeComment(userId: string, commentId: string) {
   const { error } = await supabase
@@ -23,10 +24,10 @@ export async function likeComment(userId: string, commentId: string) {
             commentId,
             postId: comment.post_id,
           })
-            .catch((err: unknown) => console.warn('Failed to create comment like notification:', err));
+            .catch((err: unknown) => logger.warn('Failed to create comment like notification:', err));
         }
       })
-      .catch((err: unknown) => console.warn('Failed to fetch comment owner for notification:', err));
+      .catch((err: unknown) => logger.warn('Failed to fetch comment owner for notification:', err));
   }
 
   return { error };

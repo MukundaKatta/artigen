@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,8 @@ import {
   FlatList,
   Platform,
   ViewToken,
+  Share,
+  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -228,9 +230,21 @@ export default function WrappedScreen() {
             <Animated.View entering={FadeInUp.delay(800)}>
               <AnimatedPressable
                 style={styles.shareWrappedButton}
-                onPress={() => {
+                onPress={async () => {
                   if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                  // TODO: Share wrapped card as image
+                  try {
+                    await Share.share({
+                      message: `My ${s.year} ArtGen Wrapped:\n` +
+                        `${s.totalPosts} artworks created | ${formatNumber(s.totalLikes)} likes\n` +
+                        `${s.artPersonality} | Top ${s.percentileRank}% of creators\n` +
+                        `Longest streak: ${s.longestStreak} days\n` +
+                        `Check out ArtGen to create your own!`,
+                    });
+                  } catch (err) {
+                    if ((err as Error)?.message !== 'User dismissed the dialog') {
+                      Alert.alert('Share failed', 'Unable to share your wrapped card.');
+                    }
+                  }
                 }}
                 scaleValue={0.95}
               >

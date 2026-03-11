@@ -5,6 +5,7 @@ import { extractHashtags } from '@/utils/extract-hashtags';
 import { createNotification } from '@/services/notification.service';
 import { updateStreak } from '@/services/streak.service';
 import { checkAndAwardPostBadges } from './badge.service';
+import { logger } from '@/lib/logger';
 import type { FeedPost, PostWithUser, Post, AiMetadataInsert } from '@/types';
 import type { Database } from '@/types/database';
 
@@ -201,8 +202,8 @@ export async function createPost({
   }
 
   // Update user streak (fire-and-forget)
-  updateStreak(userId).catch((err) => console.warn('Streak update failed:', err));
-  checkAndAwardPostBadges(userId).catch((err) => console.warn('Badge check failed:', err));
+  updateStreak(userId).catch((err) => logger.warn('Streak update failed:', err));
+  checkAndAwardPostBadges(userId).catch((err) => logger.warn('Badge check failed:', err));
 
   return { data: post, error: null };
 }
@@ -284,10 +285,10 @@ export async function likePost(userId: string, postId: string) {
     ).then(({ data: post }) => {
         if (post && post.user_id !== userId) {
           createNotification({ type: 'like', senderId: userId, recipientId: post.user_id, postId })
-            .catch((err: unknown) => console.warn('Failed to create like notification:', err));
+            .catch((err: unknown) => logger.warn('Failed to create like notification:', err));
         }
       })
-      .catch((err: unknown) => console.warn('Failed to fetch post owner for notification:', err));
+      .catch((err: unknown) => logger.warn('Failed to fetch post owner for notification:', err));
   }
 
   return { error };

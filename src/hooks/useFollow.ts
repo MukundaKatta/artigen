@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { checkIsFollowing, followUser, unfollowUser } from '@/services/follow.service';
+import { logger } from '@/lib/logger';
 
 export function useFollow(currentUserId: string | undefined, targetUserId: string) {
   const [isFollowing, setIsFollowing] = useState(false);
@@ -15,7 +16,7 @@ export function useFollow(currentUserId: string | undefined, targetUserId: strin
     checkIsFollowing(currentUserId, targetUserId).then(({ isFollowing }) => {
       setIsFollowing(isFollowing);
     }).catch((err) => {
-      console.warn('Failed to check follow status:', err);
+      logger.warn('Failed to check follow status:', err);
     }).finally(() => setLoading(false));
   }, [currentUserId, targetUserId]);
 

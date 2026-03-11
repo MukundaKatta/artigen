@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput } from 'react-native';
+import { logger } from '@/lib/logger';
 import { Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/providers/AuthProvider';
@@ -29,7 +30,7 @@ export default function CloseFriendsRoute() {
           setFollowers(data.map((d: any) => d.follower as Profile));
         }
       })
-      .catch((err: unknown) => console.warn('Failed to load followers:', err));
+      .catch((err: unknown) => logger.warn('Failed to load followers:', err));
   }, [user?.id]);
 
   const filteredFollowers = searchQuery

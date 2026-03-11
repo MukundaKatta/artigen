@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from '@/lib/logger';
 import {
   View,
   Text,
@@ -23,7 +24,7 @@ export default function BlockedUsersRoute() {
     getBlockedUsers(user.id).then(({ data }) => {
       setBlocked(data);
     }).catch((err) => {
-      console.warn('Failed to load blocked users:', err);
+      logger.warn('Failed to load blocked users:', err);
     }).finally(() => setLoading(false));
   }, [user?.id]);
 

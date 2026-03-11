@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { logger } from '@/lib/logger';
 
 export async function createOutpaintingJob(params: {
   userId: string;
@@ -24,7 +25,7 @@ export async function createOutpaintingJob(params: {
 
   if (data) {
     supabase.functions.invoke('outpaint', { body: { job_id: data.id } }).catch((err) => {
-      console.warn('Outpaint invoke failed:', err);
+      logger.warn('Outpaint invoke failed:', err);
       supabase.from('outpainting_jobs').update({ status: 'failed', error_message: 'Failed to start processing' }).eq('id', data.id);
     });
   }

@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import { COMMENTS_PAGE_SIZE } from '@/lib/constants';
 import { createNotification } from '@/services/notification.service';
+import { logger } from '@/lib/logger';
 import type { CommentWithUser } from '@/types';
 
 export async function getComments(postId: string, page = 0) {
@@ -82,10 +83,10 @@ export async function addComment(
             postId,
             commentId: data.id,
           })
-            .catch((err: unknown) => console.warn('Failed to create comment notification:', err));
+            .catch((err: unknown) => logger.warn('Failed to create comment notification:', err));
         }
       })
-      .catch((err: unknown) => console.warn('Failed to fetch post owner for notification:', err));
+      .catch((err: unknown) => logger.warn('Failed to fetch post owner for notification:', err));
   }
 
   return { data: data as unknown as CommentWithUser | null, error };
