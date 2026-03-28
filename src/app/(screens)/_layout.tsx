@@ -115,6 +115,8 @@ export default function ScreensLayout() {
       <Stack.Screen name="ai-assistant" options={{ title: 'AI Assistant' }} />
       <Stack.Screen name="generation-history" options={{ title: 'Generation History' }} />
       <Stack.Screen name="earn-credits" options={{ title: 'Earn Credits' }} />
+      <Stack.Screen name="privacy-policy" options={{ title: 'Privacy Policy' }} />
+      <Stack.Screen name="terms-of-service" options={{ title: 'Terms of Service' }} />
     </Stack>
     </ErrorBoundary>
   );

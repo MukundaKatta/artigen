@@ -16,7 +16,28 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.mukundakatta.artigen"
+      "bundleIdentifier": "com.mukundakatta.artigen",
+      "buildNumber": "1",
+      "config": {
+        "usesNonExemptEncryption": false
+      },
+      "infoPlist": {
+        "NSCameraUsageDescription": "Artigen needs camera access to capture photos for your AI art creations and profile pictures.",
+        "NSPhotoLibraryUsageDescription": "Artigen needs access to your photo library to select images for AI art generation and sharing.",
+        "NSPhotoLibraryAddUsageDescription": "Artigen needs permission to save AI-generated artwork to your photo library.",
+        "NSMicrophoneUsageDescription": "Artigen needs microphone access to record voice messages in chats.",
+        "NSFaceIDUsageDescription": "Use Face ID to securely access your Artigen account.",
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "associatedDomains": ["applinks:artigen.app"],
+      "privacyManifests": {
+        "NSPrivacyAccessedAPITypes": [
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
+            "NSPrivacyAccessedAPITypeReasons": ["CA92.1"]
+          }
+        ]
+      }
     },
     "android": {
       "adaptiveIcon": {

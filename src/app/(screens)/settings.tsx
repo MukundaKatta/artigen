@@ -228,6 +228,22 @@ export default function SettingsRoute() {
         />
       </SectionCard>
 
+      <SectionHeader title="Legal" />
+      <SectionCard>
+        <SettingRow
+          icon="document-text-outline"
+          iconColor="#6366F1"
+          label="Privacy Policy"
+          onPress={() => router.push('/(screens)/privacy-policy')}
+        />
+        <SettingRow
+          icon="reader-outline"
+          iconColor="#6366F1"
+          label="Terms of Service"
+          onPress={() => router.push('/(screens)/terms-of-service')}
+        />
+      </SectionCard>
+
       <SectionHeader title="About" />
       <SectionCard>
         <SettingRow icon="information-circle-outline" label="Version" value="1.0.0" />
