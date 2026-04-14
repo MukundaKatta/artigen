@@ -2,7 +2,7 @@
 
 **Live:** <https://mukundakatta.github.io/artigen/>
 
-AI art community platform built with React Native, Expo, and Supabase. artigen gives you a focused, inspectable implementation of that idea.
+AI art community platform built with React Native, Expo, and Supabase.
 
 ## Why artigen
 
