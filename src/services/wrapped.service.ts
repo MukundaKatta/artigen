@@ -70,13 +70,13 @@ async function fetchTopCollaborator(
   type CollabRow = { user_id: string; post: { user_id: string; created_at: string } };
   type ReverseCollabRow = { post: { user_id: string; created_at: string } };
 
-  ((collabs || []) as CollabRow[]).forEach((c) => {
+  ((collabs || []) as unknown as CollabRow[]).forEach((c) => {
     const uid = c.user_id;
     if (uid && uid !== userId) {
       collabCounts[uid] = (collabCounts[uid] || 0) + 1;
     }
   });
-  ((reverseCollabs || []) as ReverseCollabRow[]).forEach((c) => {
+  ((reverseCollabs || []) as unknown as ReverseCollabRow[]).forEach((c) => {
     const uid = c.post?.user_id;
     if (uid && uid !== userId) {
       collabCounts[uid] = (collabCounts[uid] || 0) + 1;
@@ -126,7 +126,7 @@ export async function fetchWrappedStats(userId: string, year: number): Promise<W
     .lt('created_at', endDate)
     .order('likes_count', { ascending: false });
 
-  const allPosts = (posts || []) as PostRow[];
+  const allPosts = (posts || []) as unknown as PostRow[];
   const totalPosts = allPosts.length;
   const totalLikes = allPosts.reduce((sum, p) => sum + (p.likes_count || 0), 0);
   const totalViews = allPosts.reduce((sum, p) => sum + (p.views_count || 0), 0);
@@ -195,7 +195,7 @@ export async function fetchWrappedStats(userId: string, year: number): Promise<W
 
   // Fetch streak data
   const { data: streakData } = await supabase
-    .from('streaks')
+    .from('user_streaks')
     .select('longest_streak')
     .eq('user_id', userId)
     .single();

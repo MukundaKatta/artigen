@@ -841,6 +841,8 @@ export type Database = {
           settings?: Record<string, unknown>;
           style_tags?: string[];
           is_public?: boolean;
+          save_count?: number;
+          use_count?: number;
         };
         Relationships: [];
       };

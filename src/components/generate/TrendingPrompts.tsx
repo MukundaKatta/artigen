@@ -24,7 +24,7 @@ export function TrendingPrompts({ onSelect }: Props) {
 
   useEffect(() => {
     getTrendingPrompts(6).then(({ data }) => {
-      if (data.length > 0) setPrompts(data as TrendingPrompt[]);
+      if (data.length > 0) setPrompts(data as unknown as TrendingPrompt[]);
     }).catch((err) => logger.warn('Failed to load trending prompts:', err));
   }, []);
 

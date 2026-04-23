@@ -45,6 +45,7 @@ export async function getReplyCount(commentIds: string[]) {
   const counts = new Map<string, number>();
   (data || []).forEach((d) => {
     const id = d.parent_comment_id;
+    if (!id) return;
     counts.set(id, (counts.get(id) || 0) + 1);
   });
   return counts;

@@ -54,7 +54,7 @@ export async function fetchUserMoodBoards(userId: string): Promise<MoodBoard[]> 
     .eq('user_id', userId)
     .order('updated_at', { ascending: false });
 
-  return (data || []) as MoodBoard[];
+  return (data || []) as unknown as MoodBoard[];
 }
 
 export async function fetchPublicMoodBoards(): Promise<MoodBoard[]> {
@@ -65,7 +65,7 @@ export async function fetchPublicMoodBoards(): Promise<MoodBoard[]> {
     .order('likes_count', { ascending: false })
     .limit(20);
 
-  return (data || []) as MoodBoard[];
+  return (data || []) as unknown as MoodBoard[];
 }
 
 export async function addItemToBoard(
