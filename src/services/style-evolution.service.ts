@@ -38,7 +38,7 @@ export async function fetchStyleEvolution(userId: string): Promise<StyleEvolutio
     .gte('created_at', sixMonthsAgo.toISOString())
     .order('created_at', { ascending: true });
 
-  const allPosts = (posts || []) as PostRow[];
+  const allPosts = (posts || []) as unknown as PostRow[];
   const monthlyData: Record<string, { styles: Record<string, number>; models: Record<string, number>; likes: number[]; topPost: { url: string; likes: number } | null }> = {};
 
   allPosts.forEach((post) => {

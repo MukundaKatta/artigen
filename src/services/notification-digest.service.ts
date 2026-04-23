@@ -42,7 +42,7 @@ export async function fetchNotificationDigest(userId: string): Promise<Notificat
     .gte('created_at', oneDayAgo)
     .order('created_at', { ascending: false });
 
-  const items = (notifications || []) as NotificationRow[];
+  const items = (notifications || []) as unknown as NotificationRow[];
   const totalUnread = items.filter((n) => !n.read).length;
 
   // Group by type
