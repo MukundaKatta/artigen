@@ -1,13 +1,12 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { AVATAR_SIZES } from '@/lib/constants';
+import { colors } from '@/lib/theme';
 
 type Props = {
   children: React.ReactNode;
   size?: keyof typeof AVATAR_SIZES;
 };
-
-const CLOSE_FRIENDS_GREEN = '#58C322';
 
 export function CloseFriendsRing({ children, size = 'lg' }: Props) {
   const dimension = AVATAR_SIZES[size];
@@ -43,7 +42,7 @@ export function CloseFriendsRing({ children, size = 'lg' }: Props) {
 const styles = StyleSheet.create({
   ring: {
     borderWidth: 2,
-    borderColor: CLOSE_FRIENDS_GREEN,
+    borderColor: colors.success,
     alignItems: 'center',
     justifyContent: 'center',
   },

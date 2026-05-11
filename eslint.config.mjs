@@ -79,6 +79,30 @@ export default [
     },
   },
 
+  // Prevent hardcoded hex colors from returning to the themed component surfaces
+  // currently being swept into the design system.
+  {
+    files: [
+      'src/components/stories/**/*.{ts,tsx}',
+      'src/components/feed/ProvenanceBadge.tsx',
+      'src/components/generate/ModelPicker.tsx',
+      'src/components/cross-post/PlatformIcon.tsx',
+    ],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "Literal[value=/^#(?:[0-9A-Fa-f]{3,4}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$/]",
+          message: 'Use theme color tokens from src/lib/theme instead of hardcoded hex colors.',
+        },
+        {
+          selector: "TemplateElement[value.raw=/#[0-9A-Fa-f]{3,8}/]",
+          message: 'Use theme color tokens from src/lib/theme instead of hardcoded hex colors.',
+        },
+      ],
+    },
+  },
+
   // Test files - relax some rules
   {
     files: ['src/__tests__/**/*.{ts,tsx}'],

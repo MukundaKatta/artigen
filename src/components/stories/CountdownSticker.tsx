@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
+import { colors, spacing, fontSize, typography, borderRadius, withOpacity } from '@/lib/theme';
 import type { StorySticker } from '@/types';
 
 type Props = {
@@ -56,7 +56,7 @@ export function CountdownSticker({ sticker, onRespond }: Props) {
         <Ionicons
           name={reminded ? 'notifications' : 'notifications-outline'}
           size={14}
-          color={reminded ? '#fff' : '#fff'}
+          color={colors.textLight}
         />
         <Text style={styles.remindText}>
           {reminded ? 'Reminded' : 'Remind Me'}
@@ -68,7 +68,7 @@ export function CountdownSticker({ sticker, onRespond }: Props) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#EF4444',
+    backgroundColor: colors.error,
     borderRadius: borderRadius.lg,
     padding: spacing.md,
     width: 180,
@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
     fontSize: fontSize.sm,
     fontFamily: typography.bold,
     fontWeight: '700',
-    color: '#fff',
+    color: colors.textLight,
     textAlign: 'center',
     textTransform: 'uppercase',
     marginBottom: spacing.xs,
@@ -87,25 +87,25 @@ const styles = StyleSheet.create({
     fontSize: fontSize.xxl,
     fontFamily: typography.bold,
     fontWeight: '700',
-    color: '#fff',
+    color: colors.textLight,
     marginBottom: spacing.sm,
   },
   remindButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: withOpacity(colors.textLight, 0.2),
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     borderRadius: borderRadius.full,
   },
   remindedButton: {
-    backgroundColor: 'rgba(255,255,255,0.4)',
+    backgroundColor: withOpacity(colors.textLight, 0.4),
   },
   remindText: {
     fontSize: fontSize.xs,
     fontFamily: typography.semiBold,
     fontWeight: '600',
-    color: '#fff',
+    color: colors.textLight,
   },
 });
