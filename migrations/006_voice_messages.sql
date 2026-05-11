@@ -5,3 +5,9 @@
 ALTER TABLE messages DROP CONSTRAINT IF EXISTS messages_message_type_check;
 ALTER TABLE messages ADD CONSTRAINT messages_message_type_check
   CHECK (message_type IN ('text', 'image', 'video', 'post_share', 'story_reply', 'voice'));
+
+-- DOWN
+-- Manual rollback:
+-- ALTER TABLE messages DROP CONSTRAINT IF EXISTS messages_message_type_check;
+-- ALTER TABLE messages ADD CONSTRAINT messages_message_type_check
+--   CHECK (message_type IN ('text', 'image', 'video', 'post_share', 'story_reply'));

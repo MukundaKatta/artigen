@@ -35,3 +35,12 @@ ALTER TABLE login_streaks ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY login_streaks_select ON login_streaks
   FOR SELECT USING (auth.uid() = user_id);
+
+-- DOWN
+-- Manual rollback:
+-- DROP POLICY IF EXISTS login_streaks_select ON login_streaks;
+-- DROP TABLE IF EXISTS login_streaks;
+-- DROP POLICY IF EXISTS engagement_rewards_select ON engagement_rewards;
+-- DROP INDEX IF EXISTS idx_engagement_rewards_action_date;
+-- DROP INDEX IF EXISTS idx_engagement_rewards_user;
+-- DROP TABLE IF EXISTS engagement_rewards;

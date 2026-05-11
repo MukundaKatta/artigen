@@ -30,3 +30,11 @@ CREATE POLICY generation_history_insert ON generation_history
 
 CREATE POLICY generation_history_delete ON generation_history
   FOR DELETE USING (auth.uid() = user_id);
+
+-- DOWN
+-- Manual rollback:
+-- DROP POLICY IF EXISTS generation_history_delete ON generation_history;
+-- DROP POLICY IF EXISTS generation_history_insert ON generation_history;
+-- DROP POLICY IF EXISTS generation_history_select ON generation_history;
+-- DROP INDEX IF EXISTS idx_generation_history_user;
+-- DROP TABLE IF EXISTS generation_history;

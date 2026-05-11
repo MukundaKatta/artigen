@@ -97,3 +97,33 @@ CREATE POLICY "Users unsave packs" ON user_sticker_packs FOR DELETE USING (user_
 
 CREATE POLICY "Users view own 3d jobs" ON text_to_3d_jobs FOR SELECT USING (user_id = auth.uid());
 CREATE POLICY "Users create 3d jobs" ON text_to_3d_jobs FOR INSERT WITH CHECK (user_id = auth.uid());
+
+-- DOWN
+-- Manual rollback:
+-- DROP POLICY IF EXISTS "Users create 3d jobs" ON text_to_3d_jobs;
+-- DROP POLICY IF EXISTS "Users view own 3d jobs" ON text_to_3d_jobs;
+-- DROP POLICY IF EXISTS "Users unsave packs" ON user_sticker_packs;
+-- DROP POLICY IF EXISTS "Users save packs" ON user_sticker_packs;
+-- DROP POLICY IF EXISTS "Anyone can view saved packs" ON user_sticker_packs;
+-- DROP POLICY IF EXISTS "Pack creators manage stickers" ON stickers;
+-- DROP POLICY IF EXISTS "Pack creators add stickers" ON stickers;
+-- DROP POLICY IF EXISTS "Anyone can view stickers" ON stickers;
+-- DROP POLICY IF EXISTS "Creators delete packs" ON sticker_packs;
+-- DROP POLICY IF EXISTS "Creators update packs" ON sticker_packs;
+-- DROP POLICY IF EXISTS "Users create packs" ON sticker_packs;
+-- DROP POLICY IF EXISTS "Anyone can view public packs" ON sticker_packs;
+-- DROP POLICY IF EXISTS "Users create music jobs" ON music_generation_jobs;
+-- DROP POLICY IF EXISTS "Users view own music jobs" ON music_generation_jobs;
+-- DROP INDEX IF EXISTS idx_text_to_3d_jobs_user;
+-- DROP INDEX IF EXISTS idx_user_sticker_packs_user;
+-- DROP INDEX IF EXISTS idx_stickers_pack;
+-- DROP INDEX IF EXISTS idx_sticker_packs_public;
+-- DROP INDEX IF EXISTS idx_sticker_packs_creator;
+-- DROP INDEX IF EXISTS idx_music_jobs_user;
+-- DROP TABLE IF EXISTS text_to_3d_jobs;
+-- DROP TABLE IF EXISTS user_sticker_packs;
+-- DROP TABLE IF EXISTS stickers;
+-- DROP TABLE IF EXISTS sticker_packs;
+-- ALTER TABLE posts DROP COLUMN IF EXISTS music_title;
+-- ALTER TABLE posts DROP COLUMN IF EXISTS music_url;
+-- DROP TABLE IF EXISTS music_generation_jobs;

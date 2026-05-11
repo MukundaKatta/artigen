@@ -11,3 +11,9 @@ DROP POLICY IF EXISTS notifications_insert_system ON notifications;
 CREATE POLICY notifications_insert_service_only
   ON notifications FOR INSERT
   WITH CHECK (auth.role() = 'service_role');
+
+-- DOWN
+-- Manual rollback:
+-- DROP POLICY IF EXISTS notifications_insert_service_only ON notifications;
+-- CREATE POLICY "Authenticated users can create notifications" ON notifications FOR INSERT TO authenticated WITH CHECK (true);
+-- CREATE POLICY notifications_insert_system ON notifications FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);

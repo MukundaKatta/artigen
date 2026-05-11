@@ -33,3 +33,14 @@ ALTER TABLE award_types ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Anyone can view award types" ON award_types FOR SELECT USING (true);
 CREATE POLICY "Anyone can view awards" ON post_awards FOR SELECT USING (true);
 CREATE POLICY "Users can give awards" ON post_awards FOR INSERT WITH CHECK (user_id = auth.uid());
+
+-- DOWN
+-- Manual rollback:
+-- DROP POLICY IF EXISTS "Users can give awards" ON post_awards;
+-- DROP POLICY IF EXISTS "Anyone can view awards" ON post_awards;
+-- DROP POLICY IF EXISTS "Anyone can view award types" ON award_types;
+-- DROP INDEX IF EXISTS idx_post_awards_user;
+-- DROP INDEX IF EXISTS idx_post_awards_post;
+-- DROP TABLE IF EXISTS post_awards;
+-- DELETE FROM award_types WHERE id IN ('fire', 'love', 'mindblown', 'masterpiece', 'diamond', 'trophy');
+-- DROP TABLE IF EXISTS award_types;

@@ -208,5 +208,6 @@ Current implementation details to be aware of:
 
 - Keep migrations additive and idempotent (`IF NOT EXISTS`, guarded updates).
 - Apply migrations in strict filename order for deterministic environments.
+- Follow the migration apply, rollback, and recovery runbook in `docs/MIGRATIONS.md`.
 - Validate RLS policies whenever adding a new table or changing access patterns.
 - Keep `src/types/database.ts` aligned with live schema after migration updates.

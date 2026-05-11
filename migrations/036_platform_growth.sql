@@ -91,3 +91,37 @@ CREATE POLICY "Users create cross posts" ON cross_posts FOR INSERT WITH CHECK (u
 CREATE POLICY "Anyone can view ar previews" ON ar_previews FOR SELECT USING (true);
 CREATE POLICY "Post owners create ar preview" ON ar_previews FOR INSERT WITH CHECK (EXISTS(SELECT 1 FROM posts WHERE id = post_id AND user_id = auth.uid()));
 CREATE POLICY "Post owners update ar preview" ON ar_previews FOR UPDATE USING (EXISTS(SELECT 1 FROM posts WHERE id = post_id AND user_id = auth.uid()));
+
+-- DOWN
+-- Manual rollback:
+-- DROP POLICY IF EXISTS "Post owners update ar preview" ON ar_previews;
+-- DROP POLICY IF EXISTS "Post owners create ar preview" ON ar_previews;
+-- DROP POLICY IF EXISTS "Anyone can view ar previews" ON ar_previews;
+-- DROP POLICY IF EXISTS "Users create cross posts" ON cross_posts;
+-- DROP POLICY IF EXISTS "Users view own cross posts" ON cross_posts;
+-- DROP POLICY IF EXISTS "Users delete accounts" ON cross_post_accounts;
+-- DROP POLICY IF EXISTS "Users update accounts" ON cross_post_accounts;
+-- DROP POLICY IF EXISTS "Users manage accounts" ON cross_post_accounts;
+-- DROP POLICY IF EXISTS "Users view own accounts" ON cross_post_accounts;
+-- DROP POLICY IF EXISTS "Section owners delete items" ON portfolio_items;
+-- DROP POLICY IF EXISTS "Section owners update items" ON portfolio_items;
+-- DROP POLICY IF EXISTS "Section owners manage items" ON portfolio_items;
+-- DROP POLICY IF EXISTS "Anyone can view portfolio items" ON portfolio_items;
+-- DROP POLICY IF EXISTS "Users delete own sections" ON portfolio_sections;
+-- DROP POLICY IF EXISTS "Users update own sections" ON portfolio_sections;
+-- DROP POLICY IF EXISTS "Users manage own sections" ON portfolio_sections;
+-- DROP POLICY IF EXISTS "Anyone can view portfolio sections" ON portfolio_sections;
+-- DROP INDEX IF EXISTS idx_ar_previews_post;
+-- DROP INDEX IF EXISTS idx_cross_posts_user;
+-- DROP INDEX IF EXISTS idx_cross_posts_post;
+-- DROP INDEX IF EXISTS idx_cross_post_accounts_user;
+-- DROP INDEX IF EXISTS idx_portfolio_items_section;
+-- DROP INDEX IF EXISTS idx_portfolio_sections_user;
+-- DROP TABLE IF EXISTS ar_previews;
+-- DROP TABLE IF EXISTS cross_posts;
+-- DROP TABLE IF EXISTS cross_post_accounts;
+-- ALTER TABLE profiles DROP COLUMN IF EXISTS portfolio_contact_email;
+-- ALTER TABLE profiles DROP COLUMN IF EXISTS portfolio_bio;
+-- ALTER TABLE profiles DROP COLUMN IF EXISTS portfolio_enabled;
+-- DROP TABLE IF EXISTS portfolio_items;
+-- DROP TABLE IF EXISTS portfolio_sections;

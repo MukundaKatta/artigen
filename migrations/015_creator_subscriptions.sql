@@ -68,3 +68,24 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER trg_subscriber_count
   AFTER INSERT OR UPDATE OR DELETE ON subscriptions
   FOR EACH ROW EXECUTE FUNCTION update_subscriber_count();
+
+-- DOWN
+-- Manual rollback:
+-- DROP TRIGGER IF EXISTS trg_subscriber_count ON subscriptions;
+-- DROP FUNCTION IF EXISTS update_subscriber_count();
+-- DROP POLICY IF EXISTS "Users can update own subscription" ON subscriptions;
+-- DROP POLICY IF EXISTS "Users can subscribe" ON subscriptions;
+-- DROP POLICY IF EXISTS "Users view own subscriptions or creators see their subscribers" ON subscriptions;
+-- DROP POLICY IF EXISTS "Creators delete own tiers" ON subscription_tiers;
+-- DROP POLICY IF EXISTS "Creators update own tiers" ON subscription_tiers;
+-- DROP POLICY IF EXISTS "Creators manage own tiers" ON subscription_tiers;
+-- DROP POLICY IF EXISTS "Anyone can view active tiers" ON subscription_tiers;
+-- ALTER TABLE profiles DROP COLUMN IF EXISTS is_creator;
+-- ALTER TABLE profiles DROP COLUMN IF EXISTS subscriber_count;
+-- ALTER TABLE posts DROP COLUMN IF EXISTS subscription_tier_id;
+-- DROP INDEX IF EXISTS idx_subscriptions_status;
+-- DROP INDEX IF EXISTS idx_subscriptions_subscriber;
+-- DROP INDEX IF EXISTS idx_subscriptions_creator;
+-- DROP INDEX IF EXISTS idx_subscription_tiers_creator;
+-- DROP TABLE IF EXISTS subscriptions;
+-- DROP TABLE IF EXISTS subscription_tiers;

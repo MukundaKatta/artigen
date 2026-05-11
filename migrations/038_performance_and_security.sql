@@ -69,3 +69,19 @@ CREATE POLICY audit_log_read ON audit_log
 
 -- Webhook events: no direct user access (service role only)
 ALTER TABLE webhook_events ENABLE ROW LEVEL SECURITY;
+
+-- DOWN
+-- Manual rollback:
+-- DROP POLICY IF EXISTS audit_log_read ON audit_log;
+-- DROP INDEX IF EXISTS idx_audit_log_action;
+-- DROP INDEX IF EXISTS idx_audit_log_user;
+-- DROP TABLE IF EXISTS audit_log;
+-- DROP INDEX IF EXISTS idx_webhook_events_processed;
+-- DROP TABLE IF EXISTS webhook_events;
+-- DROP INDEX IF EXISTS idx_follows_following;
+-- DROP INDEX IF EXISTS idx_posts_created_likes;
+-- DROP INDEX IF EXISTS idx_wallets_user;
+-- DROP INDEX IF EXISTS idx_messages_conversation_created;
+-- DROP INDEX IF EXISTS idx_comments_post_created;
+-- DROP INDEX IF EXISTS idx_notifications_recipient_read;
+-- DROP INDEX IF EXISTS idx_posts_user_created;

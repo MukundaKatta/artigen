@@ -121,3 +121,32 @@ CREATE POLICY "Users create controlnet jobs" ON controlnet_jobs FOR INSERT WITH 
 CREATE POLICY "Users update own controlnet jobs" ON controlnet_jobs FOR UPDATE USING (user_id = auth.uid());
 
 CREATE POLICY "ControlNet presets visible to all" ON controlnet_presets FOR SELECT USING (is_active);
+
+-- DOWN
+-- Manual rollback:
+-- DROP POLICY IF EXISTS "ControlNet presets visible to all" ON controlnet_presets;
+-- DROP POLICY IF EXISTS "Users update own controlnet jobs" ON controlnet_jobs;
+-- DROP POLICY IF EXISTS "Users create controlnet jobs" ON controlnet_jobs;
+-- DROP POLICY IF EXISTS "Users view own controlnet jobs" ON controlnet_jobs;
+-- DROP POLICY IF EXISTS "Users update own upscaling jobs" ON upscaling_jobs;
+-- DROP POLICY IF EXISTS "Users create upscaling jobs" ON upscaling_jobs;
+-- DROP POLICY IF EXISTS "Users view own upscaling jobs" ON upscaling_jobs;
+-- DROP POLICY IF EXISTS "Users update own outpainting jobs" ON outpainting_jobs;
+-- DROP POLICY IF EXISTS "Users create outpainting jobs" ON outpainting_jobs;
+-- DROP POLICY IF EXISTS "Users view own outpainting jobs" ON outpainting_jobs;
+-- DROP POLICY IF EXISTS "Users update own inpainting jobs" ON inpainting_jobs;
+-- DROP POLICY IF EXISTS "Users create inpainting jobs" ON inpainting_jobs;
+-- DROP POLICY IF EXISTS "Users view own inpainting jobs" ON inpainting_jobs;
+-- DROP TABLE IF EXISTS controlnet_presets;
+-- DROP INDEX IF EXISTS idx_controlnet_jobs_status;
+-- DROP INDEX IF EXISTS idx_controlnet_jobs_user;
+-- DROP TABLE IF EXISTS controlnet_jobs;
+-- DROP INDEX IF EXISTS idx_upscaling_jobs_status;
+-- DROP INDEX IF EXISTS idx_upscaling_jobs_user;
+-- DROP TABLE IF EXISTS upscaling_jobs;
+-- DROP INDEX IF EXISTS idx_outpainting_jobs_status;
+-- DROP INDEX IF EXISTS idx_outpainting_jobs_user;
+-- DROP TABLE IF EXISTS outpainting_jobs;
+-- DROP INDEX IF EXISTS idx_inpainting_jobs_status;
+-- DROP INDEX IF EXISTS idx_inpainting_jobs_user;
+-- DROP TABLE IF EXISTS inpainting_jobs;

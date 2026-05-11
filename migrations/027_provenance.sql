@@ -22,3 +22,13 @@ ALTER TABLE posts ADD COLUMN IF NOT EXISTS has_provenance boolean DEFAULT false;
 ALTER TABLE art_provenance ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Provenance visible to all" ON art_provenance FOR SELECT USING (true);
 CREATE POLICY "System creates provenance" ON art_provenance FOR INSERT WITH CHECK (author_id = auth.uid());
+
+-- DOWN
+-- Manual rollback:
+-- DROP POLICY IF EXISTS "System creates provenance" ON art_provenance;
+-- DROP POLICY IF EXISTS "Provenance visible to all" ON art_provenance;
+-- ALTER TABLE posts DROP COLUMN IF EXISTS has_provenance;
+-- DROP INDEX IF EXISTS idx_provenance_author;
+-- DROP INDEX IF EXISTS idx_provenance_hash;
+-- DROP INDEX IF EXISTS idx_provenance_post;
+-- DROP TABLE IF EXISTS art_provenance;

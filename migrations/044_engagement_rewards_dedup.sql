@@ -12,3 +12,8 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_engagement_rewards_daily_dedup
 CREATE UNIQUE INDEX IF NOT EXISTS idx_engagement_rewards_reference_dedup
   ON engagement_rewards (user_id, action, reference_id)
   WHERE reference_id IS NOT NULL;
+
+-- DOWN
+-- Manual rollback:
+-- DROP INDEX IF EXISTS idx_engagement_rewards_reference_dedup;
+-- DROP INDEX IF EXISTS idx_engagement_rewards_daily_dedup;

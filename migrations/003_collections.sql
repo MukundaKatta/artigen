@@ -43,3 +43,15 @@ CREATE POLICY "Users can view own collections" ON collections FOR SELECT USING (
 CREATE POLICY "Users can insert own collections" ON collections FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "Users can update own collections" ON collections FOR UPDATE USING (auth.uid() = user_id);
 CREATE POLICY "Users can delete own collections" ON collections FOR DELETE USING (auth.uid() = user_id);
+
+-- DOWN
+-- Manual rollback:
+-- DROP POLICY IF EXISTS "Users can delete own collections" ON collections;
+-- DROP POLICY IF EXISTS "Users can update own collections" ON collections;
+-- DROP POLICY IF EXISTS "Users can insert own collections" ON collections;
+-- DROP POLICY IF EXISTS "Users can view own collections" ON collections;
+-- DROP TRIGGER IF EXISTS trg_sync_collection_count ON saved_posts;
+-- DROP FUNCTION IF EXISTS sync_collection_count();
+-- ALTER TABLE saved_posts DROP COLUMN IF EXISTS collection_id;
+-- DROP INDEX IF EXISTS idx_collections_user;
+-- DROP TABLE IF EXISTS collections;

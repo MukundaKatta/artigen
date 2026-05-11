@@ -18,3 +18,13 @@ ALTER TABLE close_friends ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can view own close friends" ON close_friends FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "Users can manage own close friends" ON close_friends FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "Users can delete own close friends" ON close_friends FOR DELETE USING (auth.uid() = user_id);
+
+-- DOWN
+-- Manual rollback:
+-- DROP POLICY IF EXISTS "Users can delete own close friends" ON close_friends;
+-- DROP POLICY IF EXISTS "Users can manage own close friends" ON close_friends;
+-- DROP POLICY IF EXISTS "Users can view own close friends" ON close_friends;
+-- ALTER TABLE posts DROP COLUMN IF EXISTS audience;
+-- ALTER TABLE stories DROP COLUMN IF EXISTS audience;
+-- DROP INDEX IF EXISTS idx_close_friends_user;
+-- DROP TABLE IF EXISTS close_friends;

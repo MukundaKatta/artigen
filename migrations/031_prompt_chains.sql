@@ -54,3 +54,23 @@ CREATE POLICY "Users update own runs" ON workflow_runs FOR UPDATE USING (user_id
 CREATE POLICY "Anyone view saves" ON workflow_saves FOR SELECT USING (true);
 CREATE POLICY "Users save templates" ON workflow_saves FOR INSERT WITH CHECK (user_id = auth.uid());
 CREATE POLICY "Users unsave" ON workflow_saves FOR DELETE USING (user_id = auth.uid());
+
+-- DOWN
+-- Manual rollback:
+-- DROP POLICY IF EXISTS "Users unsave" ON workflow_saves;
+-- DROP POLICY IF EXISTS "Users save templates" ON workflow_saves;
+-- DROP POLICY IF EXISTS "Anyone view saves" ON workflow_saves;
+-- DROP POLICY IF EXISTS "Users update own runs" ON workflow_runs;
+-- DROP POLICY IF EXISTS "Users create runs" ON workflow_runs;
+-- DROP POLICY IF EXISTS "Users view own runs" ON workflow_runs;
+-- DROP POLICY IF EXISTS "Users delete own templates" ON workflow_templates;
+-- DROP POLICY IF EXISTS "Users update own templates" ON workflow_templates;
+-- DROP POLICY IF EXISTS "Users create templates" ON workflow_templates;
+-- DROP POLICY IF EXISTS "Public templates viewable" ON workflow_templates;
+-- DROP INDEX IF EXISTS idx_workflow_saves_user;
+-- DROP INDEX IF EXISTS idx_workflow_runs_user;
+-- DROP INDEX IF EXISTS idx_workflow_templates_public;
+-- DROP INDEX IF EXISTS idx_workflow_templates_user;
+-- DROP TABLE IF EXISTS workflow_saves;
+-- DROP TABLE IF EXISTS workflow_runs;
+-- DROP TABLE IF EXISTS workflow_templates;
