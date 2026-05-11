@@ -1,29 +1,47 @@
 import { useState, useCallback, useEffect } from 'react';
 import * as stickerPackService from '@/services/sticker-pack.service';
+import type { Profile, StickerPack, UserStickerPack } from '@/types/database';
+
+type StickerPackWithCreator = StickerPack & {
+  creator?: Pick<Profile, 'id' | 'username' | 'avatar_url'> | null;
+};
+
+type SavedStickerPackResult = StickerPackWithCreator | (UserStickerPack & {
+  pack?: StickerPackWithCreator | null;
+});
+
+function isSavedPackJoin(row: SavedStickerPackResult): row is UserStickerPack & { pack?: StickerPackWithCreator | null } {
+  return 'pack_id' in row;
+}
+
+function isStickerPack(pack: StickerPackWithCreator | null | undefined): pack is StickerPackWithCreator {
+  return Boolean(pack);
+}
 
 export function useStickerPacks(userId?: string) {
-  const [packs, setPacks] = useState<any[]>([]);
-  const [savedPacks, setSavedPacks] = useState<any[]>([]);
-  const [myPacks, setMyPacks] = useState<any[]>([]);
+  const [packs, setPacks] = useState<StickerPackWithCreator[]>([]);
+  const [savedPacks, setSavedPacks] = useState<StickerPackWithCreator[]>([]);
+  const [myPacks, setMyPacks] = useState<StickerPack[]>([]);
   const [loading, setLoading] = useState(false);
 
   const fetchPublicPacks = useCallback(async (page: number = 0) => {
     setLoading(true);
     const { data } = await stickerPackService.getPublicPacks(page);
-    setPacks(data || []);
+    setPacks((data as unknown as StickerPackWithCreator[] | null) ?? []);
     setLoading(false);
   }, []);
 
   const fetchSavedPacks = useCallback(async () => {
     if (!userId) return;
     const { data } = await stickerPackService.getSavedPacks(userId);
-    setSavedPacks((data || []).map((d: any) => d.pack || d));
+    const savedRows = (data as unknown as SavedStickerPackResult[] | null) ?? [];
+    setSavedPacks(savedRows.map((saved) => isSavedPackJoin(saved) ? saved.pack : saved).filter(isStickerPack));
   }, [userId]);
 
   const fetchMyPacks = useCallback(async () => {
     if (!userId) return;
     const { data } = await stickerPackService.getMyPacks(userId);
-    setMyPacks(data || []);
+    setMyPacks((data as StickerPack[] | null) ?? []);
   }, [userId]);
 
   const refresh = useCallback(async () => {

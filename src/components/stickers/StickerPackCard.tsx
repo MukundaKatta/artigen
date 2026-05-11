@@ -8,7 +8,7 @@ type Props = {
   pack: {
     id: string;
     name: string;
-    cover_url?: string;
+    cover_url?: string | null;
     sticker_count?: number;
     creator?: { username?: string };
   };
