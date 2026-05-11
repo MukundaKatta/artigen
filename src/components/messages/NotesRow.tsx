@@ -13,13 +13,14 @@ import { NoteComposer } from '@/components/messages/NoteComposer';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
 import type { NoteWithUser } from '@/services/notes.service';
 import type { UserNote, Profile } from '@/types';
+import type { PostgrestError } from '@supabase/supabase-js';
 
 type Props = {
   myNote: UserNote | null;
   notes: NoteWithUser[];
   currentUser: Pick<Profile, 'id' | 'username' | 'avatar_url'>;
   onShareNote: (content: string, emoji?: string) => Promise<UserNote | null>;
-  onDeleteNote: () => Promise<{ error: any } | undefined>;
+  onDeleteNote: () => Promise<{ error: PostgrestError | null } | undefined>;
 };
 
 export function NotesRow({
