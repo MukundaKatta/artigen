@@ -1,4 +1,8 @@
 import { supabase } from '@/lib/supabase';
+import type { Database } from '@/types/database';
+
+type ExhibitionUpdate = Database['public']['Tables']['exhibitions']['Update'];
+type ExhibitionSubmissionUpdate = Database['public']['Tables']['exhibition_submissions']['Update'];
 
 // ── Types ────────────────────────────────────────────
 
@@ -110,9 +114,13 @@ export async function submitToExhibition(exhibitionId: string, userId: string, p
       .single()
       .then(({ data: exhibition }) => {
         if (exhibition) {
+          const updateData: ExhibitionUpdate = {
+            submission_count: (exhibition.submission_count || 0) + 1,
+          };
+
           supabase
             .from('exhibitions')
-            .update({ submission_count: (exhibition.submission_count || 0) + 1 } as any)
+            .update(updateData)
             .eq('id', exhibitionId)
             .then(() => {});
         }
@@ -129,12 +137,12 @@ export async function curateSubmission(
   status: 'accepted' | 'rejected' | 'featured',
   note?: string,
 ) {
-  const updateData: Record<string, any> = { status };
+  const updateData: ExhibitionSubmissionUpdate = { status };
   if (note) updateData.curator_note = note;
 
   const { data, error } = await supabase
     .from('exhibition_submissions')
-    .update(updateData as any)
+    .update(updateData)
     .eq('id', submissionId)
     .select('*, user:profiles!user_id(id, username, avatar_url), post:posts!post_id(id, media:post_media(media_url, media_type))')
     .single();
@@ -173,9 +181,13 @@ export async function recordVisit(exhibitionId: string, userId: string) {
       .single()
       .then(({ data }) => {
         if (data) {
+          const updateData: ExhibitionUpdate = {
+            view_count: (data.view_count || 0) + 1,
+          };
+
           supabase
             .from('exhibitions')
-            .update({ view_count: (data.view_count || 0) + 1 } as any)
+            .update(updateData)
             .eq('id', exhibitionId)
             .then(() => {});
         }
