@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import type { ViewToken } from 'react-native';
 import { FEED_PAGE_SIZE } from '@/lib/constants';
 import { logger } from '@/lib/logger';
 import { getCached, setCached, cacheKey } from '@/lib/api-cache';
@@ -240,7 +241,7 @@ export function useFeed(userId: string | undefined) {
 
   // Track post views
   const onViewableItemsChanged = useCallback(
-    ({ viewableItems }: { viewableItems: any[] }) => {
+    ({ viewableItems }: { viewableItems: ViewToken[] }) => {
       if (!userId) return;
       for (const item of viewableItems) {
         if (item.isViewable && item.item?.id) {
