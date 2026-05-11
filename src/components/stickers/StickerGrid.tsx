@@ -11,7 +11,7 @@ const STICKER_SIZE = (SCREEN_WIDTH - spacing.lg * 2 - GAP * (COLS - 1)) / COLS;
 type Sticker = {
   id: string;
   image_url: string;
-  label?: string;
+  label?: string | null;
 };
 
 type Props = {
