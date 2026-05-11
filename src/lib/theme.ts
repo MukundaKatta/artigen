@@ -74,6 +74,46 @@ export const colors = {
   surface: '#F5F5F5',
 } as const;
 
+export const providerColors = {
+  free: '#10B981',
+  openai: '#10A37F',
+  gemini: '#4285F4',
+} as const;
+
+export const platformColors = {
+  photo: '#E1306C',
+  twitter: '#1DA1F2',
+  facebook: '#1877F2',
+  pinterest: '#E60023',
+} as const;
+
+export const stickerColors = {
+  poll: '#F59E0B',
+  question: '#EC4899',
+  emojiSlider: '#F97316',
+  countdown: '#EF4444',
+  link: '#3B82F6',
+} as const;
+
+export function withOpacity(color: string, opacity: number): string {
+  if (!color.startsWith('#')) return color;
+
+  const hex = color.slice(1);
+  const normalized =
+    hex.length === 3
+      ? hex.split('').map((value) => value + value).join('')
+      : hex.slice(0, 6);
+  const value = Number.parseInt(normalized, 16);
+
+  if (Number.isNaN(value)) return color;
+
+  const red = (value >> 16) & 255;
+  const green = (value >> 8) & 255;
+  const blue = value & 255;
+
+  return `rgba(${red}, ${green}, ${blue}, ${opacity})`;
+}
+
 export const spacing = {
   xs: 4,
   sm: 8,

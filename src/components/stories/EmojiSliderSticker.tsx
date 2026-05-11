@@ -4,10 +4,9 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  withSpring,
   runOnJS,
 } from 'react-native-reanimated';
-import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
+import { colors, spacing, fontSize, typography, borderRadius, withOpacity } from '@/lib/theme';
 import type { StorySticker } from '@/types';
 
 type Props = {
@@ -60,7 +59,7 @@ export function EmojiSliderSticker({ sticker, onRespond }: Props) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'rgba(255,255,255,0.95)',
+    backgroundColor: withOpacity(colors.textLight, 0.95),
     borderRadius: borderRadius.lg,
     padding: spacing.md,
     width: SLIDER_WIDTH + spacing.md * 2,
@@ -70,7 +69,7 @@ const styles = StyleSheet.create({
     fontSize: fontSize.md,
     fontFamily: typography.bold,
     fontWeight: '700',
-    color: '#000',
+    color: colors.backgroundDark,
     textAlign: 'center',
     marginBottom: spacing.sm,
   },
@@ -78,14 +77,14 @@ const styles = StyleSheet.create({
     width: SLIDER_WIDTH,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: colors.border,
     justifyContent: 'center',
     marginVertical: spacing.md,
   },
   gradient: {
     ...StyleSheet.absoluteFillObject,
     borderRadius: 4,
-    backgroundColor: 'linear-gradient(to right, #e0e0e0, #F59E0B)',
+    backgroundColor: colors.warning,
   },
   emoji: {
     position: 'absolute',
