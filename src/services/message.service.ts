@@ -1,8 +1,13 @@
 import { supabase } from '@/lib/supabase';
 import { MESSAGES_PAGE_SIZE } from '@/lib/constants';
 import { sanitizeText } from '@/lib/sanitize';
-import type { Profile, Message, MessageWithSender, Conversation } from '@/types/database';
+import type { Database, Profile, Message, MessageWithSender, Conversation } from '@/types/database';
 import type { ConversationPreview } from '@/types';
+
+type ConversationParticipantRow = Database['public']['Tables']['conversation_participants']['Row'];
+type ConversationParticipantRead = Pick<ConversationParticipantRow, 'conversation_id' | 'last_read_at'>;
+type ConversationParticipantUser = Pick<ConversationParticipantRow, 'conversation_id' | 'user_id'>;
+type ConversationParticipantId = Pick<ConversationParticipantRow, 'conversation_id'>;
 
 export async function getConversations(userId: string) {
   // Get conversation IDs where user participates
@@ -15,9 +20,10 @@ export async function getConversations(userId: string) {
     return { data: [] as ConversationPreview[], error: pError };
   }
 
-  const convIds = participations.map((p: any) => p.conversation_id as string);
+  const participationRows = participations as ConversationParticipantRead[];
+  const convIds = participationRows.map((p) => p.conversation_id);
   const lastReadMap = new Map(
-    participations.map((p: any) => [p.conversation_id as string, p.last_read_at as string | null])
+    participationRows.map((p) => [p.conversation_id, p.last_read_at])
   );
 
   // Get conversations
@@ -37,9 +43,8 @@ export async function getConversations(userId: string) {
     .select('conversation_id, user_id')
     .in('conversation_id', convIds);
 
-  const participantUserIds = [
-    ...new Set((allParticipants || []).map((p: any) => p.user_id as string)),
-  ];
+  const participantRows = (allParticipants ?? []) as ConversationParticipantUser[];
+  const participantUserIds = [...new Set(participantRows.map((p) => p.user_id))];
 
   // Fetch profiles for all participants
   const { data: profiles } = await supabase
@@ -47,9 +52,8 @@ export async function getConversations(userId: string) {
     .select('*')
     .in('id', participantUserIds);
 
-  const profileMap = new Map(
-    (profiles || []).map((p: any) => [p.id as string, p as unknown as Profile])
-  );
+  const profileRows = (profiles ?? []) as Profile[];
+  const profileMap = new Map(profileRows.map((profile) => [profile.id, profile]));
 
   // Batch-fetch recent messages for all conversations in one query,
   // then pick the latest per conversation client-side.
@@ -90,9 +94,9 @@ export async function getConversations(userId: string) {
   const previews: ConversationPreview[] = [];
 
   for (const conv of conversations as unknown as Conversation[]) {
-    const cpIds = (allParticipants || [])
-      .filter((p: any) => p.conversation_id === conv.id)
-      .map((p: any) => p.user_id as string);
+    const cpIds = participantRows
+      .filter((p) => p.conversation_id === conv.id)
+      .map((p) => p.user_id);
 
     const convProfiles = cpIds
       .map((id: string) => profileMap.get(id))
@@ -122,10 +126,12 @@ export async function getOrCreateConversation(userId: string, otherUserId: strin
     .eq('user_id', otherUserId);
 
   if (myConvs && theirConvs) {
-    const myIds = new Set(myConvs.map((c: any) => c.conversation_id as string));
-    const commonIds = theirConvs
-      .map((c: any) => c.conversation_id as string)
-      .filter((id: string) => myIds.has(id));
+    const myConversationRows = myConvs as ConversationParticipantId[];
+    const theirConversationRows = theirConvs as ConversationParticipantId[];
+    const myIds = new Set(myConversationRows.map((c) => c.conversation_id));
+    const commonIds = theirConversationRows
+      .map((c) => c.conversation_id)
+      .filter((id) => myIds.has(id));
 
     if (commonIds.length > 0) {
       // Batch fetch all candidate conversations in a single query (avoids N+1)
