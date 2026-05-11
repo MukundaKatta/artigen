@@ -15,6 +15,12 @@ type PostCardAiDetailsProps = {
   postId: string;
 };
 
+type AiGenerationSettings = {
+  steps?: number;
+  cfg_scale?: number;
+  seed?: number;
+};
+
 export const PostCardAiDetails = React.memo(function PostCardAiDetails({
   aiMetadata,
   showDetails,
@@ -23,6 +29,7 @@ export const PostCardAiDetails = React.memo(function PostCardAiDetails({
   postId,
 }: PostCardAiDetailsProps) {
   const { themeColors: tc } = useTheme();
+  const settings = aiMetadata.settings as AiGenerationSettings;
   return (
     <>
       {/* AI Prompt Preview */}
@@ -95,14 +102,14 @@ export const PostCardAiDetails = React.memo(function PostCardAiDetails({
             </View>
           )}
           <View style={styles.aiSettingsRow}>
-            {(aiMetadata.settings as any)?.steps != null && (
-              <Text style={[styles.aiSettingChip, { color: tc.textSecondary, backgroundColor: tc.background }]}>Steps: {(aiMetadata.settings as any).steps}</Text>
+            {settings.steps != null && (
+              <Text style={[styles.aiSettingChip, { color: tc.textSecondary, backgroundColor: tc.background }]}>Steps: {settings.steps}</Text>
             )}
-            {(aiMetadata.settings as any)?.cfg_scale != null && (
-              <Text style={[styles.aiSettingChip, { color: tc.textSecondary, backgroundColor: tc.background }]}>CFG: {(aiMetadata.settings as any).cfg_scale}</Text>
+            {settings.cfg_scale != null && (
+              <Text style={[styles.aiSettingChip, { color: tc.textSecondary, backgroundColor: tc.background }]}>CFG: {settings.cfg_scale}</Text>
             )}
-            {(aiMetadata.settings as any)?.seed != null && (
-              <Text style={[styles.aiSettingChip, { color: tc.textSecondary, backgroundColor: tc.background }]}>Seed: {(aiMetadata.settings as any).seed}</Text>
+            {settings.seed != null && (
+              <Text style={[styles.aiSettingChip, { color: tc.textSecondary, backgroundColor: tc.background }]}>Seed: {settings.seed}</Text>
             )}
             {aiMetadata.generation_time_ms != null && (
               <Text style={[styles.aiSettingChip, { color: tc.textSecondary, backgroundColor: tc.background }]}>
