@@ -51,6 +51,7 @@ export default function BuyCreditsScreen() {
     const { order, error } = await createRazorpayOrder(packageId);
     setLoadingPkg(null);
     if (error) { Alert.alert('Error', error); return; }
+    if (!order) { Alert.alert('Error', 'Failed to create Razorpay order'); return; }
 
     // Open Razorpay hosted checkout
     const url = `https://api.razorpay.com/v1/checkout/embedded?key_id=${order.key_id}&order_id=${order.order_id}`;
