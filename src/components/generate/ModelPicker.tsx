@@ -8,19 +8,14 @@ import type { AiModel } from '@/types';
 
 type ProviderTab = 'huggingface' | 'replicate' | 'openai' | 'gemini';
 
+// Single source of truth for each provider's brand color. Used both as the
+// idle icon tint and as the active-tab background, so the value lives once.
 const PROVIDER_TABS = [
-  { key: 'huggingface' as const, label: 'Free', icon: 'gift-outline', activeStyle: 'green' as const, inactiveColor: '#10B981' },
-  { key: 'replicate' as const, label: 'Flux', icon: 'flash-outline', activeStyle: 'accent' as const, inactiveColor: undefined },
-  { key: 'openai' as const, label: 'DALL\u00B7E', icon: 'color-wand-outline', activeStyle: 'openai' as const, inactiveColor: '#10a37f' },
-  { key: 'gemini' as const, label: 'Imagen', icon: 'planet-outline', activeStyle: 'gemini' as const, inactiveColor: '#4285F4' },
+  { key: 'huggingface' as const, label: 'Free',         icon: 'gift-outline',       brandColor: '#10B981'      },
+  { key: 'replicate'   as const, label: 'Flux',         icon: 'flash-outline',      brandColor: colors.accent  },
+  { key: 'openai'      as const, label: 'DALL\u00B7E',  icon: 'color-wand-outline', brandColor: '#10a37f'      },
+  { key: 'gemini'      as const, label: 'Imagen',       icon: 'planet-outline',     brandColor: '#4285F4'      },
 ] as const;
-
-const ACTIVE_STYLES: Record<string, object> = {
-  green: { backgroundColor: '#10B981' },
-  accent: { backgroundColor: colors.accent },
-  openai: { backgroundColor: '#10a37f' },
-  gemini: { backgroundColor: '#4285F4' },
-};
 
 type Props = {
   providerTab: ProviderTab;
@@ -51,7 +46,7 @@ export function ModelPicker({
         {PROVIDER_TABS.map((tab) => (
           <Pressable
             key={tab.key}
-            style={[styles.providerTab, providerTab === tab.key && ACTIVE_STYLES[tab.activeStyle]]}
+            style={[styles.providerTab, providerTab === tab.key && { backgroundColor: tab.brandColor }]}
             onPress={() => onProviderSwitch(tab.key)}
             accessibilityRole="tab"
             accessibilityState={{ selected: providerTab === tab.key }}
@@ -60,7 +55,7 @@ export function ModelPicker({
             <Ionicons
               name={tab.icon as any}
               size={13}
-              color={providerTab === tab.key ? '#fff' : (tab.inactiveColor ?? themeColors.accent)}
+              color={providerTab === tab.key ? colors.textLight : tab.brandColor}
             />
             <Text style={[styles.providerTabText, { color: themeColors.textSecondary }, providerTab === tab.key && styles.providerTabTextActive]}>
               {tab.label}
@@ -145,7 +140,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   providerTabTextActive: {
-    color: '#fff',
+    color: colors.textLight,
   },
   label: {
     fontSize: fontSize.sm,
