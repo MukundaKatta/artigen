@@ -20,14 +20,16 @@ type Props = {
   battle: BattleWithUsers;
 };
 
-const STATUS_CONFIG: Record<string, { label: string; color: string; icon: string }> = {
+type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
+
+const STATUS_CONFIG: Record<string, { label: string; color: string; icon: IoniconName }> = {
   waiting: { label: 'WAITING', color: colors.warning, icon: 'hourglass-outline' },
   active: { label: 'LIVE', color: colors.error, icon: 'flash' },
   voting: { label: 'VOTING', color: colors.accent, icon: 'thumbs-up-outline' },
   completed: { label: 'DONE', color: colors.success, icon: 'checkmark-circle-outline' },
 };
 
-function PulseBadge({ config }: { config: { label: string; color: string; icon: string } }) {
+function PulseBadge({ config }: { config: { label: string; color: string; icon: IoniconName } }) {
   const opacity = useSharedValue(1);
 
   useEffect(() => {
@@ -48,7 +50,7 @@ function PulseBadge({ config }: { config: { label: string; color: string; icon: 
 
   return (
     <Animated.View style={[styles.statusBadge, { backgroundColor: config.color }, animStyle]}>
-      <Ionicons name={config.icon as any} size={10} color="#fff" />
+      <Ionicons name={config.icon} size={10} color="#fff" />
       <Text style={styles.statusText}>{config.label}</Text>
     </Animated.View>
   );
