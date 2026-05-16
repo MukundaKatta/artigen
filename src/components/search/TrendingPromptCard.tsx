@@ -3,7 +3,13 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
 
-type Props = { prompt: any; onGenerate: () => void };
+export type TrendingPrompt = {
+  prompt: string;
+  use_count: number;
+  model_name: string;
+};
+
+type Props = { prompt: TrendingPrompt; onGenerate: () => void };
 
 export const TrendingPromptCard = React.memo(function TrendingPromptCard({ prompt, onGenerate }: Props) {
   return (

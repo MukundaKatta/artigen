@@ -1,9 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { TrendingPromptCard } from './TrendingPromptCard';
+import { TrendingPromptCard, type TrendingPrompt } from './TrendingPromptCard';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
 
-type Props = { prompts: any[]; onGenerate: (prompt: string) => void };
+type Props = { prompts: TrendingPrompt[]; onGenerate: (prompt: string) => void };
 
 export function TrendingPromptsSection({ prompts, onGenerate }: Props) {
   if (prompts.length === 0) return null;

@@ -4,8 +4,13 @@ import { Image } from 'expo-image';
 import * as Haptics from 'expo-haptics';
 import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
+import type { ControlNetPreset } from '@/types/database';
 
-type Props = { presets: any[]; selected?: string; onSelect: (preset: any) => void };
+type Props = {
+  presets: ControlNetPreset[];
+  selected?: string;
+  onSelect: (preset: ControlNetPreset) => void;
+};
 
 export function ControlNetPresetGrid({ presets, selected, onSelect }: Props) {
   return (
