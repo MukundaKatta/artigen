@@ -4,9 +4,12 @@ import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
 import { sortMediaByOrder } from '@/utils/media';
+import type { Post, PostMedia } from '@/types/database';
+
+export type ScheduledPostListItem = Post & { media: PostMedia[] };
 
 type Props = {
-  posts: any[];
+  posts: ScheduledPostListItem[];
   onCancel: (postId: string) => void;
   onPublish: (postId: string) => void;
 };
@@ -56,7 +59,7 @@ export function ScheduledPostsList({ posts, onCancel, onPublish }: Props) {
                 <View style={styles.scheduleRow}>
                   <Ionicons name="calendar" size={14} color={colors.primary} />
                   <Text style={styles.scheduleText}>
-                    {formatScheduledDate(item.scheduled_at)}
+                    {item.scheduled_at ? formatScheduledDate(item.scheduled_at) : 'Not scheduled'}
                   </Text>
                 </View>
               </View>

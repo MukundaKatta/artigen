@@ -5,8 +5,13 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
+import type { MarketplaceListing, PostMedia } from '@/types/database';
 
-type Props = { listing: any; onPress: () => void };
+type ListingCardData = MarketplaceListing & {
+  post?: { media?: Pick<PostMedia, 'media_url'>[] | null } | null;
+};
+
+type Props = { listing: ListingCardData; onPress: () => void };
 
 export const ListingCard = React.memo(function ListingCard({ listing, onPress }: Props) {
   return (

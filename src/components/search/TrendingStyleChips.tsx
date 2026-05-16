@@ -2,7 +2,9 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
 
-type Props = { styles_data: any[]; onSelect: (style: string) => void };
+export type TrendingStyleEntry = { style: string; post_count: number };
+
+type Props = { styles_data: TrendingStyleEntry[]; onSelect: (style: string) => void };
 
 export function TrendingStyleChips({ styles_data, onSelect }: Props) {
   if (styles_data.length === 0) return null;
