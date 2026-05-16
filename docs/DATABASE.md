@@ -25,17 +25,11 @@ Apply migrations in filename order from `migrations/`.
 | 013 | `013_locations.sql` | Location entities and counts |
 | 014 | `014_remix_and_prompts.sql` | Prompt library and saves |
 | 015 | `015_creator_subscriptions.sql` | Subscription tiers and subscriptions |
-| 015 | `015_daily_challenges.sql` | Daily challenges and votes |
 | 016 | `016_reposts_and_polls.sql` | Reposts and polls |
-| 016 | `016_wallet_and_tips.sql` | Wallets, wallet transactions, tips |
 | 017 | `017_marketplace.sql` | Marketplace listings and orders |
-| 017 | `017_notes_and_badges.sql` | Notes and badges |
 | 018 | `018_communities.sql` | Communities and memberships |
-| 018 | `018_visual_similarity.sql` | Post embeddings and similarity search |
 | 019 | `019_streaks.sql` | User streaks |
-| 019 | `019_taste_profile.sql` | Taste profiles + engagement signals |
 | 020 | `020_awards_and_leaderboard.sql` | Award types and post awards |
-| 020 | `020_trending_prompts.sql` | Trending materialized views + refresh function |
 | 021 | `021_communities.sql` | Community posts enhancements |
 | 022 | `022_challenges.sql` | Extended challenges + creation streaks |
 | 023 | `023_blend_feed.sql` | Blend feeds and blend ranking function |
@@ -52,8 +46,22 @@ Apply migrations in filename order from `migrations/`.
 | 034 | `034_critiques_avatars.sql` | Critiques, helpful votes, avatar jobs/avatars |
 | 035 | `035_content_enhancement.sql` | Music jobs, sticker packs/stickers, text-to-3d jobs |
 | 036 | `036_platform_growth.sql` | Portfolio, cross-posting, AR preview settings |
+| 037 | `037_future_foundation.sql` | Future-facing foundation schema |
+| 038 | `038_performance_and_security.sql` | Performance and security hardening |
+| 039 | `039_generation_history.sql` | Generation history and provenance follow-ons |
+| 040 | `040_engagement_credits.sql` | Engagement credits ledger |
+| 041 | `041_wallet_safety.sql` | Wallet safety protections |
+| 042 | `042_engagement_credits_atomicity.sql` | Atomicity fixes for engagement credits |
+| 043 | `043_notification_rls_fix.sql` | Notification RLS fix |
+| 044 | `044_engagement_rewards_dedup.sql` | Engagement reward deduplication |
+| 045 | `045_daily_challenges.sql` | Daily challenges and votes |
+| 046 | `046_wallet_and_tips.sql` | Wallets, wallet transactions, tips |
+| 047 | `047_notes_and_badges.sql` | Notes and badges |
+| 048 | `048_visual_similarity.sql` | Post embeddings and similarity search |
+| 049 | `049_taste_profile.sql` | Taste profiles + engagement signals |
+| 050 | `050_trending_prompts.sql` | Trending materialized views + refresh function |
 
-Total migrations: **42**.
+Total migrations: **50**.
 
 ## 2. Core Schema Domains
 
@@ -200,6 +208,6 @@ Current implementation details to be aware of:
 
 - Keep migrations additive and idempotent (`IF NOT EXISTS`, guarded updates).
 - Apply migrations in strict filename order for deterministic environments.
+- Follow the migration apply, rollback, and recovery runbook in `docs/MIGRATIONS.md`.
 - Validate RLS policies whenever adding a new table or changing access patterns.
 - Keep `src/types/database.ts` aligned with live schema after migration updates.
-

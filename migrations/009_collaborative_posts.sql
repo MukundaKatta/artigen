@@ -21,3 +21,13 @@ CREATE POLICY "Collaborators can update own status" ON post_collaborators FOR UP
 CREATE POLICY "Post owners can delete collaborators" ON post_collaborators FOR DELETE USING (
   EXISTS (SELECT 1 FROM posts WHERE id = post_id AND user_id = auth.uid()) OR auth.uid() = user_id
 );
+
+-- DOWN
+-- Manual rollback:
+-- DROP POLICY IF EXISTS "Post owners can delete collaborators" ON post_collaborators;
+-- DROP POLICY IF EXISTS "Collaborators can update own status" ON post_collaborators;
+-- DROP POLICY IF EXISTS "Post owners can invite collaborators" ON post_collaborators;
+-- DROP POLICY IF EXISTS "Anyone can view accepted collaborators" ON post_collaborators;
+-- DROP INDEX IF EXISTS idx_post_collaborators_user;
+-- DROP INDEX IF EXISTS idx_post_collaborators_post;
+-- DROP TABLE IF EXISTS post_collaborators;

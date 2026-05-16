@@ -22,3 +22,12 @@ ALTER TABLE animation_jobs ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users view own animation jobs" ON animation_jobs FOR SELECT USING (user_id = auth.uid());
 CREATE POLICY "Users create animation jobs" ON animation_jobs FOR INSERT WITH CHECK (user_id = auth.uid());
 CREATE POLICY "Users update own animation jobs" ON animation_jobs FOR UPDATE USING (user_id = auth.uid());
+
+-- DOWN
+-- Manual rollback:
+-- DROP POLICY IF EXISTS "Users update own animation jobs" ON animation_jobs;
+-- DROP POLICY IF EXISTS "Users create animation jobs" ON animation_jobs;
+-- DROP POLICY IF EXISTS "Users view own animation jobs" ON animation_jobs;
+-- DROP INDEX IF EXISTS idx_animation_jobs_status;
+-- DROP INDEX IF EXISTS idx_animation_jobs_user;
+-- DROP TABLE IF EXISTS animation_jobs;

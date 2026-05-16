@@ -19,14 +19,14 @@ export function useDebounce<T>(value: T, delay = 300): T {
  * Debounce a callback function.
  * Returns a stable function reference that debounces invocations.
  */
-export function useDebouncedCallback<T extends (...args: any[]) => any>(
-  callback: T,
+export function useDebouncedCallback<TArgs extends unknown[], TReturn>(
+  callback: (...args: TArgs) => TReturn,
   delay = 300,
-): (...args: Parameters<T>) => void {
+): (...args: TArgs) => void {
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
 
   return useCallback(
-    (...args: Parameters<T>) => {
+    (...args: TArgs) => {
       if (timerRef.current) clearTimeout(timerRef.current);
       timerRef.current = setTimeout(() => callback(...args), delay);
     },
@@ -38,15 +38,15 @@ export function useDebouncedCallback<T extends (...args: any[]) => any>(
  * Throttle a callback — execute at most once per interval.
  * Ideal for scroll handlers and resize events.
  */
-export function useThrottledCallback<T extends (...args: any[]) => any>(
-  callback: T,
+export function useThrottledCallback<TArgs extends unknown[], TReturn>(
+  callback: (...args: TArgs) => TReturn,
   interval = 200,
-): (...args: Parameters<T>) => void {
+): (...args: TArgs) => void {
   const lastCallRef = useRef(0);
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
 
   return useCallback(
-    (...args: Parameters<T>) => {
+    (...args: TArgs) => {
       const now = Date.now();
       const remaining = interval - (now - lastCallRef.current);
 

@@ -3,19 +3,56 @@ import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { MODEL_CREDITS } from '@/services/credits.service';
 import { useTheme } from '@/providers/ThemeProvider';
-import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
+import {
+  colors,
+  providerColors,
+  spacing,
+  fontSize,
+  typography,
+  borderRadius,
+  withOpacity,
+} from '@/lib/theme';
 import type { AiModel } from '@/types';
 
 type ProviderTab = 'huggingface' | 'replicate' | 'openai' | 'gemini';
 
-// Single source of truth for each provider's brand color. Used both as the
-// idle icon tint and as the active-tab background, so the value lives once.
 const PROVIDER_TABS = [
-  { key: 'huggingface' as const, label: 'Free',         icon: 'gift-outline',       brandColor: '#10B981'      },
-  { key: 'replicate'   as const, label: 'Flux',         icon: 'flash-outline',      brandColor: colors.accent  },
-  { key: 'openai'      as const, label: 'DALL\u00B7E',  icon: 'color-wand-outline', brandColor: '#10a37f'      },
-  { key: 'gemini'      as const, label: 'Imagen',       icon: 'planet-outline',     brandColor: '#4285F4'      },
+  {
+    key: 'huggingface' as const,
+    label: 'Free',
+    icon: 'gift-outline',
+    activeStyle: 'green' as const,
+    inactiveColor: providerColors.free,
+  },
+  {
+    key: 'replicate' as const,
+    label: 'Flux',
+    icon: 'flash-outline',
+    activeStyle: 'accent' as const,
+    inactiveColor: undefined,
+  },
+  {
+    key: 'openai' as const,
+    label: 'DALL\u00B7E',
+    icon: 'color-wand-outline',
+    activeStyle: 'openai' as const,
+    inactiveColor: providerColors.openai,
+  },
+  {
+    key: 'gemini' as const,
+    label: 'Imagen',
+    icon: 'planet-outline',
+    activeStyle: 'gemini' as const,
+    inactiveColor: providerColors.gemini,
+  },
 ] as const;
+
+const ACTIVE_STYLES: Record<string, object> = {
+  green: { backgroundColor: providerColors.free },
+  accent: { backgroundColor: colors.accent },
+  openai: { backgroundColor: providerColors.openai },
+  gemini: { backgroundColor: providerColors.gemini },
+};
 
 type Props = {
   providerTab: ProviderTab;
@@ -46,7 +83,7 @@ export function ModelPicker({
         {PROVIDER_TABS.map((tab) => (
           <Pressable
             key={tab.key}
-            style={[styles.providerTab, providerTab === tab.key && { backgroundColor: tab.brandColor }]}
+            style={[styles.providerTab, providerTab === tab.key && ACTIVE_STYLES[tab.activeStyle]]}
             onPress={() => onProviderSwitch(tab.key)}
             accessibilityRole="tab"
             accessibilityState={{ selected: providerTab === tab.key }}
@@ -55,7 +92,11 @@ export function ModelPicker({
             <Ionicons
               name={tab.icon as any}
               size={13}
-              color={providerTab === tab.key ? colors.textLight : tab.brandColor}
+              color={
+                providerTab === tab.key
+                  ? themeColors.textLight
+                  : (tab.inactiveColor ?? themeColors.accent)
+              }
             />
             <Text style={[styles.providerTabText, { color: themeColors.textSecondary }, providerTab === tab.key && styles.providerTabTextActive]}>
               {tab.label}
@@ -95,7 +136,11 @@ export function ModelPicker({
             return (
               <Pressable
                 key={model.id}
-                style={[styles.modelOption, { borderBottomColor: themeColors.border }, model.id === selectedModel.id && styles.modelOptionActive]}
+                style={[
+                  styles.modelOption,
+                  { borderBottomColor: themeColors.border },
+                  model.id === selectedModel.id && { backgroundColor: themeColors.notificationUnread },
+                ]}
                 onPress={() => onModelSelect(model)}
               >
                 <View style={{ flex: 1 }}>
@@ -182,9 +227,6 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  modelOptionActive: {
-    backgroundColor: 'rgba(0, 149, 246, 0.08)',
-  },
   modelOptionName: {
     fontSize: fontSize.md,
     fontFamily: typography.medium,
@@ -199,14 +241,14 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   freeBadge: {
-    backgroundColor: 'rgba(88,195,34,0.12)',
+    backgroundColor: withOpacity(colors.success, 0.12),
     borderRadius: borderRadius.sm,
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,
   },
-  freeBadgeText: { fontSize: fontSize.xs, fontFamily: typography.bold, color: '#58C322' },
+  freeBadgeText: { fontSize: fontSize.xs, fontFamily: typography.bold, color: colors.success },
   creditBadge: {
-    backgroundColor: `${colors.primary}15`,
+    backgroundColor: withOpacity(colors.primary, 0.08),
     borderRadius: borderRadius.sm,
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,

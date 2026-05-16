@@ -2,11 +2,12 @@ import React from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
+import type { ArtProvenance } from '@/types/database';
 
 type Props = {
   visible: boolean;
   onClose: () => void;
-  provenance: any;
+  provenance: ArtProvenance | null;
 };
 
 export function ProvenanceSheet({ visible, onClose, provenance }: Props) {

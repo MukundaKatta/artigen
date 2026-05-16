@@ -48,7 +48,10 @@ export function useBattle(battleId: string | undefined, userId: string | undefin
   const join = useCallback(async () => {
     if (!battleId || !userId) return;
     const { data, error } = await joinBattle(battleId, userId);
-    if (data) setBattle((prev) => prev ? { ...prev, ...data, opponent: null } as any : null);
+    if (data) {
+      const joinedBattle: Partial<BattleWithUsers> = { ...data, opponent: null };
+      setBattle((prev) => prev ? { ...prev, ...joinedBattle } : null);
+    }
     return { data, error };
   }, [battleId, userId]);
 

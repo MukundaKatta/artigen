@@ -56,3 +56,22 @@ CREATE POLICY "Sellers delete listings" ON marketplace_listings FOR DELETE USING
 CREATE POLICY "Buyers and sellers view orders" ON orders FOR SELECT USING (buyer_id = auth.uid() OR seller_id = auth.uid());
 CREATE POLICY "Buyers create orders" ON orders FOR INSERT WITH CHECK (buyer_id = auth.uid());
 CREATE POLICY "Order parties can update" ON orders FOR UPDATE USING (buyer_id = auth.uid() OR seller_id = auth.uid());
+
+-- DOWN
+-- Manual rollback:
+-- DROP POLICY IF EXISTS "Order parties can update" ON orders;
+-- DROP POLICY IF EXISTS "Buyers create orders" ON orders;
+-- DROP POLICY IF EXISTS "Buyers and sellers view orders" ON orders;
+-- DROP POLICY IF EXISTS "Sellers delete listings" ON marketplace_listings;
+-- DROP POLICY IF EXISTS "Sellers manage listings" ON marketplace_listings;
+-- DROP POLICY IF EXISTS "Sellers create listings" ON marketplace_listings;
+-- DROP POLICY IF EXISTS "Active listings visible to all" ON marketplace_listings;
+-- ALTER TABLE posts DROP COLUMN IF EXISTS has_listing;
+-- DROP INDEX IF EXISTS idx_orders_status;
+-- DROP INDEX IF EXISTS idx_orders_seller;
+-- DROP INDEX IF EXISTS idx_orders_buyer;
+-- DROP INDEX IF EXISTS idx_marketplace_active;
+-- DROP INDEX IF EXISTS idx_marketplace_seller;
+-- DROP INDEX IF EXISTS idx_marketplace_post;
+-- DROP TABLE IF EXISTS orders;
+-- DROP TABLE IF EXISTS marketplace_listings;

@@ -75,3 +75,28 @@ CREATE POLICY "Users view own avatars" ON user_avatars FOR SELECT USING (user_id
 CREATE POLICY "Users manage avatars" ON user_avatars FOR INSERT WITH CHECK (user_id = auth.uid());
 CREATE POLICY "Users update avatars" ON user_avatars FOR UPDATE USING (user_id = auth.uid());
 CREATE POLICY "Users delete avatars" ON user_avatars FOR DELETE USING (user_id = auth.uid());
+
+-- DOWN
+-- Manual rollback:
+-- DROP POLICY IF EXISTS "Users delete avatars" ON user_avatars;
+-- DROP POLICY IF EXISTS "Users update avatars" ON user_avatars;
+-- DROP POLICY IF EXISTS "Users manage avatars" ON user_avatars;
+-- DROP POLICY IF EXISTS "Users view own avatars" ON user_avatars;
+-- DROP POLICY IF EXISTS "Users create avatar jobs" ON avatar_generation_jobs;
+-- DROP POLICY IF EXISTS "Users view own avatar jobs" ON avatar_generation_jobs;
+-- DROP POLICY IF EXISTS "Users unvote helpful" ON critique_helpful_votes;
+-- DROP POLICY IF EXISTS "Users vote helpful" ON critique_helpful_votes;
+-- DROP POLICY IF EXISTS "Anyone can view helpful votes" ON critique_helpful_votes;
+-- DROP POLICY IF EXISTS "Users delete own critiques" ON post_critiques;
+-- DROP POLICY IF EXISTS "Users update own critiques" ON post_critiques;
+-- DROP POLICY IF EXISTS "Users create critiques" ON post_critiques;
+-- DROP POLICY IF EXISTS "Anyone can view critiques" ON post_critiques;
+-- DROP INDEX IF EXISTS idx_user_avatars_user;
+-- DROP INDEX IF EXISTS idx_avatar_jobs_user;
+-- DROP INDEX IF EXISTS idx_critique_helpful_critique;
+-- DROP INDEX IF EXISTS idx_post_critiques_user;
+-- DROP INDEX IF EXISTS idx_post_critiques_post;
+-- DROP TABLE IF EXISTS user_avatars;
+-- DROP TABLE IF EXISTS avatar_generation_jobs;
+-- DROP TABLE IF EXISTS critique_helpful_votes;
+-- DROP TABLE IF EXISTS post_critiques;

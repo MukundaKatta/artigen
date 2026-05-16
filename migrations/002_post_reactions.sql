@@ -35,3 +35,15 @@ CREATE POLICY "Users can view all reactions" ON post_reactions FOR SELECT USING 
 CREATE POLICY "Users can insert own reactions" ON post_reactions FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "Users can update own reactions" ON post_reactions FOR UPDATE USING (auth.uid() = user_id);
 CREATE POLICY "Users can delete own reactions" ON post_reactions FOR DELETE USING (auth.uid() = user_id);
+
+-- DOWN
+-- Manual rollback:
+-- DROP POLICY IF EXISTS "Users can delete own reactions" ON post_reactions;
+-- DROP POLICY IF EXISTS "Users can update own reactions" ON post_reactions;
+-- DROP POLICY IF EXISTS "Users can insert own reactions" ON post_reactions;
+-- DROP POLICY IF EXISTS "Users can view all reactions" ON post_reactions;
+-- DROP TRIGGER IF EXISTS trg_sync_reaction_count ON post_reactions;
+-- DROP FUNCTION IF EXISTS sync_reaction_count();
+-- DROP INDEX IF EXISTS idx_post_reactions_user;
+-- DROP INDEX IF EXISTS idx_post_reactions_post;
+-- DROP TABLE IF EXISTS post_reactions;

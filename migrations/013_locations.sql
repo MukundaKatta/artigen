@@ -47,3 +47,15 @@ ALTER TABLE locations ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Anyone can view locations" ON locations FOR SELECT USING (true);
 CREATE POLICY "Anyone can insert locations" ON locations FOR INSERT WITH CHECK (true);
 CREATE POLICY "Anyone can update locations" ON locations FOR UPDATE USING (true);
+
+-- DOWN
+-- Manual rollback:
+-- DROP POLICY IF EXISTS "Anyone can update locations" ON locations;
+-- DROP POLICY IF EXISTS "Anyone can insert locations" ON locations;
+-- DROP POLICY IF EXISTS "Anyone can view locations" ON locations;
+-- DROP TRIGGER IF EXISTS trg_sync_location_count ON posts;
+-- DROP FUNCTION IF EXISTS sync_location_count();
+-- ALTER TABLE posts DROP COLUMN IF EXISTS location_id;
+-- DROP INDEX IF EXISTS idx_locations_coords;
+-- DROP INDEX IF EXISTS idx_locations_name_trgm;
+-- DROP TABLE IF EXISTS locations;

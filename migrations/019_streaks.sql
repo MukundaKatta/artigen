@@ -13,3 +13,11 @@ ALTER TABLE user_streaks ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Anyone can view streaks" ON user_streaks FOR SELECT USING (true);
 CREATE POLICY "Users manage own streak" ON user_streaks FOR INSERT WITH CHECK (user_id = auth.uid());
 CREATE POLICY "Users update own streak" ON user_streaks FOR UPDATE USING (user_id = auth.uid());
+
+-- DOWN
+-- Manual rollback:
+-- DROP POLICY IF EXISTS "Users update own streak" ON user_streaks;
+-- DROP POLICY IF EXISTS "Users manage own streak" ON user_streaks;
+-- DROP POLICY IF EXISTS "Anyone can view streaks" ON user_streaks;
+-- DROP INDEX IF EXISTS idx_user_streaks_user;
+-- DROP TABLE IF EXISTS user_streaks;

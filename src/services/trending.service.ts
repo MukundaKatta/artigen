@@ -46,8 +46,7 @@ export async function getTrendingPosts(
   const offset = page * pageSize;
 
   // Try the database function first (may not be deployed yet)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: rpcData, error: rpcError } = await (supabase.rpc as any)(
+  const { data: rpcData, error: rpcError } = await supabase.rpc(
     'get_trending_posts',
     {
       p_limit: pageSize,

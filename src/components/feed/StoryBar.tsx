@@ -13,6 +13,7 @@ import { CloseFriendsRing } from '@/components/stories/CloseFriendsRing';
 import { useTheme } from '@/providers/ThemeProvider';
 import { colors, fontSize, spacing, typography, gradients, shadows } from '@/lib/theme';
 import { AVATAR_SIZES } from '@/lib/constants';
+import type { StoryWithUser } from '@/types';
 
 const STORY_AVATAR_SIZE = AVATAR_SIZES.lg;
 const RING_SIZE = STORY_AVATAR_SIZE + 10;
@@ -85,7 +86,7 @@ export function StoryBar() {
         {/* Other users' stories */}
         {otherStories.map((userStory) => {
           const hasCloseFriendsStory = userStory.stories.some(
-            (s: any) => s.audience === 'close_friends'
+            (story: StoryWithUser) => story.audience === 'close_friends'
           );
 
           return (

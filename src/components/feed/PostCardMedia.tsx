@@ -6,7 +6,7 @@ import Animated from 'react-native-reanimated';
 import { SCREEN_WIDTH } from '@/lib/constants';
 import { colors, spacing } from '@/lib/theme';
 import type { PostMedia } from '@/types';
-import type { StyleProp, ViewStyle } from 'react-native';
+import type { NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle } from 'react-native';
 
 type PostCardMediaProps = {
   media: PostMedia[];
@@ -21,7 +21,7 @@ export const PostCardMedia = React.memo(function PostCardMedia({
 }: PostCardMediaProps) {
   const [activeIndex, setActiveIndex] = useState(0);
 
-  const handleScrollEnd = useCallback((e: any) => {
+  const handleScrollEnd = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const index = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
     setActiveIndex(index);
   }, []);

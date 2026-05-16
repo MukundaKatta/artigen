@@ -31,3 +31,12 @@ ALTER TABLE creation_streaks ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Challenges visible to all" ON challenges FOR SELECT USING (true);
 CREATE POLICY "Users view own streak" ON creation_streaks FOR SELECT USING (user_id = auth.uid());
 CREATE POLICY "System manages streaks" ON creation_streaks FOR ALL USING (user_id = auth.uid());
+
+-- DOWN
+-- Manual rollback:
+-- DROP POLICY IF EXISTS "System manages streaks" ON creation_streaks;
+-- DROP POLICY IF EXISTS "Users view own streak" ON creation_streaks;
+-- DROP POLICY IF EXISTS "Challenges visible to all" ON challenges;
+-- DROP TABLE IF EXISTS creation_streaks;
+-- DROP INDEX IF EXISTS idx_challenges_active;
+-- DROP TABLE IF EXISTS challenges;

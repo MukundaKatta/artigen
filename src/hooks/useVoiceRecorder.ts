@@ -2,6 +2,10 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { Audio } from 'expo-av';
 import { logger } from '@/lib/logger';
 
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : 'Recording failed';
+}
+
 export function useVoiceRecorder() {
   const [recording, setRecording] = useState(false);
   const [duration, setDuration] = useState(0);
@@ -31,8 +35,8 @@ export function useVoiceRecorder() {
       }, 100);
 
       return { error: null };
-    } catch (e: any) {
-      return { error: e.message };
+    } catch (e: unknown) {
+      return { error: getErrorMessage(e) };
     }
   }, []);
 
@@ -53,9 +57,9 @@ export function useVoiceRecorder() {
       setRecording(false);
 
       return { uri, durationMs, error: null };
-    } catch (e: any) {
+    } catch (e: unknown) {
       setRecording(false);
-      return { uri: null, durationMs: 0, error: e.message };
+      return { uri: null, durationMs: 0, error: getErrorMessage(e) };
     }
   }, [duration]);
 
@@ -66,7 +70,9 @@ export function useVoiceRecorder() {
     try {
       await recordingRef.current.stopAndUnloadAsync();
       await Audio.setAudioModeAsync({ allowsRecordingIOS: false });
-    } catch {}
+    } catch (e: unknown) {
+      logger.warn('Failed to cancel recording:', e);
+    }
 
     recordingRef.current = null;
     setRecording(false);

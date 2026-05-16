@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
-import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
+import { colors, spacing, fontSize, typography, borderRadius, withOpacity } from '@/lib/theme';
 import type { StorySticker } from '@/types';
 
 type Props = {
@@ -44,7 +43,7 @@ export function PollSticker({ sticker, onRespond }: Props) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'rgba(255,255,255,0.95)',
+    backgroundColor: withOpacity(colors.textLight, 0.95),
     borderRadius: borderRadius.lg,
     padding: spacing.md,
     width: 200,
@@ -53,7 +52,7 @@ const styles = StyleSheet.create({
     fontSize: fontSize.md,
     fontFamily: typography.bold,
     fontWeight: '700',
-    color: colors.text,
+    color: colors.backgroundDark,
     textAlign: 'center',
     marginBottom: spacing.sm,
   },
@@ -68,12 +67,12 @@ const styles = StyleSheet.create({
   },
   optionSelected: {
     borderColor: colors.primary,
-    backgroundColor: `${colors.primary}10`,
+    backgroundColor: withOpacity(colors.primary, 0.06),
   },
   optionText: {
     fontSize: fontSize.md,
     fontFamily: typography.medium,
-    color: colors.text,
+    color: colors.backgroundDark,
     textAlign: 'center',
     zIndex: 1,
   },
@@ -87,7 +86,7 @@ const styles = StyleSheet.create({
     left: 0,
     top: 0,
     bottom: 0,
-    backgroundColor: `${colors.primary}20`,
+    backgroundColor: withOpacity(colors.primary, 0.12),
     borderRadius: borderRadius.md,
   },
 });

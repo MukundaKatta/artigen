@@ -54,3 +54,21 @@ CREATE POLICY "Participants can submit" ON battle_entries FOR INSERT WITH CHECK 
 CREATE POLICY "Anyone can view votes" ON battle_votes FOR SELECT USING (true);
 CREATE POLICY "Users can vote" ON battle_votes FOR INSERT WITH CHECK (user_id = auth.uid());
 CREATE POLICY "Users can unvote" ON battle_votes FOR DELETE USING (user_id = auth.uid());
+
+-- DOWN
+-- Manual rollback:
+-- DROP POLICY IF EXISTS "Users can unvote" ON battle_votes;
+-- DROP POLICY IF EXISTS "Users can vote" ON battle_votes;
+-- DROP POLICY IF EXISTS "Anyone can view votes" ON battle_votes;
+-- DROP POLICY IF EXISTS "Participants can submit" ON battle_entries;
+-- DROP POLICY IF EXISTS "Anyone can view entries" ON battle_entries;
+-- DROP POLICY IF EXISTS "Participants can update" ON art_battles;
+-- DROP POLICY IF EXISTS "Users can create battles" ON art_battles;
+-- DROP POLICY IF EXISTS "Anyone can view battles" ON art_battles;
+-- DROP INDEX IF EXISTS idx_battle_votes_battle;
+-- DROP INDEX IF EXISTS idx_battle_entries_battle;
+-- DROP INDEX IF EXISTS idx_art_battles_creator;
+-- DROP INDEX IF EXISTS idx_art_battles_status;
+-- DROP TABLE IF EXISTS battle_votes;
+-- DROP TABLE IF EXISTS battle_entries;
+-- DROP TABLE IF EXISTS art_battles;

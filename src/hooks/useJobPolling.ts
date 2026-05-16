@@ -1,12 +1,12 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
+import type { PostgrestError } from '@supabase/supabase-js';
 
 type JobStatus = 'pending' | 'processing' | 'completed' | 'failed';
 
 type JobLike = {
   id: string;
   status: JobStatus;
-  [key: string]: any;
-};
+} & Record<string, unknown>;
 
 /**
  * Shared hook for polling async job status.
@@ -16,7 +16,7 @@ type JobLike = {
  * @param intervalMs - Polling interval in ms (default: 3000)
  */
 export function useJobPolling<T extends JobLike>(
-  fetchJob: (id: string) => Promise<{ data: T | null; error: any }>,
+  fetchJob: (id: string) => Promise<{ data: T | null; error: PostgrestError | null }>,
   intervalMs = 3000,
 ) {
   const [job, setJob] = useState<T | null>(null);

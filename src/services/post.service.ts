@@ -11,6 +11,8 @@ import type { FeedPost, PostWithUser, Post, AiMetadataInsert } from '@/types';
 import type { Database } from '@/types/database';
 
 type PostMediaInsert = Database['public']['Tables']['post_media']['Insert'];
+type HashtagRow = Database['public']['Tables']['hashtags']['Row'];
+type HashtagProjection = Pick<HashtagRow, 'id' | 'name' | 'post_count'>;
 
 // ── Feed ──────────────────────────────────────────────────────────
 
@@ -224,8 +226,9 @@ async function linkHashtags(postId: string, tags: string[]) {
     .select('id, name, post_count')
     .in('name', tags);
 
+  const fetchedTags = (existingTags ?? []) as HashtagProjection[];
   const existingMap = new Map(
-    (existingTags ?? []).map((t: any) => [t.name as string, t])
+    fetchedTags.map((tag) => [tag.name, tag])
   );
 
   // Upsert missing hashtags in a single batch
@@ -238,7 +241,8 @@ async function linkHashtags(postId: string, tags: string[]) {
         { onConflict: 'name' }
       )
       .select('id, name, post_count');
-    (created ?? []).forEach((t: any) => existingMap.set(t.name as string, t));
+    const createdTags = (created ?? []) as HashtagProjection[];
+    createdTags.forEach((tag) => existingMap.set(tag.name, tag));
   }
 
   // Increment counts for pre-existing hashtags
@@ -257,8 +261,8 @@ async function linkHashtags(postId: string, tags: string[]) {
   // Batch insert all post_hashtags in a single query
   const junctionRows = tags
     .map((t) => existingMap.get(t))
-    .filter(Boolean)
-    .map((ht: any) => ({ post_id: postId, hashtag_id: ht.id }));
+    .filter((hashtag): hashtag is HashtagProjection => Boolean(hashtag))
+    .map((hashtag) => ({ post_id: postId, hashtag_id: hashtag.id }));
 
   if (junctionRows.length > 0) {
     await supabase.from('post_hashtags').insert(junctionRows);

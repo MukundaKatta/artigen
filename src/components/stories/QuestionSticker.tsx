@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
+import { colors, spacing, fontSize, typography, borderRadius, withOpacity } from '@/lib/theme';
 import type { StorySticker } from '@/types';
 
 type Props = {
@@ -26,7 +26,7 @@ export function QuestionSticker({ sticker, onRespond }: Props) {
       <Text style={styles.question}>{config.question || 'Ask me anything'}</Text>
       {sent ? (
         <View style={styles.sentRow}>
-          <Ionicons name="checkmark-circle" size={16} color="#22C55E" />
+          <Ionicons name="checkmark-circle" size={16} color={colors.success} />
           <Text style={styles.sentText}>Sent!</Text>
         </View>
       ) : (
@@ -34,12 +34,12 @@ export function QuestionSticker({ sticker, onRespond }: Props) {
           <TextInput
             style={styles.input}
             placeholder="Type your answer..."
-            placeholderTextColor="rgba(0,0,0,0.4)"
+            placeholderTextColor={withOpacity(colors.backgroundDark, 0.4)}
             value={answer}
             onChangeText={setAnswer}
           />
           <TouchableOpacity onPress={handleSend} disabled={!answer.trim()}>
-            <Ionicons name="send" size={18} color={answer.trim() ? colors.primary : '#ccc'} />
+            <Ionicons name="send" size={18} color={answer.trim() ? colors.primary : colors.border} />
           </TouchableOpacity>
         </View>
       )}
@@ -49,7 +49,7 @@ export function QuestionSticker({ sticker, onRespond }: Props) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'rgba(255,255,255,0.95)',
+    backgroundColor: withOpacity(colors.textLight, 0.95),
     borderRadius: borderRadius.lg,
     padding: spacing.md,
     width: 220,
@@ -58,14 +58,14 @@ const styles = StyleSheet.create({
     fontSize: fontSize.md,
     fontFamily: typography.bold,
     fontWeight: '700',
-    color: colors.text,
+    color: colors.backgroundDark,
     textAlign: 'center',
     marginBottom: spacing.sm,
   },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.backgroundSecondary,
+    backgroundColor: colors.surface,
     borderRadius: borderRadius.full,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: fontSize.sm,
     fontFamily: typography.regular,
-    color: colors.text,
+    color: colors.backgroundDark,
     paddingVertical: spacing.xs,
   },
   sentRow: {
@@ -86,6 +86,6 @@ const styles = StyleSheet.create({
   sentText: {
     fontSize: fontSize.sm,
     fontFamily: typography.medium,
-    color: '#22C55E',
+    color: colors.success,
   },
 });

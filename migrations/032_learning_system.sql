@@ -123,3 +123,36 @@ CREATE POLICY "Users request mentorship" ON mentorships FOR INSERT WITH CHECK (m
 CREATE POLICY "Participants update mentorship" ON mentorships FOR UPDATE USING (mentor_id = auth.uid() OR mentee_id = auth.uid());
 CREATE POLICY "Participants view sessions" ON mentorship_sessions FOR SELECT USING (EXISTS(SELECT 1 FROM mentorships WHERE id = mentorship_id AND (mentor_id = auth.uid() OR mentee_id = auth.uid())));
 CREATE POLICY "Mentors create sessions" ON mentorship_sessions FOR INSERT WITH CHECK (EXISTS(SELECT 1 FROM mentorships WHERE id = mentorship_id AND mentor_id = auth.uid()));
+
+-- DOWN
+-- Manual rollback:
+-- DROP POLICY IF EXISTS "Mentors create sessions" ON mentorship_sessions;
+-- DROP POLICY IF EXISTS "Participants view sessions" ON mentorship_sessions;
+-- DROP POLICY IF EXISTS "Participants update mentorship" ON mentorships;
+-- DROP POLICY IF EXISTS "Users request mentorship" ON mentorships;
+-- DROP POLICY IF EXISTS "Participants view mentorships" ON mentorships;
+-- DROP POLICY IF EXISTS "System inserts xp" ON xp_transactions;
+-- DROP POLICY IF EXISTS "Users view own xp transactions" ON xp_transactions;
+-- DROP POLICY IF EXISTS "System updates xp" ON user_xp;
+-- DROP POLICY IF EXISTS "System manages xp" ON user_xp;
+-- DROP POLICY IF EXISTS "Users view own xp" ON user_xp;
+-- DROP POLICY IF EXISTS "Users update progress" ON user_tutorial_progress;
+-- DROP POLICY IF EXISTS "Users track progress" ON user_tutorial_progress;
+-- DROP POLICY IF EXISTS "Users view own progress" ON user_tutorial_progress;
+-- DROP POLICY IF EXISTS "Anyone can view lessons" ON tutorial_lessons;
+-- DROP POLICY IF EXISTS "Anyone can view tutorials" ON tutorials;
+-- DROP INDEX IF EXISTS idx_mentorship_sessions_mentorship;
+-- DROP INDEX IF EXISTS idx_mentorships_mentee;
+-- DROP INDEX IF EXISTS idx_mentorships_mentor;
+-- DROP INDEX IF EXISTS idx_xp_transactions_user;
+-- DROP INDEX IF EXISTS idx_user_xp_user;
+-- DROP INDEX IF EXISTS idx_user_tutorial_progress_user;
+-- DROP INDEX IF EXISTS idx_tutorial_lessons_tutorial;
+-- DROP INDEX IF EXISTS idx_tutorials_category;
+-- DROP TABLE IF EXISTS mentorship_sessions;
+-- DROP TABLE IF EXISTS mentorships;
+-- DROP TABLE IF EXISTS xp_transactions;
+-- DROP TABLE IF EXISTS user_xp;
+-- DROP TABLE IF EXISTS user_tutorial_progress;
+-- DROP TABLE IF EXISTS tutorial_lessons;
+-- DROP TABLE IF EXISTS tutorials;

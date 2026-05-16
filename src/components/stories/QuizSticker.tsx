@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
+import { colors, spacing, fontSize, typography, borderRadius, withOpacity } from '@/lib/theme';
 import type { StorySticker } from '@/types';
 
 type Props = {
@@ -29,8 +29,8 @@ export function QuizSticker({ sticker, onRespond }: Props) {
         const showResult = answered !== null;
 
         let bgColor = 'transparent';
-        if (showResult && isCorrect) bgColor = '#22C55E';
-        else if (showResult && isSelected && !isCorrect) bgColor = '#EF4444';
+        if (showResult && isCorrect) bgColor = colors.success;
+        else if (showResult && isSelected && !isCorrect) bgColor = colors.error;
 
         return (
           <TouchableOpacity
@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
     fontSize: fontSize.xs,
     fontFamily: typography.bold,
     fontWeight: '700',
-    color: 'rgba(255,255,255,0.7)',
+    color: withOpacity(colors.textLight, 0.7),
     textAlign: 'center',
     marginBottom: spacing.xs,
   },
@@ -77,13 +77,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     borderRadius: borderRadius.md,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
+    borderColor: withOpacity(colors.textLight, 0.3),
     marginBottom: spacing.xs,
   },
   optionText: {
     fontSize: fontSize.md,
     fontFamily: typography.medium,
-    color: '#fff',
+    color: colors.textLight,
     textAlign: 'center',
   },
 });

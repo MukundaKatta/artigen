@@ -36,3 +36,16 @@ ALTER TABLE story_sticker_responses ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Anyone can view sticker responses" ON story_sticker_responses FOR SELECT USING (true);
 CREATE POLICY "Users can insert own responses" ON story_sticker_responses FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "Users can update own responses" ON story_sticker_responses FOR UPDATE USING (auth.uid() = user_id);
+
+-- DOWN
+-- Manual rollback:
+-- DROP POLICY IF EXISTS "Users can update own responses" ON story_sticker_responses;
+-- DROP POLICY IF EXISTS "Users can insert own responses" ON story_sticker_responses;
+-- DROP POLICY IF EXISTS "Anyone can view sticker responses" ON story_sticker_responses;
+-- DROP POLICY IF EXISTS "Story owners can delete stickers" ON story_stickers;
+-- DROP POLICY IF EXISTS "Story owners can insert stickers" ON story_stickers;
+-- DROP POLICY IF EXISTS "Anyone can view story stickers" ON story_stickers;
+-- DROP INDEX IF EXISTS idx_sticker_responses_sticker;
+-- DROP TABLE IF EXISTS story_sticker_responses;
+-- DROP INDEX IF EXISTS idx_story_stickers_story;
+-- DROP TABLE IF EXISTS story_stickers;

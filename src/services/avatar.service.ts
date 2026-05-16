@@ -1,5 +1,8 @@
 import { supabase } from '@/lib/supabase';
 import { logger } from '@/lib/logger';
+import type { Database } from '@/types/database';
+
+type UserAvatarUpdate = Database['public']['Tables']['user_avatars']['Update'];
 
 // ── Types ────────────────────────────────────────────
 
@@ -123,16 +126,19 @@ export async function getMyAvatars(userId: string) {
 // ── Set active avatar (deactivates all others) ───────
 
 export async function setActiveAvatar(userId: string, avatarId: string) {
+  const deactivateData: UserAvatarUpdate = { is_active: false };
+  const activateData: UserAvatarUpdate = { is_active: true };
+
   // Deactivate all avatars for this user
   await supabase
     .from('user_avatars')
-    .update({ is_active: false } as any)
+    .update(deactivateData)
     .eq('user_id', userId);
 
   // Activate the selected one
   const { data, error } = await supabase
     .from('user_avatars')
-    .update({ is_active: true } as any)
+    .update(activateData)
     .eq('id', avatarId)
     .eq('user_id', userId)
     .select()

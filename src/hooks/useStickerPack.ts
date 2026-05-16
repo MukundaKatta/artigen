@@ -1,9 +1,14 @@
 import { useState, useCallback, useEffect } from 'react';
 import * as stickerPackService from '@/services/sticker-pack.service';
+import type { Profile, Sticker, StickerPack } from '@/types/database';
+
+type StickerPackWithCreator = StickerPack & {
+  creator?: Pick<Profile, 'id' | 'username' | 'avatar_url'> | null;
+};
 
 export function useStickerPack(packId?: string) {
-  const [pack, setPack] = useState<any>(null);
-  const [stickers, setStickers] = useState<any[]>([]);
+  const [pack, setPack] = useState<StickerPackWithCreator | null>(null);
+  const [stickers, setStickers] = useState<Sticker[]>([]);
   const [loading, setLoading] = useState(false);
 
   const fetchPack = useCallback(async () => {
@@ -13,8 +18,8 @@ export function useStickerPack(packId?: string) {
       stickerPackService.getPack(packId),
       stickerPackService.getPackStickers(packId),
     ]);
-    setPack(packResult.data);
-    setStickers(stickersResult.data || []);
+    setPack((packResult.data as unknown as StickerPackWithCreator | null) ?? null);
+    setStickers((stickersResult.data as Sticker[] | null) ?? []);
     setLoading(false);
   }, [packId]);
 
@@ -28,7 +33,7 @@ export function useStickerPack(packId?: string) {
       const { data, error } = await stickerPackService.addSticker(packId, imageUrl, label);
       if (data) {
         setStickers((prev) => [...prev, data]);
-        setPack((prev: any) => prev ? { ...prev, sticker_count: (prev.sticker_count ?? 0) + 1 } : prev);
+        setPack((prev) => prev ? { ...prev, sticker_count: (prev.sticker_count ?? 0) + 1 } : prev);
       }
       return { data, error };
     },
@@ -40,7 +45,7 @@ export function useStickerPack(packId?: string) {
       const { error } = await stickerPackService.removeSticker(stickerId);
       if (!error) {
         setStickers((prev) => prev.filter((s) => s.id !== stickerId));
-        setPack((prev: any) => prev ? { ...prev, sticker_count: Math.max(0, (prev.sticker_count ?? 1) - 1) } : prev);
+        setPack((prev) => prev ? { ...prev, sticker_count: Math.max(0, (prev.sticker_count ?? 1) - 1) } : prev);
       }
       return { error };
     },
