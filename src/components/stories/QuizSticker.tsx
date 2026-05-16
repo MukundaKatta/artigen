@@ -39,7 +39,7 @@ export function QuizSticker({ sticker, onRespond }: Props) {
             onPress={() => handleAnswer(i)}
             disabled={answered !== null}
           >
-            <Text style={[styles.optionText, showResult && (isCorrect || isSelected) && { color: '#fff' }]}>
+            <Text style={[styles.optionText, showResult && (isCorrect || isSelected) && { color: colors.textLight }]}>
               {option}
             </Text>
           </TouchableOpacity>
@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
     fontSize: fontSize.md,
     fontFamily: typography.bold,
     fontWeight: '700',
-    color: '#fff',
+    color: colors.textLight,
     textAlign: 'center',
     marginBottom: spacing.sm,
   },
