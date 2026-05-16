@@ -6,6 +6,8 @@ import {
   StyleSheet,
   TextInputProps,
   ViewStyle,
+  NativeSyntheticEvent,
+  TextInputFocusEventData,
 } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -53,12 +55,12 @@ export const Input = forwardRef<TextInput, Props>(
       return { borderColor, transform: [{ translateX: shakeAnim.value }] };
     });
 
-    const handleFocus = (e: any) => {
+    const handleFocus = (e: NativeSyntheticEvent<TextInputFocusEventData>) => {
       focusAnim.value = withTiming(1, { duration: 200 });
       onFocus?.(e);
     };
 
-    const handleBlur = (e: any) => {
+    const handleBlur = (e: NativeSyntheticEvent<TextInputFocusEventData>) => {
       focusAnim.value = withTiming(0, { duration: 200 });
       onBlur?.(e);
     };

@@ -90,7 +90,7 @@ export function ModelPicker({
             accessibilityLabel={`${tab.label} AI provider`}
           >
             <Ionicons
-              name={tab.icon as any}
+              name={tab.icon as React.ComponentProps<typeof Ionicons>['name']}
               size={13}
               color={
                 providerTab === tab.key
