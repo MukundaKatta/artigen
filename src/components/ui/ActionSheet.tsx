@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, Platform, Modal, Pressable } from 'react-native';
-import BottomSheet, { BottomSheetBackdrop } from '@gorhom/bottom-sheet';
+import { View, Text, StyleSheet, Platform, Modal, Pressable, ViewStyle, DimensionValue } from 'react-native';
+import BottomSheet, { BottomSheetBackdrop, BottomSheetBackdropProps } from '@gorhom/bottom-sheet';
 import * as Haptics from 'expo-haptics';
 import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
@@ -61,12 +61,12 @@ const desktopStyles = StyleSheet.create({
     backgroundColor: colors.background,
     borderRadius: borderRadius.xl,
     width: 400,
-    maxWidth: '90%' as any,
+    maxWidth: '90%' as DimensionValue,
     paddingVertical: spacing.sm,
-    ...Platform.select({
+    ...(Platform.select({
       web: { boxShadow: '0 20px 60px rgba(0,0,0,0.3)' },
       default: {},
-    }) as any,
+    }) as ViewStyle),
   },
   title: {
     fontSize: fontSize.sm,
@@ -130,7 +130,7 @@ export function ActionSheet({ visible, onClose, items, title }: Props) {
   }, [visible, useDesktop]);
 
   const renderBackdrop = useCallback(
-    (props: any) => (
+    (props: BottomSheetBackdropProps) => (
       <BottomSheetBackdrop
         {...props}
         disappearsOnIndex={-1}

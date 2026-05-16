@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, StyleProp, ViewStyle, DimensionValue } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   useSharedValue,
@@ -12,10 +12,10 @@ import Animated, {
 import { colors, spacing } from '@/lib/theme';
 
 type SkeletonProps = {
-  width: number | string;
+  width: DimensionValue;
   height: number;
   borderRadius?: number;
-  style?: any;
+  style?: StyleProp<ViewStyle>;
 };
 
 const AnimatedGradient = Animated.createAnimatedComponent(LinearGradient);
@@ -39,7 +39,7 @@ export function Skeleton({ width, height, borderRadius = 4, style }: SkeletonPro
     <View
       style={[
         {
-          width: width as any,
+          width,
           height,
           borderRadius,
           backgroundColor: colors.border,
@@ -145,7 +145,7 @@ export function GridSkeleton({ columns = 3, rows = 4 }: { columns?: number; rows
       {Array.from({ length: columns * rows }).map((_, i) => (
         <Skeleton
           key={i}
-          width={`${(100 - gap * (columns - 1)) / columns}%` as any}
+          width={`${(100 - gap * (columns - 1)) / columns}%` as DimensionValue}
           height={120}
           borderRadius={0}
           style={{ marginBottom: gap }}
