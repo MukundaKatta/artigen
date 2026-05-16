@@ -37,6 +37,17 @@ npm start
 npm start
 ```
 
+## Quality Gate
+
+Run the local production checks before opening a pull request:
+
+```bash
+npm run ci
+```
+
+The gate checks linting, TypeScript, and the Jest suite without requiring
+deployment credentials.
+
 ## Project Structure
 
 ```

@@ -14,6 +14,7 @@
     "build:apk": "eas build --platform android --profile preview",
     "build:ios": "eas build --platform ios --profile preview",
     "build:prod": "eas build --platform all --profile production",
+    "ci": "npm run lint && npm run typecheck && npm test -- --runInBand --passWithNoTests --forceExit",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
