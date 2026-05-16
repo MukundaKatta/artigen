@@ -13,7 +13,9 @@ type Props = {
   onEditStep?: (index: number) => void;
 };
 
-const STEP_CONFIG: Record<string, { icon: string; label: string; color: string }> = {
+type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
+
+const STEP_CONFIG: Record<string, { icon: IoniconName; label: string; color: string }> = {
   generate: { icon: 'sparkles', label: 'Generate', color: colors.accent },
   restyle: { icon: 'color-palette', label: 'Restyle', color: '#EC4899' },
   inpaint: { icon: 'brush', label: 'Inpaint', color: '#F59E0B' },
@@ -41,7 +43,7 @@ const WorkflowStepItem = React.memo(function WorkflowStepItem({
   onMoveStep,
   onEditStep,
 }: StepItemProps) {
-  const config = STEP_CONFIG[step.type] || { icon: 'ellipsis-horizontal', label: step.type, color: colors.textSecondary };
+  const config = STEP_CONFIG[step.type] || { icon: 'ellipsis-horizontal' as IoniconName, label: step.type, color: colors.textSecondary };
   const isActive = currentStep === index;
   const isCompleted = currentStep !== undefined && index < currentStep;
 
@@ -70,7 +72,7 @@ const WorkflowStepItem = React.memo(function WorkflowStepItem({
           {isCompleted ? (
             <Ionicons name="checkmark" size={16} color={colors.success} />
           ) : (
-            <Ionicons name={config.icon as any} size={16} color={config.color} />
+            <Ionicons name={config.icon} size={16} color={config.color} />
           )}
         </View>
 
