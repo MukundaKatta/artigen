@@ -39,16 +39,23 @@ export function BadgeUnlockModal({ visible, badge, onClose }: Props) {
     >
       <View style={styles.overlay}>
         <ConfettiOverlay visible={visible} />
-        <Animated.View entering={ZoomIn.springify().damping(12)} style={styles.card}>
+        <Animated.View
+          entering={ZoomIn.springify().damping(12)}
+          style={styles.card}
+          accessibilityViewIsModal
+          accessibilityRole="alert"
+          accessibilityLiveRegion="assertive"
+          accessibilityLabel={`Badge unlocked: ${badge.name}. ${badge.description}`}
+        >
           <Animated.View entering={ZoomIn.delay(200).springify().damping(8)} style={styles.iconContainer}>
             <Ionicons
-              name={badge.icon as any}
+              name={badge.icon as keyof typeof Ionicons.glyphMap}
               size={48}
               color={colors.primary}
             />
           </Animated.View>
 
-          <Animated.Text entering={FadeInUp.delay(300).duration(300)} style={styles.title}>
+          <Animated.Text entering={FadeInUp.delay(300).duration(300)} style={styles.title} accessibilityRole="header">
             Badge Unlocked!
           </Animated.Text>
           <Animated.Text entering={FadeInUp.delay(400).duration(300)} style={styles.badgeName}>
@@ -69,6 +76,8 @@ export function BadgeUnlockModal({ visible, badge, onClose }: Props) {
                 onClose();
               }}
               scaleValue={0.95}
+              accessibilityRole="button"
+              accessibilityLabel="Dismiss badge unlock"
             >
               <Text style={styles.buttonText}>Got it</Text>
             </AnimatedPressable>
