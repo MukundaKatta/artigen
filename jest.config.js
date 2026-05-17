@@ -12,6 +12,8 @@ module.exports = {
     '^react-native$': '<rootDir>/src/__mocks__/react-native.ts',
     '^expo-file-system$': '<rootDir>/src/__mocks__/expo-file-system.ts',
     '^expo-modules-core$': '<rootDir>/src/__mocks__/expo-modules-core.ts',
+    '^expo-linking$': '<rootDir>/src/__mocks__/expo-linking.ts',
+    '^expo-router$': '<rootDir>/src/__mocks__/expo-router.ts',
     '^@/(.*)$': '<rootDir>/src/$1',
   },
   transform: {
