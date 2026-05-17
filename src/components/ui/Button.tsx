@@ -23,6 +23,8 @@ type Props = {
   style?: ViewStyle;
   textStyle?: TextStyle;
   size?: 'sm' | 'md' | 'lg';
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
 };
 
 export function Button({
@@ -34,6 +36,8 @@ export function Button({
   style,
   textStyle,
   size = 'md',
+  accessibilityLabel,
+  accessibilityHint,
 }: Props) {
   const isDisabled = disabled || loading;
 
@@ -69,7 +73,8 @@ export function Button({
         disabled={isDisabled}
         style={[styles[`size_${size}`], shadows.md as ViewStyle, style] as ViewStyle[]}
         accessibilityRole="button"
-        accessibilityLabel={title}
+        accessibilityLabel={accessibilityLabel ?? title}
+        accessibilityHint={accessibilityHint}
         accessibilityState={{ disabled: isDisabled, busy: loading }}
       >
         <LinearGradient

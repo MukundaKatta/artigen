@@ -79,9 +79,9 @@ export const PostCardMedia = React.memo(function PostCardMedia({
       {/* Carousel dots */}
       {media.length > 1 && (
         <View style={styles.dotsContainer}>
-          {media.map((_, i) => (
+          {media.map((item, i) => (
             <Animated.View
-              key={i}
+              key={item.id}
               style={[
                 styles.dot,
                 i === activeIndex && styles.activeDot,

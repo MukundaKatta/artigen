@@ -53,7 +53,13 @@ export function StoryBar() {
         contentContainerStyle={styles.scroll}
       >
         {/* Your Story */}
-        <AnimatedPressable scaleValue={0.95} onPress={handleMyStoryPress} style={styles.storyItem}>
+        <AnimatedPressable
+          scaleValue={0.95}
+          onPress={handleMyStoryPress}
+          style={styles.storyItem}
+          accessibilityRole="button"
+          accessibilityLabel={myStories && myStories.stories.length > 0 ? 'View your story' : 'Create a new story'}
+        >
           <View>
             <Image
               source={profile?.avatar_url ? { uri: profile.avatar_url } : require('../../../assets/images/default-avatar.png')}
@@ -94,6 +100,9 @@ export function StoryBar() {
               scaleValue={0.95}
               onPress={() => handleStoryPress(userStory.userId)}
               style={styles.storyItem}
+              accessibilityRole="button"
+              accessibilityLabel={`Open story from ${userStory.username}`}
+              accessibilityState={{ selected: !userStory.hasUnviewed }}
             >
               <View>
                 <Image

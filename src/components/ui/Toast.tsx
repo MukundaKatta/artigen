@@ -118,6 +118,9 @@ export function ToastContainer() {
         animatedStyle,
       ]}
       pointerEvents="box-none"
+      accessibilityRole={type === 'error' ? 'alert' : undefined}
+      accessibilityLiveRegion={type === 'error' ? 'assertive' : 'polite'}
+      accessibilityLabel={`${type}: ${toast.message}`}
     >
       <Animated.View style={[styles.toast, shadows.md]}>
         <Ionicons name={icon} size={20} color={tintColor} />
