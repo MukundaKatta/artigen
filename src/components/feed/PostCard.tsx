@@ -33,6 +33,7 @@ import { colors, spacing, fontSize, typography } from '@/lib/theme';
 import { formatNumber } from '@/utils/format-number';
 import { timeAgo } from '@/utils/format-date';
 import type { FeedPost, ReactionType } from '@/types';
+import { arePostsEqual } from './PostCard.equality';
 
 type PostCardProps = {
   post: FeedPost;
@@ -365,33 +366,6 @@ export const PostCard = React.memo(function PostCard({
     </View>
   );
 }, arePostsEqual);
-
-/**
- * Custom equality check — re-render only when the parts of the post that the
- * card actually displays have changed. Skips when the parent feeds a new
- * object identity (very common) but the same data, which is the biggest
- * source of wasted PostCard renders during scroll.
- */
-function arePostsEqual(prev: PostCardProps, next: PostCardProps): boolean {
-  if (prev.currentUserId !== next.currentUserId) return false;
-  const a = prev.post;
-  const b = next.post;
-  return (
-    a.id === b.id &&
-    a.isLiked === b.isLiked &&
-    a.isSaved === b.isSaved &&
-    a.likes_count === b.likes_count &&
-    a.comments_count === b.comments_count &&
-    a.views_count === b.views_count &&
-    a.is_pinned === b.is_pinned &&
-    a.is_archived === b.is_archived &&
-    a.caption === b.caption &&
-    a.userReaction === b.userReaction &&
-    a.remixCount === b.remixCount &&
-    a.reactionSummary === b.reactionSummary &&
-    a.media === b.media
-  );
-}
 
 const styles = StyleSheet.create({
   container: {
