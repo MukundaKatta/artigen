@@ -79,7 +79,7 @@ export async function getCritiques(postId: string, page = 0) {
 
 // ── Get average ratings summary for a post ───────────
 
-export async function getPostCritiqueSummary(postId: string): Promise<{ data: CritiqueSummary | null; error: any }> {
+export async function getPostCritiqueSummary(postId: string): Promise<{ data: CritiqueSummary | null; error: Error | null }> {
   const { data, error } = await supabase
     .from('post_critiques')
     .select('composition_rating, color_rating, technique_rating, prompt_craft_rating, originality_rating, overall_rating')
@@ -195,9 +195,12 @@ export async function getTopCritics(limit = 10) {
 
   if (error || !data) return { data: [], error };
 
+  type CriticUser = { id: string; username: string; avatar_url: string | null };
+  type CritiqueRow = { user_id: string; user: CriticUser };
+
   // Aggregate by user
-  const countMap = new Map<string, { user: any; count: number }>();
-  for (const row of data) {
+  const countMap = new Map<string, { user: CriticUser; count: number }>();
+  for (const row of data as unknown as CritiqueRow[]) {
     const existing = countMap.get(row.user_id);
     if (existing) {
       existing.count++;
@@ -224,7 +227,7 @@ export async function getUserHelpfulVoteIds(critiqueIds: string[], userId: strin
     .in('critique_id', critiqueIds)
     .eq('user_id', userId);
 
-  return new Set((data || []).map((v: any) => v.critique_id));
+  return new Set((data ?? []).map((v) => v.critique_id as string));
 }
 
 // ── Get critique count for a post ────────────────────

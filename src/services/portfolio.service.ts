@@ -1,4 +1,7 @@
 import { supabase } from '@/lib/supabase';
+import type { Post, PostMedia } from '@/types';
+
+export type PortfolioPost = Post & { media?: PostMedia[] };
 
 export type PortfolioSection = {
   id: string;
@@ -16,7 +19,7 @@ export type PortfolioItem = {
   post_id: string;
   caption_override: string | null;
   sort_order: number;
-  post?: any;
+  post?: PortfolioPost;
 };
 
 export async function getPortfolio(userId: string) {
@@ -28,12 +31,13 @@ export async function getPortfolio(userId: string) {
 
   if (error) return { data: [] as PortfolioSection[], error };
 
-  const sorted = (sections || []).map((s: any) => ({
+  const typedSections = (sections ?? []) as unknown as PortfolioSection[];
+  const sorted: PortfolioSection[] = typedSections.map((s) => ({
     ...s,
-    items: (s.items || []).sort((a: any, b: any) => a.sort_order - b.sort_order),
+    items: (s.items ?? []).slice().sort((a, b) => a.sort_order - b.sort_order),
   }));
 
-  return { data: sorted as PortfolioSection[], error: null };
+  return { data: sorted, error: null };
 }
 
 export async function createSection(userId: string, title: string, description?: string) {
