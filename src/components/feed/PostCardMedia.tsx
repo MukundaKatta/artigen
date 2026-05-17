@@ -27,18 +27,25 @@ export const PostCardMedia = React.memo(function PostCardMedia({
   }, []);
 
   const renderCarouselItem = useCallback(
-    ({ item }: { item: PostMedia }) => (
-      <Image
-        source={{ uri: item.media_url }}
-        placeholder={item.blurhash ? { blurhash: item.blurhash } : undefined}
-        style={styles.postImage}
-        contentFit="cover"
-        cachePolicy="memory-disk"
-        transition={300}
-        recyclingKey={item.id}
-      />
-    ),
-    []
+    ({ item, index }: { item: PostMedia; index: number }) => {
+      // The active page and its immediate neighbors render at high priority;
+      // anything further out defers until the user scrolls to it.
+      const distance = Math.abs(index - activeIndex);
+      const priority = distance === 0 ? 'high' : distance === 1 ? 'normal' : 'low';
+      return (
+        <Image
+          source={{ uri: item.media_url }}
+          placeholder={item.blurhash ? { blurhash: item.blurhash } : undefined}
+          style={styles.postImage}
+          contentFit="cover"
+          cachePolicy="memory-disk"
+          priority={priority}
+          transition={300}
+          recyclingKey={item.id}
+        />
+      );
+    },
+    [activeIndex]
   );
 
   const keyExtractor = useCallback((item: PostMedia) => item.id, []);
