@@ -51,6 +51,9 @@ jobs:
       - name: Run TypeScript type check
         run: npx tsc --noEmit
 
+      - name: Type-coverage report (must stay ≥ 98%)
+        run: npm run typecoverage
+
   # ── 1b. Lint ────────────────────────────────────────────
   lint:
     name: Lint
