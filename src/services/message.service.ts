@@ -4,6 +4,10 @@ import { sanitizeText } from '@/lib/sanitize';
 import type { Profile, Message, MessageWithSender, Conversation } from '@/types/database';
 import type { ConversationPreview } from '@/types';
 
+type ParticipationRow = { conversation_id: string; last_read_at: string | null };
+type ParticipantRow = { conversation_id: string; user_id: string };
+type ProfileIdRow = { id: string } & Profile;
+
 export async function getConversations(userId: string) {
   // Get conversation IDs where user participates
   const { data: participations, error: pError } = await supabase
@@ -15,9 +19,10 @@ export async function getConversations(userId: string) {
     return { data: [] as ConversationPreview[], error: pError };
   }
 
-  const convIds = participations.map((p: any) => p.conversation_id as string);
-  const lastReadMap = new Map(
-    participations.map((p: any) => [p.conversation_id as string, p.last_read_at as string | null])
+  const typedParticipations = participations as unknown as ParticipationRow[];
+  const convIds = typedParticipations.map((p) => p.conversation_id);
+  const lastReadMap = new Map<string, string | null>(
+    typedParticipations.map((p) => [p.conversation_id, p.last_read_at])
   );
 
   // Get conversations
@@ -37,8 +42,9 @@ export async function getConversations(userId: string) {
     .select('conversation_id, user_id')
     .in('conversation_id', convIds);
 
+  const typedAllParticipants = (allParticipants ?? []) as unknown as ParticipantRow[];
   const participantUserIds = [
-    ...new Set((allParticipants || []).map((p: any) => p.user_id as string)),
+    ...new Set(typedAllParticipants.map((p) => p.user_id)),
   ];
 
   // Fetch profiles for all participants
@@ -47,8 +53,8 @@ export async function getConversations(userId: string) {
     .select('*')
     .in('id', participantUserIds);
 
-  const profileMap = new Map(
-    (profiles || []).map((p: any) => [p.id as string, p as unknown as Profile])
+  const profileMap = new Map<string, Profile>(
+    ((profiles ?? []) as unknown as ProfileIdRow[]).map((p) => [p.id, p as Profile])
   );
 
   // Batch-fetch recent messages for all conversations in one query,
@@ -90,13 +96,13 @@ export async function getConversations(userId: string) {
   const previews: ConversationPreview[] = [];
 
   for (const conv of conversations as unknown as Conversation[]) {
-    const cpIds = (allParticipants || [])
-      .filter((p: any) => p.conversation_id === conv.id)
-      .map((p: any) => p.user_id as string);
+    const cpIds = typedAllParticipants
+      .filter((p) => p.conversation_id === conv.id)
+      .map((p) => p.user_id);
 
     const convProfiles = cpIds
-      .map((id: string) => profileMap.get(id))
-      .filter(Boolean) as Profile[];
+      .map((id) => profileMap.get(id))
+      .filter((p): p is Profile => p != null);
 
     previews.push({
       ...conv,
@@ -122,10 +128,11 @@ export async function getOrCreateConversation(userId: string, otherUserId: strin
     .eq('user_id', otherUserId);
 
   if (myConvs && theirConvs) {
-    const myIds = new Set(myConvs.map((c: any) => c.conversation_id as string));
-    const commonIds = theirConvs
-      .map((c: any) => c.conversation_id as string)
-      .filter((id: string) => myIds.has(id));
+    type ConvIdRow = { conversation_id: string };
+    const myIds = new Set((myConvs as unknown as ConvIdRow[]).map((c) => c.conversation_id));
+    const commonIds = (theirConvs as unknown as ConvIdRow[])
+      .map((c) => c.conversation_id)
+      .filter((id) => myIds.has(id));
 
     if (commonIds.length > 0) {
       // Batch fetch all candidate conversations in a single query (avoids N+1)
