@@ -19,13 +19,17 @@ import { Avatar } from '@/components/ui/Avatar';
 import { colors, fontSize, spacing, typography, borderRadius } from '@/lib/theme';
 import { searchUsers } from '@/services/profile.service';
 import { getOrCreateConversation, sendMessage } from '@/services/message.service';
+import type { Profile } from '@/types/database';
+
+/** Trimmed profile shape returned by `searchUsers` (id, username, full_name, avatar_url, is_verified). */
+export type ShareSheetProfile = Pick<Profile, 'id' | 'username' | 'full_name' | 'avatar_url' | 'is_verified'>;
 
 type ShareSheetProps = {
   visible: boolean;
   onClose: () => void;
   postId: string;
   currentUserId: string;
-  recentConversations?: { userId: string; profile: any }[];
+  recentConversations?: { userId: string; profile: ShareSheetProfile }[];
 };
 
 export function ShareSheet({
@@ -35,7 +39,7 @@ export function ShareSheet({
   currentUserId,
 }: ShareSheetProps) {
   const [query, setQuery] = useState('');
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<ShareSheetProfile[]>([]);
   const [searching, setSearching] = useState(false);
   const [sentTo, setSentTo] = useState<Set<string>>(new Set());
   const [sending, setSending] = useState<string | null>(null);
@@ -57,7 +61,7 @@ export function ShareSheet({
     const timer = setTimeout(async () => {
       setSearching(true);
       const { data } = await searchUsers(query);
-      setUsers((data || []).filter((u: any) => u.id !== currentUserId));
+      setUsers(((data || []) as ShareSheetProfile[]).filter((u) => u.id !== currentUserId));
       setSearching(false);
     }, 300);
     return () => clearTimeout(timer);
