@@ -8,7 +8,10 @@ import { getUserCredits } from '@/services/credits.service';
 import { colors, fontSize, typography, borderRadius, spacing } from '@/lib/theme';
 import { formatNumber } from '@/utils/format-number';
 
-export function CreditBadge() {
+/** Self-contained badge; takes no props. */
+export type CreditBadgeProps = Record<string, never>;
+
+export function CreditBadge(_props: CreditBadgeProps = {}) {
   const { user } = useAuth();
   const router = useRouter();
   const [credits, setCredits] = useState<number | null>(null);

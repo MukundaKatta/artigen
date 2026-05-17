@@ -16,7 +16,9 @@ import { colors, spacing, fontSize, typography } from '@/lib/theme';
  * Animates in from top when offline, auto-hides when back online.
  * Uses a lightweight fetch-based check (no extra dependencies).
  */
-export function NetworkStatusBanner() {
+export type NetworkStatusBannerProps = Record<string, never>;
+
+export function NetworkStatusBanner(_props: NetworkStatusBannerProps = {}) {
   const [isOffline, setIsOffline] = useState(false);
   const [showBanner, setShowBanner] = useState(false);
   const insets = useSafeAreaInsets();

@@ -19,7 +19,10 @@ const STORY_AVATAR_SIZE = AVATAR_SIZES.lg;
 const RING_SIZE = STORY_AVATAR_SIZE + 10;
 const GAP = 2;
 
-export function StoryBar() {
+/** Self-contained story bar; takes no props. */
+export type StoryBarProps = Record<string, never>;
+
+export function StoryBar(_props: StoryBarProps = {}) {
   const { profile, user } = useAuth();
   const { stories, loading } = useStories(user?.id);
   const router = useRouter();

@@ -50,7 +50,10 @@ export function showToast(config: ToastConfig) {
 
 // ── Toast component ─────────────────────────────────
 
-export function ToastContainer() {
+/** Singleton mount point; takes no props (call `showToast` to enqueue). */
+export type ToastContainerProps = Record<string, never>;
+
+export function ToastContainer(_props: ToastContainerProps = {}) {
   const insets = useSafeAreaInsets();
   const [toast, setToast] = React.useState<ToastState | null>(null);
 
