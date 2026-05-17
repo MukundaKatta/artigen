@@ -5,11 +5,16 @@ import * as Haptics from 'expo-haptics';
 import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { SCREEN_WIDTH, POST_GRID_GAP } from '@/lib/constants';
 import { colors } from '@/lib/theme';
+import type { ChallengeEntry, PostMedia } from '@/types/database';
 
 const COLUMNS = 3;
 const SIZE = (SCREEN_WIDTH - POST_GRID_GAP * (COLUMNS - 1)) / COLUMNS;
 
-type Props = { entries: any[]; onPress: (postId: string) => void };
+export type ChallengeEntryWithPost = ChallengeEntry & {
+  post?: { id: string; media?: Pick<PostMedia, 'media_url'>[] | null } | null;
+};
+
+type Props = { entries: ChallengeEntryWithPost[]; onPress: (postId: string) => void };
 
 export function ChallengeEntryGrid({ entries, onPress }: Props) {
   return (

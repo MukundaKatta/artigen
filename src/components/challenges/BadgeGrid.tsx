@@ -2,8 +2,15 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
+import type { Badge, UserBadge } from '@/types/database';
 
-type Props = { badges: any[] };
+type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
+
+export type UserBadgeWithBadge = UserBadge & {
+  badge?: (Pick<Badge, 'name'> & { icon: IoniconName }) | null;
+};
+
+type Props = { badges: UserBadgeWithBadge[] };
 
 export function BadgeGrid({ badges }: Props) {
   if (badges.length === 0) return <Text style={styles.empty}>No badges yet</Text>;
@@ -13,7 +20,7 @@ export function BadgeGrid({ badges }: Props) {
         <View key={b.id} style={styles.badge}>
           {b.badge?.icon ? (
             <View style={styles.iconContainer}>
-              <Ionicons name={b.badge.icon as any} size={28} color={colors.primary} />
+              <Ionicons name={b.badge.icon} size={28} color={colors.primary} />
             </View>
           ) : (
             <View style={styles.iconPlaceholder}>

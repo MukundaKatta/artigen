@@ -4,8 +4,13 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
+import type { Challenge } from '@/types/database';
 
-type Props = { challenge: any; onPress: () => void };
+type DailyChallengeCardData = Challenge & {
+  entry_count?: number | null;
+};
+
+type Props = { challenge: DailyChallengeCardData; onPress: () => void };
 
 export function DailyChallengeCard({ challenge, onPress }: Props) {
   return (
