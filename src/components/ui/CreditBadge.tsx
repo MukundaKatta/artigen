@@ -7,6 +7,7 @@ import { useAuth } from '@/providers/AuthProvider';
 import { getUserCredits } from '@/services/credits.service';
 import { colors, fontSize, typography, borderRadius, spacing } from '@/lib/theme';
 import { formatNumber } from '@/utils/format-number';
+import { logger } from '@/lib/logger';
 
 export function CreditBadge() {
   const { user } = useAuth();
@@ -15,8 +16,12 @@ export function CreditBadge() {
 
   const fetchCredits = useCallback(async () => {
     if (!user?.id) return;
-    const balance = await getUserCredits(user.id);
-    setCredits(balance);
+    try {
+      const balance = await getUserCredits(user.id);
+      setCredits(balance);
+    } catch (err) {
+      logger.warn('CreditBadge: failed to fetch credits', err);
+    }
   }, [user?.id]);
 
   useEffect(() => {
