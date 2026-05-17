@@ -66,6 +66,9 @@ export default [
       'react-hooks/exhaustive-deps': 'warn',
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
+      // Catch missing keys in .map() renders — index-as-key already shows up
+      // as runtime "key" warnings, but missing keys silently break list diffing.
+      'react/jsx-key': ['error', { checkFragmentShorthand: true, checkKeyMustBeforeSpread: true }],
       '@typescript-eslint/no-unused-vars': [
         'warn',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
