@@ -9,6 +9,11 @@ import {
 } from '@/services/message.service';
 import { supabase } from '@/lib/supabase';
 import type { MessageWithSender } from '@/types';
+import type { Database } from '@/types/database';
+
+type MessageRow = Database['public']['Tables']['messages']['Row'];
+type ConversationParticipantRow = Database['public']['Tables']['conversation_participants']['Row'];
+type TypingPresence = { userId: string; typing: boolean };
 
 export function useChat(conversationId: string | undefined, userId: string | undefined) {
   const [messages, setMessages] = useState<MessageWithSender[]>([]);
@@ -125,7 +130,7 @@ export function useChat(conversationId: string | undefined, userId: string | und
           filter: `conversation_id=eq.${conversationId}`,
         },
         async (payload) => {
-          const newMsg = payload.new as any;
+          const newMsg = payload.new as MessageRow;
           // Don't duplicate our own messages (already added optimistically)
           if (newMsg.sender_id === userId) return;
 
@@ -152,7 +157,7 @@ export function useChat(conversationId: string | undefined, userId: string | und
           filter: `conversation_id=eq.${conversationId}`,
         },
         (payload) => {
-          const updated = payload.new as any;
+          const updated = payload.new as ConversationParticipantRow;
           if (updated.user_id !== userId) {
             setOtherLastReadAt(updated.last_read_at);
           }
@@ -179,8 +184,8 @@ export function useChat(conversationId: string | undefined, userId: string | und
         let otherIsTyping = false;
         for (const key of Object.keys(state)) {
           if (key !== userId) {
-            const presences = state[key] as any[];
-            if (presences?.some((p: any) => p.typing)) {
+            const presences = state[key] as unknown as TypingPresence[];
+            if (presences?.some((p) => p.typing)) {
               otherIsTyping = true;
               break;
             }

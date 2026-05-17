@@ -57,15 +57,19 @@ export function useSpotlightSearch() {
       (a) => a.title.toLowerCase().includes(q) || a.subtitle.toLowerCase().includes(q),
     );
 
-    // Search users
+    // Search users.
+    // NOTE: `display_name` is not in the generated database type for `profiles`,
+    // so we narrow the select result via `.returns<T[]>()` rather than casting
+    // the whole query builder to `any`.
     type ProfileRow = { id: string; username: string; display_name: string | null; avatar_url: string | null };
-    const { data: users } = await (supabase
-      .from('profiles') as any)
+    const { data: users } = await supabase
+      .from('profiles')
       .select('id, username, display_name, avatar_url')
       .or(`username.ilike.%${searchQuery}%,display_name.ilike.%${searchQuery}%`)
-      .limit(5);
+      .limit(5)
+      .returns<ProfileRow[]>();
 
-    const userResults: SpotlightResult[] = ((users || []) as ProfileRow[]).map((u) => ({
+    const userResults: SpotlightResult[] = (users || []).map((u) => ({
       id: `user-${u.id}`,
       type: 'user' as const,
       title: u.display_name || u.username,
