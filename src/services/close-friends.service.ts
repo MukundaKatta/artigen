@@ -9,7 +9,8 @@ export async function getCloseFriends(userId: string) {
 
   if (error || !data) return { data: [] as Profile[], error };
 
-  const friends = data.map((d: any) => d.friend as Profile);
+  type CloseFriendRow = { friend_id: string; friend: Profile };
+  const friends = (data as unknown as CloseFriendRow[]).map((d) => d.friend);
   return { data: friends, error: null };
 }
 

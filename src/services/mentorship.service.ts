@@ -128,6 +128,10 @@ export async function findMentors(limit = 20) {
     .eq('badge_id', 'mentor')
     .limit(limit);
 
-  const mentors = (data || []).map((row: any) => row.user).filter(Boolean);
-  return { data: mentors as { id: string; username: string; full_name: string; avatar_url: string | null; is_verified: boolean }[], error };
+  type MentorProfile = { id: string; username: string; full_name: string; avatar_url: string | null; is_verified: boolean };
+  type MentorRow = { user: MentorProfile | null };
+  const mentors = ((data ?? []) as unknown as MentorRow[])
+    .map((row) => row.user)
+    .filter((u): u is MentorProfile => u != null);
+  return { data: mentors, error };
 }

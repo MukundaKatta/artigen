@@ -48,5 +48,5 @@ export async function getBlockedUserIds(userId: string) {
     .from('user_blocks')
     .select('blocked_id')
     .eq('blocker_id', userId);
-  return new Set((data || []).map((d: any) => d.blocked_id as string));
+  return new Set(((data ?? []) as Array<{ blocked_id: string }>).map((d) => d.blocked_id));
 }

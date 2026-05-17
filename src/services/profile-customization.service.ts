@@ -32,7 +32,8 @@ export async function getTopFriends(userId: string) {
 
   if (error || !data) return { data: [] as Profile[], error };
 
-  const friends = data.map((d: any) => d.friend as Profile);
+  type TopFriendRow = { friend: Profile };
+  const friends = (data as unknown as TopFriendRow[]).map((d) => d.friend);
   return { data: friends, error: null };
 }
 
