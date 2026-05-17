@@ -69,15 +69,26 @@ export async function createStripeCheckout(
   return { checkout_url: data.checkout_url, error: null };
 }
 
+export type RazorpayOrder = {
+  id?: string;
+  order_id?: string;
+  key_id?: string;
+  amount?: number;
+  currency?: string;
+  receipt?: string;
+  status?: string;
+};
+
 export async function createRazorpayOrder(
   packageId: string
-): Promise<{ order: any | null; error: string | null }> {
+): Promise<{ order: RazorpayOrder | null; error: string | null }> {
   const { data, error } = await supabase.functions.invoke('create-razorpay-order', {
     body: { package_id: packageId },
   });
   if (error) return { order: null, error: error.message };
-  if (data?.error) return { order: null, error: data.error };
-  return { order: data, error: null };
+  const payload = data as { error?: string } & RazorpayOrder | null;
+  if (payload?.error) return { order: null, error: payload.error };
+  return { order: payload as RazorpayOrder, error: null };
 }
 
 export async function openStripeCheckout(packageId: string): Promise<{ error: string | null }> {
