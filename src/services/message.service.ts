@@ -1,3 +1,25 @@
+/**
+ * message.service — data layer for direct messaging.
+ *
+ * Conversations are stored across three tables:
+ * - `conversations` — one row per thread (1:1 or group)
+ * - `conversation_participants` — join table; tracks each user's `last_read_at`
+ * - `messages` — one row per message
+ *
+ * Every exported function returns `{ data, error }`. Side effects:
+ * - `sendMessage` writes the message row; a DB trigger updates
+ *   `conversations.updated_at` and broadcasts on the realtime channel.
+ * - `markRead` updates `conversation_participants.last_read_at` — the
+ *   unread-count map in `getConversations` is derived from this.
+ * - `getOrCreateConversation` deduplicates 1:1 threads server-side.
+ *
+ * Realtime: hooks (e.g. `useChat`) subscribe to
+ * `messages:conversation_id=eq.<id>` channels separately; this service
+ * itself does NOT subscribe.
+ *
+ * Mocked in tests via `src/__mocks__/lib/supabase.ts`.
+ */
+
 import { supabase } from '@/lib/supabase';
 import { MESSAGES_PAGE_SIZE } from '@/lib/constants';
 import { sanitizeText } from '@/lib/sanitize';

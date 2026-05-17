@@ -1,3 +1,22 @@
+/**
+ * battle.service — data layer for the Art Battles feature.
+ *
+ * Lifecycle of an `ArtBattle`:
+ *   waiting → active → voting → completed
+ *
+ * State transitions are driven by:
+ * - `createBattle` writes a `waiting` battle
+ * - opponent acceptance / join flips it to `active`
+ * - server-side cron (or `time_limit_minutes` expiry) flips `active` → `voting`
+ * - `voting_ends_at` expiry flips `voting` → `completed` and sets `winner_id`
+ *
+ * Vote tallying happens via DB triggers on `battle_votes` insert/delete —
+ * `vote_count` on `BattleEntry` is denormalized for read perf.
+ *
+ * Every exported function returns `{ data, error }` (Supabase shape).
+ * Mocked in tests via `src/__mocks__/lib/supabase.ts`.
+ */
+
 import { supabase } from '@/lib/supabase';
 
 const PAGE_SIZE = 20;

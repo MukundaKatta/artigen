@@ -1,3 +1,22 @@
+/**
+ * post.service — data layer for the Post domain.
+ *
+ * Every exported function returns `{ data, error }` (mirrors Supabase's shape)
+ * unless documented otherwise. Errors are not thrown — callers check `error`.
+ *
+ * Side effects worth noting:
+ * - `createPost` triggers: hashtag linking, streak update, badge awards,
+ *   notification creation for @mentions, taste-profile recording.
+ * - `likePost`/`savePost` are optimistic at the hook layer (`useFeed`) — the
+ *   service itself just writes the row.
+ * - `deletePost` cascades via DB FK to comments, likes, saves, hashtags.
+ * - `getFeed` reads from the union of (followed users + self) and excludes
+ *   drafts, scheduled, and archived posts. Pagination is page-number based
+ *   (`FEED_PAGE_SIZE`).
+ *
+ * Mocked in tests via `src/__mocks__/lib/supabase.ts`.
+ */
+
 import { supabase } from '@/lib/supabase';
 import { FEED_PAGE_SIZE, EXPLORE_PAGE_SIZE } from '@/lib/constants';
 import { uploadFile } from '@/services/upload.service';
@@ -14,6 +33,14 @@ type PostMediaInsert = Database['public']['Tables']['post_media']['Insert'];
 
 // ── Feed ──────────────────────────────────────────────────────────
 
+/**
+ * Returns posts from accounts the user follows plus their own, newest first.
+ * Excludes drafts, scheduled, and archived posts. Joins user, media, and
+ * ai_metadata. Adds `isLiked`/`isSaved` flags via batch lookups.
+ *
+ * @param userId Viewer's user id (used for follow set and like/save lookup)
+ * @param page Zero-indexed page; size is `FEED_PAGE_SIZE`
+ */
 export async function getFeed(userId: string, page = 0) {
   const from = page * FEED_PAGE_SIZE;
   const to = from + FEED_PAGE_SIZE - 1;
