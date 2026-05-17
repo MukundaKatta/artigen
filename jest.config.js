@@ -37,4 +37,14 @@ module.exports = {
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'text-summary', 'lcov'],
+  // Floor set just below current baseline (lines ~10%, branches ~7%) so the
+  // gate catches regressions today and can be ratcheted up as coverage grows.
+  coverageThreshold: {
+    global: {
+      branches: 5,
+      functions: 5,
+      lines: 8,
+      statements: 8,
+    },
+  },
 };
