@@ -125,7 +125,7 @@ export function useChat(conversationId: string | undefined, userId: string | und
           filter: `conversation_id=eq.${conversationId}`,
         },
         async (payload) => {
-          const newMsg = payload.new as any;
+          const newMsg = payload.new as { id: string; sender_id: string };
           // Don't duplicate our own messages (already added optimistically)
           if (newMsg.sender_id === userId) return;
 
@@ -152,7 +152,7 @@ export function useChat(conversationId: string | undefined, userId: string | und
           filter: `conversation_id=eq.${conversationId}`,
         },
         (payload) => {
-          const updated = payload.new as any;
+          const updated = payload.new as { user_id: string; last_read_at: string };
           if (updated.user_id !== userId) {
             setOtherLastReadAt(updated.last_read_at);
           }

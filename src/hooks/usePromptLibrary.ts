@@ -43,7 +43,12 @@ export function usePromptLibrary(userId: string | undefined) {
   useEffect(() => {
     if (!userId) return;
     getSavedPrompts(userId).then(({ data }) => {
-      const ids = new Set(data.map((s: any) => s.prompt_id || s.prompt?.id));
+      type SavedRow = { prompt_id?: string; prompt?: { id?: string } | null };
+      const ids = new Set(
+        (data as SavedRow[])
+          .map((s) => s.prompt_id || s.prompt?.id)
+          .filter((id): id is string => !!id),
+      );
       setSavedPromptIds(ids);
     });
   }, [userId]);
