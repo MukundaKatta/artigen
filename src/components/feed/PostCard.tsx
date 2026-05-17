@@ -207,6 +207,7 @@ export const PostCard = React.memo(function PostCard({
         media={sortedMedia}
         onDoubleTap={handleDoubleTap}
         heartStyle={heartStyle}
+        altText={post.caption?.trim() || post.ai_metadata?.prompt || `Post by @${post.user.username}`}
       />
 
       {/* Collaborators */}

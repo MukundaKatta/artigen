@@ -25,15 +25,27 @@ function DesktopActionSheet({ visible, onClose, items, title }: Props) {
 
   return (
     <Modal transparent visible={visible} onRequestClose={onClose} animationType="fade">
-      <Pressable style={desktopStyles.overlay} onPress={onClose}>
-        <Pressable style={desktopStyles.dialog} onPress={(e) => e.stopPropagation()}>
-          {title && <Text style={desktopStyles.title}>{title}</Text>}
+      <Pressable
+        style={desktopStyles.overlay}
+        onPress={onClose}
+        accessibilityLabel="Close dialog"
+      >
+        <Pressable
+          style={desktopStyles.dialog}
+          onPress={(e) => e.stopPropagation()}
+          accessibilityViewIsModal
+          accessibilityRole="menu"
+          accessibilityLabel={title || 'Action menu'}
+        >
+          {title && <Text style={desktopStyles.title} accessibilityRole="header">{title}</Text>}
           {items.map((item, index) => (
             <AnimatedPressable
               key={index}
               style={[desktopStyles.item, index < items.length - 1 && desktopStyles.itemBorder]}
               onPress={() => { onClose(); setTimeout(() => item.onPress(), 100); }}
               scaleValue={0.97}
+              accessibilityRole="menuitem"
+              accessibilityLabel={item.label}
             >
               <Text style={[desktopStyles.itemText, item.destructive && desktopStyles.destructiveText]}>
                 {item.label}
@@ -41,7 +53,13 @@ function DesktopActionSheet({ visible, onClose, items, title }: Props) {
             </AnimatedPressable>
           ))}
           <View style={desktopStyles.separator} />
-          <AnimatedPressable style={desktopStyles.item} onPress={onClose} scaleValue={0.97}>
+          <AnimatedPressable
+            style={desktopStyles.item}
+            onPress={onClose}
+            scaleValue={0.97}
+            accessibilityRole="menuitem"
+            accessibilityLabel="Cancel"
+          >
             <Text style={desktopStyles.cancelText}>Cancel</Text>
           </AnimatedPressable>
         </Pressable>
@@ -171,8 +189,13 @@ export function ActionSheet({ visible, onClose, items, title }: Props) {
       handleIndicatorStyle={styles.indicator}
       backgroundStyle={styles.background}
     >
-      <View style={styles.content}>
-        {title && <Text style={styles.title}>{title}</Text>}
+      <View
+        style={styles.content}
+        accessibilityViewIsModal
+        accessibilityRole="menu"
+        accessibilityLabel={title || 'Action menu'}
+      >
+        {title && <Text style={styles.title} accessibilityRole="header">{title}</Text>}
 
         {items.map((item, index) => (
           <AnimatedPressable
@@ -181,7 +204,7 @@ export function ActionSheet({ visible, onClose, items, title }: Props) {
             onPress={() => handleItemPress(item)}
             scaleValue={0.97}
             accessibilityLabel={item.label}
-            accessibilityRole="button"
+            accessibilityRole="menuitem"
           >
             <Text style={[styles.itemText, item.destructive && styles.destructiveText]}>
               {item.label}
@@ -190,7 +213,13 @@ export function ActionSheet({ visible, onClose, items, title }: Props) {
         ))}
 
         <View style={styles.cancelSeparator} />
-        <AnimatedPressable style={styles.item} onPress={onClose} scaleValue={0.97} accessibilityLabel="Cancel" accessibilityRole="button">
+        <AnimatedPressable
+          style={styles.item}
+          onPress={onClose}
+          scaleValue={0.97}
+          accessibilityLabel="Cancel"
+          accessibilityRole="menuitem"
+        >
           <Text style={styles.cancelText}>Cancel</Text>
         </AnimatedPressable>
       </View>
