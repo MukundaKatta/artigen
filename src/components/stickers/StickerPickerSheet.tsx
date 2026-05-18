@@ -4,7 +4,7 @@ import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
 import { SCREEN_WIDTH } from '@/lib/constants';
-import * as stickerPackService from '@/services/sticker-pack.service';
+import { getSavedPacks, getPackStickers } from '@/services/sticker-pack.service';
 
 const COLS = 4;
 const GAP = spacing.sm;
@@ -86,7 +86,7 @@ export function StickerPickerSheet({ visible, onClose, onSelect, userId }: Props
 
   useEffect(() => {
     if (visible && userId) {
-      stickerPackService.getSavedPacks(userId).then(({ data }) => {
+      getSavedPacks(userId).then(({ data }) => {
         type SavedPackRow = { pack?: Pack | null } & Pack;
         const packList = ((data || []) as unknown as SavedPackRow[]).map((d) => d.pack || d);
         setPacks(packList);
@@ -99,7 +99,7 @@ export function StickerPickerSheet({ visible, onClose, onSelect, userId }: Props
 
   useEffect(() => {
     if (selectedPack) {
-      stickerPackService.getPackStickers(selectedPack).then(({ data }) => {
+      getPackStickers(selectedPack).then(({ data }) => {
         setStickers(data || []);
       });
     }

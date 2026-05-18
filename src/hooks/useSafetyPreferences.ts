@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import * as safetyService from '@/services/safety.service';
+import { getSafetyPreferences, updateSafetyPreferences } from '@/services/safety.service';
 
 export function useSafetyPreferences(userId?: string) {
   const [prefs, setPrefs] = useState<any>(null);
@@ -8,7 +8,7 @@ export function useSafetyPreferences(userId?: string) {
   const fetch = useCallback(async () => {
     if (!userId) return;
     setLoading(true);
-    const { data } = await safetyService.getSafetyPreferences(userId);
+    const { data } = await getSafetyPreferences(userId);
     setPrefs(data);
     setLoading(false);
   }, [userId]);
@@ -22,7 +22,7 @@ export function useSafetyPreferences(userId?: string) {
     ageVerified?: boolean;
   }) => {
     if (!userId) return;
-    const { data, error } = await safetyService.updateSafetyPreferences(userId, updates);
+    const { data, error } = await updateSafetyPreferences(userId, updates);
     if (!error && data) setPrefs(data);
     return { error };
   }, [userId]);
