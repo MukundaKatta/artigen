@@ -17,7 +17,7 @@ export function RatingStars({ label, value, onChange, readonly = false, size = 2
   return (
     <View style={styles.container}>
       <Text style={styles.label}>{label}</Text>
-      <View style={styles.starsRow}>
+      <View style={styles.starsRow} accessibilityRole={readonly ? undefined : 'adjustable'} accessibilityLabel={`${label}: ${value} of 5 stars`}>
         {stars.map((star) => {
           const filled = star <= value;
           if (readonly) {
@@ -26,7 +26,7 @@ export function RatingStars({ label, value, onChange, readonly = false, size = 2
                 key={star}
                 name={filled ? 'star' : 'star-outline'}
                 size={size}
-                color={filled ? '#F59E0B' : colors.border}
+                color={filled ? colors.warning : colors.border}
                 style={styles.star}
               />
             );
@@ -37,11 +37,14 @@ export function RatingStars({ label, value, onChange, readonly = false, size = 2
               onPress={() => onChange?.(star)}
               hitSlop={4}
               activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={`Rate ${star} star${star === 1 ? '' : 's'}`}
+              accessibilityState={{ selected: filled }}
             >
               <Ionicons
                 name={filled ? 'star' : 'star-outline'}
                 size={size}
-                color={filled ? '#F59E0B' : colors.border}
+                color={filled ? colors.warning : colors.border}
                 style={styles.star}
               />
             </TouchableOpacity>

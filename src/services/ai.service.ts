@@ -153,9 +153,16 @@ export const AI_MODELS: AiModel[] = [
 const GENERATION_TIMEOUT_MS = 120_000; // 2 minutes
 
 function timeoutPromise(ms: number): Promise<never> {
-  return new Promise((_, reject) =>
-    setTimeout(() => reject(new Error('Generation timed out. Please try again.')), ms),
-  );
+  return new Promise((_, reject) => {
+    const t = setTimeout(
+      () => reject(new Error('Generation timed out. Please try again.')),
+      ms,
+    );
+    // Don't hold the event loop open just for this timer (jest, SSR).
+    // RN doesn't implement .unref(); guard with a typeof check.
+    const tRef = t as { unref?: () => void };
+    if (typeof tRef.unref === 'function') tRef.unref();
+  });
 }
 
 export async function generateImage(

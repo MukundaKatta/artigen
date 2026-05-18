@@ -3,6 +3,7 @@ import { Text, StyleSheet, StyleProp, TextStyle } from 'react-native';
 import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { colors, fontSize, typography } from '@/lib/theme';
+import { parseRichText } from '@/lib/parse-rich-text';
 
 type RichTextProps = {
   children: string;
@@ -34,9 +35,7 @@ export function RichText({ children, style, numberOfLines, username }: RichTextP
     router.push(`/(screens)/hashtag/${name}`);
   }
 
-  // Split text into segments: plain text, @mentions, and #hashtags
-  const regex = /([@#][a-zA-Z0-9._]+)/g;
-  const parts = children.split(regex);
+  const parts = parseRichText(children);
 
   return (
     <Text style={style} numberOfLines={numberOfLines}>
@@ -44,29 +43,30 @@ export function RichText({ children, style, numberOfLines, username }: RichTextP
         <Text style={styles.username}>{username}  </Text>
       )}
       {parts.map((part, index) => {
-        if (part.startsWith('@')) {
+        const key = `${index}-${part.value}`;
+        if (part.type === 'mention') {
           return (
             <Text
-              key={index}
+              key={key}
               style={styles.mention}
-              onPress={() => handleMentionPress(part)}
+              onPress={() => handleMentionPress(part.value)}
             >
-              {part}
+              {part.value}
             </Text>
           );
         }
-        if (part.startsWith('#')) {
+        if (part.type === 'hashtag') {
           return (
             <Text
-              key={index}
+              key={key}
               style={styles.hashtag}
-              onPress={() => handleHashtagPress(part)}
+              onPress={() => handleHashtagPress(part.value)}
             >
-              {part}
+              {part.value}
             </Text>
           );
         }
-        return <Text key={index}>{part}</Text>;
+        return <Text key={key}>{part.value}</Text>;
       })}
     </Text>
   );

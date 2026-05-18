@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
 import { supabase } from '@/lib/supabase';
+import { logger } from '@/lib/logger';
 
 export type TelemetryPayload = Record<string, string | number | boolean | null | undefined>;
 
@@ -71,6 +72,11 @@ let flushTimer: ReturnType<typeof setInterval> | null = null;
 function startFlushTimer() {
   if (flushTimer) return;
   flushTimer = setInterval(flushEvents, FLUSH_INTERVAL_MS);
+  // In Node-based environments (jest, server-side rendering), unref() the
+  // timer so it doesn't keep the event loop alive. RN's setInterval doesn't
+  // implement unref, so guard with a typeof check.
+  const t = flushTimer as { unref?: () => void };
+  if (typeof t.unref === 'function') t.unref();
 }
 
 async function flushEvents() {
@@ -104,8 +110,7 @@ export function trackEvent(event: TelemetryEventName, payload: TelemetryPayload 
   };
 
   if (__DEV__) {
-    // eslint-disable-next-line no-console
-    console.log('[telemetry]', event, enrichedPayload);
+    logger.debug('[telemetry]', event, enrichedPayload);
   }
 
   // Queue for batch upload

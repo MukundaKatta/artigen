@@ -11,7 +11,7 @@ import {
   Share,
   Platform,
 } from 'react-native';
-import * as Haptics from 'expo-haptics';
+import { impactAsync, selectionAsync, ImpactFeedbackStyle } from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -135,7 +135,7 @@ export function ShareSheet({
                   <AnimatedPressable
                     style={[styles.sendButton, isSent && styles.sentButton]}
                     onPress={() => {
-                      if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      if (Platform.OS !== 'web') impactAsync(ImpactFeedbackStyle.Light);
                       handleSend(item.id);
                     }}
                     disabled={isSent || isSending}
@@ -161,7 +161,7 @@ export function ShareSheet({
 
           {/* External share option */}
           <AnimatedPressable style={styles.externalShare} onPress={() => {
-            if (Platform.OS !== 'web') Haptics.selectionAsync();
+            if (Platform.OS !== 'web') selectionAsync();
             handleExternalShare();
           }} scaleValue={0.97}>
             <Ionicons name="share-outline" size={22} color={colors.text} />

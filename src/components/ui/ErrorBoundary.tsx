@@ -1,58 +1,26 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
+import { View, Text, StyleSheet } from 'react-native';
+import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
+import { colors, spacing, fontSize, typography } from '@/lib/theme';
 
 type Props = {
   children: React.ReactNode;
   fallbackTitle?: string;
 };
 
-type State = {
-  hasError: boolean;
-  error: Error | null;
-};
+/**
+ * Thin wrapper around the canonical ErrorBoundary that renders a smaller
+ * inline fallback (no go-home button) suitable for feature-scoped wrapping.
+ */
+export function FeatureErrorBoundary({ children, fallbackTitle }: Props) {
+  const fallback = (
+    <View style={styles.container}>
+      <Text style={styles.title}>{fallbackTitle ?? 'Something went wrong'}</Text>
+      <Text style={styles.message}>This section failed to load. Pull to refresh.</Text>
+    </View>
+  );
 
-export class FeatureErrorBoundary extends React.Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = { hasError: false, error: null };
-  }
-
-  static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
-  }
-
-  handleRetry = () => {
-    this.setState({ hasError: false, error: null });
-  };
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <View style={styles.container}>
-          <View style={styles.iconCircle}>
-            <Ionicons name="warning-outline" size={32} color={colors.warning} />
-          </View>
-          <Text style={styles.title}>
-            {this.props.fallbackTitle ?? 'Something went wrong'}
-          </Text>
-          <Text style={styles.message}>
-            {this.state.error?.message || 'An unexpected error occurred.'}
-          </Text>
-          <TouchableOpacity
-            style={styles.retryButton}
-            onPress={this.handleRetry}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="refresh" size={18} color="#fff" />
-            <Text style={styles.retryText}>Try Again</Text>
-          </TouchableOpacity>
-        </View>
-      );
-    }
-    return this.props.children;
-  }
+  return <ErrorBoundary fallback={fallback}>{children}</ErrorBoundary>;
 }
 
 const styles = StyleSheet.create({
@@ -60,20 +28,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: spacing.xxxl,
+    padding: spacing.xxl,
     backgroundColor: colors.background,
   },
-  iconCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: colors.backgroundSecondary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: spacing.lg,
-  },
   title: {
-    fontSize: fontSize.xl,
+    fontSize: fontSize.lg,
     fontFamily: typography.semiBold,
     color: colors.text,
     marginBottom: spacing.sm,
@@ -85,20 +44,5 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 20,
-    marginBottom: spacing.xl,
-  },
-  retryButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.primary,
-    paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.md,
-    borderRadius: borderRadius.lg,
-    gap: spacing.sm,
-  },
-  retryText: {
-    fontSize: fontSize.md,
-    fontFamily: typography.semiBold,
-    color: '#fff',
   },
 });

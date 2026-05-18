@@ -7,16 +7,24 @@ import { useAuth } from '@/providers/AuthProvider';
 import { getUserCredits } from '@/services/credits.service';
 import { colors, fontSize, typography, borderRadius, spacing } from '@/lib/theme';
 import { formatNumber } from '@/utils/format-number';
+import { logger } from '@/lib/logger';
 
-export function CreditBadge() {
+// Explicit (currently empty) props contract — #218.
+export type CreditBadgeProps = Record<string, never>;
+
+export function CreditBadge(_: CreditBadgeProps = {}) {
   const { user } = useAuth();
   const router = useRouter();
   const [credits, setCredits] = useState<number | null>(null);
 
   const fetchCredits = useCallback(async () => {
     if (!user?.id) return;
-    const balance = await getUserCredits(user.id);
-    setCredits(balance);
+    try {
+      const balance = await getUserCredits(user.id);
+      setCredits(balance);
+    } catch (err) {
+      logger.warn('CreditBadge: failed to fetch credits', err);
+    }
   }, [user?.id]);
 
   useEffect(() => {

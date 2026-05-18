@@ -51,6 +51,46 @@ function calculateDelay(attempt: number, options: Required<RetryOptions>): numbe
   return Math.floor(Math.random() * bounded);
 }
 
+// ── Global retry budget ────────────────────────────────
+//
+// Per-window cap on RETRY attempts (the initial call doesn't count) across
+// the entire process. Prevents a server-side outage from cascading into a
+// self-inflicted DDoS where every active caller burns its full retry budget
+// in lockstep.
+//
+// Implementation: sliding-window timestamp ring. When a retry is requested
+// and the window is full, `withRetry` gives up and throws the underlying
+// error immediately instead of waiting + retrying.
+
+const BUDGET_WINDOW_MS = 60_000;
+const BUDGET_MAX_RETRIES = 100;
+const retryTimestamps: number[] = [];
+
+function tryConsumeBudget(): boolean {
+  const now = Date.now();
+  const cutoff = now - BUDGET_WINDOW_MS;
+  // Drop expired entries (the array is append-only and sorted ascending)
+  while (retryTimestamps.length > 0 && retryTimestamps[0] < cutoff) {
+    retryTimestamps.shift();
+  }
+  if (retryTimestamps.length >= BUDGET_MAX_RETRIES) return false;
+  retryTimestamps.push(now);
+  return true;
+}
+
+/** Exposed for tests only. */
+export function _resetRetryBudgetForTests() {
+  retryTimestamps.length = 0;
+}
+
+/** Exposed for tests / telemetry. */
+export function getRetryBudgetState() {
+  const now = Date.now();
+  const cutoff = now - BUDGET_WINDOW_MS;
+  const live = retryTimestamps.filter((t) => t >= cutoff).length;
+  return { used: live, limit: BUDGET_MAX_RETRIES, windowMs: BUDGET_WINDOW_MS };
+}
+
 export async function withRetry<T>(
   fn: () => Promise<T>,
   options?: RetryOptions,
@@ -63,7 +103,14 @@ export async function withRetry<T>(
       return await fn();
     } catch (error) {
       lastError = error;
-      if (attempt === opts.maxRetries || !opts.isRetryable(error)) {
+      const isLastAttempt = attempt === opts.maxRetries;
+      if (isLastAttempt || !opts.isRetryable(error)) {
+        throw error;
+      }
+      // Budget check before sleeping + retrying. If we're out of budget,
+      // surface the error immediately so the caller can fail fast rather
+      // than amplify load.
+      if (!tryConsumeBudget()) {
         throw error;
       }
       const delay = calculateDelay(attempt, opts);

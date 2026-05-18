@@ -1,23 +1,19 @@
 #!/usr/bin/env node
 /**
  * Post-export script: patches dist/index.html with:
- * 1. Global error handler (blank page debugging)
- * 2. PWA manifest + meta tags
- * 3. Service worker registration
- * 4. SEO / Open Graph meta tags
+ * 1. Mobile CSS fixes (viewport, safe areas, no tap highlight)
+ * 2. Global error handler (blank page debugging)
+ * 3. SEO / Open Graph meta tags
+ * 4. PWA manifest + meta tags
+ * 5. Service worker registration
  * Also copies PWA assets (manifest.json, sw.js) to dist/
+ *
+ * The pure `applyPatches(html)` function is exported for testing.
  */
 const fs = require('fs');
 const path = require('path');
 
-const distDir = path.join(__dirname, '..', 'dist');
-const htmlPath = path.join(distDir, 'index.html');
-const publicDir = path.join(__dirname, '..', 'public');
-
-let html = fs.readFileSync(htmlPath, 'utf-8');
-
-// --- 0. Mobile CSS fixes ---
-const mobileCss = `
+const MOBILE_CSS = `
 <style>
   /* Fix 100vh on mobile Safari — use fill-available / dvh */
   html {
@@ -58,8 +54,7 @@ const mobileCss = `
   }
 </style>`;
 
-// --- 1. Error handler script ---
-const errorScript = `
+const ERROR_SCRIPT = `
 <script>
   window.onerror = function(msg, url, line, col, err) {
     var root = document.getElementById('root');
@@ -74,8 +69,7 @@ const errorScript = `
   };
 </script>`;
 
-// --- 2. SEO & Open Graph meta tags ---
-const seoMeta = `
+const SEO_META = `
   <meta name="description" content="Artigen — Create, share, and discover AI-generated art. Join the AI art community.">
   <meta name="keywords" content="AI art, generative art, AI image generation, art community, creative AI">
   <meta property="og:title" content="Artigen — AI Art Community">
@@ -87,16 +81,14 @@ const seoMeta = `
   <meta name="twitter:title" content="Artigen — AI Art Community">
   <meta name="twitter:description" content="Create, share, and discover AI-generated art">`;
 
-// --- 3. PWA meta tags + manifest link ---
-const pwaMeta = `
+const PWA_META = `
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#0095F6">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Artigen">`;
 
-// --- 4. Service worker registration ---
-const swScript = `
+const SW_SCRIPT = `
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
@@ -105,32 +97,49 @@ const swScript = `
   }
 </script>`;
 
-// Apply patches
+/**
+ * Pure function: takes the Expo-emitted dist/index.html as a string and
+ * returns the patched HTML. Exported for unit testing — does no I/O.
+ */
+function applyPatches(html) {
+  // Fix viewport: add viewport-fit=cover for iOS safe areas
+  html = html.replace(
+    /(<meta[^>]*name="viewport"[^>]*>)/i,
+    '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">'
+  );
 
-// Fix viewport: add viewport-fit=cover for iOS safe areas
-html = html.replace(
-  /(<meta[^>]*name="viewport"[^>]*>)/i,
-  '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">'
-);
+  // Inject mobile CSS fixes right before </head>
+  html = html.replace('</head>', MOBILE_CSS + '\n</head>');
 
-// Inject mobile CSS fixes right before </head>
-html = html.replace('</head>', mobileCss + '\n</head>');
+  html = html.replace('<title>', SEO_META + PWA_META + '\n  <title>');
+  html = html.replace('<title>Artigen</title>', '<title>Artigen — AI Art Community</title>');
+  html = html.replace('<body>', '<body>' + ERROR_SCRIPT);
+  html = html.replace('</body>', SW_SCRIPT + '\n</body>');
 
-html = html.replace('<title>', seoMeta + pwaMeta + '\n  <title>');
-html = html.replace('<title>Artigen</title>', '<title>Artigen — AI Art Community</title>');
-html = html.replace('<body>', '<body>' + errorScript);
-html = html.replace('</body>', swScript + '\n</body>');
+  return html;
+}
 
-fs.writeFileSync(htmlPath, html, 'utf-8');
-console.log('✓ Patched dist/index.html with error handler, SEO, PWA, and service worker');
+module.exports = { applyPatches };
 
-// --- 5. Copy PWA assets to dist ---
-const filesToCopy = ['manifest.json', 'sw.js'];
-for (const file of filesToCopy) {
-  const src = path.join(publicDir, file);
-  const dest = path.join(distDir, file);
-  if (fs.existsSync(src)) {
-    fs.copyFileSync(src, dest);
-    console.log(`✓ Copied ${file} to dist/`);
+// ── Entry point: only run when executed directly ────────────────────
+if (require.main === module) {
+  const distDir = path.join(__dirname, '..', 'dist');
+  const htmlPath = path.join(distDir, 'index.html');
+  const publicDir = path.join(__dirname, '..', 'public');
+
+  const html = fs.readFileSync(htmlPath, 'utf-8');
+  const patched = applyPatches(html);
+  fs.writeFileSync(htmlPath, patched, 'utf-8');
+  console.log('✓ Patched dist/index.html with error handler, SEO, PWA, and service worker');
+
+  // Copy PWA assets to dist
+  const filesToCopy = ['manifest.json', 'sw.js'];
+  for (const file of filesToCopy) {
+    const src = path.join(publicDir, file);
+    const dest = path.join(distDir, file);
+    if (fs.existsSync(src)) {
+      fs.copyFileSync(src, dest);
+      console.log(`✓ Copied ${file} to dist/`);
+    }
   }
 }
