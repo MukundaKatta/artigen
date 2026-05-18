@@ -1,5 +1,11 @@
 import { supabase } from '@/lib/supabase';
 
+/**
+ * Touch the current user's `profiles.last_active_at` to the current
+ * timestamp. Call from the activity heartbeat hook (`useActivityStatus`)
+ * roughly every 5 minutes while the app is foregrounded. Cheap single
+ * UPDATE; safe to fire-and-forget — the caller can ignore the result.
+ */
 export async function updateLastActive(userId: string) {
   const { error } = await supabase
     .from('profiles')
@@ -8,6 +14,12 @@ export async function updateLastActive(userId: string) {
   return { error };
 }
 
+/**
+ * Privacy toggle: when `show=false`, the user's last-active timestamp is
+ * still recorded server-side but hidden from other users via the RLS
+ * policy on `profiles.last_active_at`. The current user always sees their
+ * own status regardless of this setting.
+ */
 export async function toggleActivityStatus(userId: string, show: boolean) {
   const { error } = await supabase
     .from('profiles')

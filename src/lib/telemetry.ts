@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
 import { supabase } from '@/lib/supabase';
+import { logger } from '@/lib/logger';
 
 export type TelemetryPayload = Record<string, string | number | boolean | null | undefined>;
 
@@ -109,8 +110,7 @@ export function trackEvent(event: TelemetryEventName, payload: TelemetryPayload 
   };
 
   if (__DEV__) {
-    // eslint-disable-next-line no-console
-    console.log('[telemetry]', event, enrichedPayload);
+    logger.debug('[telemetry]', event, enrichedPayload);
   }
 
   // Queue for batch upload
