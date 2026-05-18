@@ -2,7 +2,7 @@ import React from 'react';
 import { View, ScrollView, Text, StyleSheet, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import { selectionAsync } from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Image } from 'expo-image';
 import { useAuth } from '@/providers/AuthProvider';
@@ -18,7 +18,10 @@ const STORY_AVATAR_SIZE = AVATAR_SIZES.lg;
 const RING_SIZE = STORY_AVATAR_SIZE + 10;
 const GAP = 2;
 
-export function StoryBar() {
+// Explicit (currently empty) props contract — #218.
+export type StoryBarProps = Record<string, never>;
+
+export function StoryBar(_: StoryBarProps = {}) {
   const { profile, user } = useAuth();
   const { stories, loading } = useStories(user?.id);
   const router = useRouter();
@@ -32,7 +35,7 @@ export function StoryBar() {
   }
 
   function handleMyStoryPress() {
-    if (Platform.OS !== 'web') Haptics.selectionAsync();
+    if (Platform.OS !== 'web') selectionAsync();
     if (myStories && myStories.stories.length > 0) {
       router.push(`/(stories)/${user?.id}`);
     } else {
@@ -41,7 +44,7 @@ export function StoryBar() {
   }
 
   function handleStoryPress(userId: string) {
-    if (Platform.OS !== 'web') Haptics.selectionAsync();
+    if (Platform.OS !== 'web') selectionAsync();
     router.push(`/(stories)/${userId}`);
   }
 

@@ -11,12 +11,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
 
+// Explicit (currently empty) props contract — #218.
+export type NetworkStatusBannerProps = Record<string, never>;
+
 /**
  * Persistent banner that shows when the device loses network connectivity.
  * Animates in from top when offline, auto-hides when back online.
  * Uses a lightweight fetch-based check (no extra dependencies).
  */
-export function NetworkStatusBanner() {
+export function NetworkStatusBanner(_: NetworkStatusBannerProps = {}) {
   const [isOffline, setIsOffline] = useState(false);
   const [showBanner, setShowBanner] = useState(false);
   const insets = useSafeAreaInsets();
