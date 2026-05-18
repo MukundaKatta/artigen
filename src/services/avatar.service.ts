@@ -57,11 +57,15 @@ export async function createAvatarJob(
     .select()
     .single();
 
-  // Fire-and-forget: invoke edge function to process the job
+  // Fire-and-forget: invoke edge function to process the job. If the
+  // invoke fails, await the row update so a subsequent read sees 'failed'.
   if (data) {
-    supabase.functions.invoke('generate-avatar', { body: { job_id: data.id } }).catch((err) => {
+    supabase.functions.invoke('generate-avatar', { body: { job_id: data.id } }).catch(async (err) => {
       logger.warn('Avatar generation invoke failed:', err);
-      supabase.from('avatar_generation_jobs').update({ status: 'failed', error_message: 'Failed to start processing' }).eq('id', data.id);
+      await supabase
+        .from('avatar_generation_jobs')
+        .update({ status: 'failed', error_message: 'Failed to start processing' })
+        .eq('id', data.id);
     });
   }
 

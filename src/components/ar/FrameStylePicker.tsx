@@ -35,6 +35,9 @@ export function FrameStylePicker({ selected, onSelect }: Props) {
             style={[styles.option, isSelected && styles.optionSelected]}
             onPress={() => onSelect(value)}
             activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={`${label} frame style`}
+            accessibilityState={{ selected: isSelected }}
           >
             <View
               style={[

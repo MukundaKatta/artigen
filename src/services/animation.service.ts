@@ -24,9 +24,13 @@ export async function createAnimationJob(params: {
     .single();
 
   if (data) {
-    supabase.functions.invoke('animate', { body: { job_id: data.id } }).catch((err) => {
+    supabase.functions.invoke('animate', { body: { job_id: data.id } }).catch(async (err) => {
       logger.warn('Animation invoke failed:', err);
-      supabase.from('animation_jobs').update({ status: 'failed', error_message: 'Failed to start processing' }).eq('id', data.id);
+      // Await the failure update so a subsequent read sees the failed row.
+      await supabase
+        .from('animation_jobs')
+        .update({ status: 'failed', error_message: 'Failed to start processing' })
+        .eq('id', data.id);
     });
   }
   return { data, error };

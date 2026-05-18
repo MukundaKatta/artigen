@@ -1,11 +1,18 @@
 import React from 'react';
 import { View, Text, StyleSheet, FlatList, Platform } from 'react-native';
 import { Image } from 'expo-image';
-import * as Haptics from 'expo-haptics';
+import { selectionAsync } from 'expo-haptics';
 import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
 
-type Props = { presets: any[]; selectedId?: string; onSelect: (preset: any) => void };
+export type StylePreset = {
+  id: string;
+  name: string;
+  preview_url?: string | null;
+  category?: string | null;
+};
+
+type Props = { presets: StylePreset[]; selectedId?: string; onSelect: (preset: StylePreset) => void };
 
 export function StylePresetGrid({ presets, selectedId, onSelect }: Props) {
   return (
@@ -14,23 +21,29 @@ export function StylePresetGrid({ presets, selectedId, onSelect }: Props) {
       numColumns={3}
       keyExtractor={item => item.id}
       contentContainerStyle={styles.grid}
-      renderItem={({ item }) => (
-        <AnimatedPressable
-          style={[styles.card, selectedId === item.id ? styles.cardActive : undefined]}
-          onPress={() => {
-            if (Platform.OS !== 'web') Haptics.selectionAsync();
-            onSelect(item);
-          }}
-          scaleValue={0.95}
-        >
-          {item.preview_url ? (
-            <Image source={{ uri: item.preview_url }} style={styles.preview} contentFit="cover" transition={200} />
-          ) : (
-            <View style={[styles.preview, styles.placeholder]} />
-          )}
-          <Text style={styles.name} numberOfLines={1}>{item.name}</Text>
-        </AnimatedPressable>
-      )}
+      renderItem={({ item }) => {
+        const selected = selectedId === item.id;
+        return (
+          <AnimatedPressable
+            style={[styles.card, selected ? styles.cardActive : undefined]}
+            onPress={() => {
+              if (Platform.OS !== 'web') selectionAsync();
+              onSelect(item);
+            }}
+            scaleValue={0.95}
+            accessibilityRole="button"
+            accessibilityLabel={`${item.name} style${item.category ? `, ${item.category} category` : ''}`}
+            accessibilityState={{ selected }}
+          >
+            {item.preview_url ? (
+              <Image source={{ uri: item.preview_url }} style={styles.preview} contentFit="cover" transition={200} />
+            ) : (
+              <View style={[styles.preview, styles.placeholder]} />
+            )}
+            <Text style={styles.name} numberOfLines={1}>{item.name}</Text>
+          </AnimatedPressable>
+        );
+      }}
     />
   );
 }
