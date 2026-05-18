@@ -102,21 +102,20 @@ export async function submitToExhibition(exhibitionId: string, userId: string, p
     .single();
 
   if (!error) {
-    // Increment submission_count
-    supabase
+    // Increment submission_count. Awaited so the caller's returned promise
+    // doesn't resolve before the DB row reflects the new count.
+    const { data: exhibition } = await supabase
       .from('exhibitions')
       .select('submission_count')
       .eq('id', exhibitionId)
-      .single()
-      .then(({ data: exhibition }) => {
-        if (exhibition) {
-          supabase
-            .from('exhibitions')
-            .update({ submission_count: (exhibition.submission_count || 0) + 1 } as any)
-            .eq('id', exhibitionId)
-            .then(() => {});
-        }
-      });
+      .single();
+
+    if (exhibition) {
+      await supabase
+        .from('exhibitions')
+        .update({ submission_count: (exhibition.submission_count || 0) + 1 })
+        .eq('id', exhibitionId);
+    }
   }
 
   return { data: data as unknown as ExhibitionSubmissionWithDetails | null, error };
@@ -129,12 +128,12 @@ export async function curateSubmission(
   status: 'accepted' | 'rejected' | 'featured',
   note?: string,
 ) {
-  const updateData: Record<string, any> = { status };
+  const updateData: { status: 'accepted' | 'rejected' | 'featured'; curator_note?: string } = { status };
   if (note) updateData.curator_note = note;
 
   const { data, error } = await supabase
     .from('exhibition_submissions')
-    .update(updateData as any)
+    .update(updateData)
     .eq('id', submissionId)
     .select('*, user:profiles!user_id(id, username, avatar_url), post:posts!post_id(id, media:post_media(media_url, media_type))')
     .single();
@@ -165,21 +164,19 @@ export async function recordVisit(exhibitionId: string, userId: string) {
     );
 
   if (!error) {
-    // Increment view_count
-    supabase
+    // Increment view_count (awaited so the caller sees the real result).
+    const { data } = await supabase
       .from('exhibitions')
       .select('view_count')
       .eq('id', exhibitionId)
-      .single()
-      .then(({ data }) => {
-        if (data) {
-          supabase
-            .from('exhibitions')
-            .update({ view_count: (data.view_count || 0) + 1 } as any)
-            .eq('id', exhibitionId)
-            .then(() => {});
-        }
-      });
+      .single();
+
+    if (data) {
+      await supabase
+        .from('exhibitions')
+        .update({ view_count: (data.view_count || 0) + 1 })
+        .eq('id', exhibitionId);
+    }
   }
 
   return { error };

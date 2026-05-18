@@ -45,16 +45,19 @@ export async function getTrendingPosts(
 ) {
   const offset = page * pageSize;
 
-  // Try the database function first (may not be deployed yet)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: rpcData, error: rpcError } = await (supabase.rpc as any)(
-    'get_trending_posts',
-    {
-      p_limit: pageSize,
-      p_offset: offset,
-      p_viewer_id: viewerId ?? null,
-    },
-  );
+  // Try the database function first (may not be deployed yet).
+  // The RPC isn't in the generated Database['Functions'] type, so we type
+  // the call via 'unknown' rather than an explicit 'any' cast.
+  type GetTrendingPostsRpc = (
+    name: 'get_trending_posts',
+    args: { p_limit: number; p_offset: number; p_viewer_id: string | null },
+  ) => Promise<{ data: unknown; error: { message: string } | null }>;
+  const rpc = supabase.rpc as unknown as GetTrendingPostsRpc;
+  const { data: rpcData, error: rpcError } = await rpc('get_trending_posts', {
+    p_limit: pageSize,
+    p_offset: offset,
+    p_viewer_id: viewerId ?? null,
+  });
 
   if (!rpcError && rpcData) {
     // RPC returns flat rows; re-shape into TrendingPost format

@@ -118,7 +118,7 @@ export async function updateProgress(userId: string, tutorialId: string, lessonI
       .update({
         current_lesson: lessonIndex + 1,
         completed_lessons: completedLessons,
-      } as any)
+      })
       .eq('user_id', userId)
       .eq('tutorial_id', tutorialId)
       .select()
@@ -149,7 +149,7 @@ export async function completeTutorial(userId: string, tutorialId: string) {
     .update({
       is_completed: true,
       completed_at: new Date().toISOString(),
-    } as any)
+    })
     .eq('user_id', userId)
     .eq('tutorial_id', tutorialId)
     .select()

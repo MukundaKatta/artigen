@@ -90,7 +90,7 @@ export async function voteWeeklyEntry(entryId: string, userId: string) {
   if (entry) {
     await supabase
       .from('weekly_event_entries')
-      .update({ vote_count: (entry.vote_count || 0) + 1 } as any)
+      .update({ vote_count: (entry.vote_count || 0) + 1 })
       .eq('id', entryId);
   }
 
@@ -118,7 +118,7 @@ export async function unvoteWeeklyEntry(entryId: string, userId: string) {
   if (entry) {
     await supabase
       .from('weekly_event_entries')
-      .update({ vote_count: Math.max(0, (entry.vote_count || 0) - 1) } as any)
+      .update({ vote_count: Math.max(0, (entry.vote_count || 0) - 1) })
       .eq('id', entryId);
   }
 
@@ -161,5 +161,5 @@ export async function getUserVotedWeeklyEntryIds(entryIds: string[], userId: str
     .in('entry_id', entryIds)
     .eq('user_id', userId);
 
-  return new Set((data || []).map((v: any) => v.entry_id));
+  return new Set((data ?? []).map((v) => v.entry_id));
 }

@@ -126,13 +126,13 @@ export async function setActiveAvatar(userId: string, avatarId: string) {
   // Deactivate all avatars for this user
   await supabase
     .from('user_avatars')
-    .update({ is_active: false } as any)
+    .update({ is_active: false })
     .eq('user_id', userId);
 
   // Activate the selected one
   const { data, error } = await supabase
     .from('user_avatars')
-    .update({ is_active: true } as any)
+    .update({ is_active: true })
     .eq('id', avatarId)
     .eq('user_id', userId)
     .select()
