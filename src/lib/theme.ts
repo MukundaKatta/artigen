@@ -95,6 +95,18 @@ export const stickerColors = {
   link: '#3B82F6',
 } as const;
 
+/**
+ * Accent / brand-feature tokens used by feature surfaces (streaks,
+ * subscribers, workflow steps, etc.). Distinct from semantic `warning`
+ * because they signal feature identity rather than a transient state.
+ */
+export const accentColors = {
+  amber: '#F59E0B', // streaks, ratings, critique highlights
+  gold: '#FFD700', // subscriber badges
+  emerald: '#10B981', // workflow completed step (also providerColors.free)
+  pink: '#EC4899', // workflow active step (also stickerColors.question)
+} as const;
+
 export function withOpacity(color: string, opacity: number): string {
   if (!color.startsWith('#')) return color;
 

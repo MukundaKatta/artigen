@@ -142,7 +142,7 @@ export function ShareSheet({
                     scaleValue={0.92}
                   >
                     {isSending ? (
-                      <ActivityIndicator size="small" color="#fff" />
+                      <ActivityIndicator size="small" color={colors.textLight} />
                     ) : (
                       <Text style={[styles.sendText, isSent && styles.sentText]}>
                         {isSent ? 'Sent' : 'Send'}
@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.backgroundSecondary,
   },
   sendText: {
-    color: '#fff',
+    color: colors.textLight,
     fontSize: fontSize.sm,
     fontFamily: typography.semiBold,
     fontWeight: '600',

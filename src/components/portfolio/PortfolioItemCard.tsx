@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
   captionText: {
     fontSize: fontSize.xs,
     fontFamily: typography.medium,
-    color: '#FFFFFF',
+    color: colors.textLight,
   },
   removeButton: {
     position: 'absolute',
