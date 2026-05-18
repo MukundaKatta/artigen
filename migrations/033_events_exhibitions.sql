@@ -141,3 +141,43 @@ CREATE POLICY "Users submit entries" ON weekly_event_entries FOR INSERT WITH CHE
 CREATE POLICY "Anyone can view weekly votes" ON weekly_event_votes FOR SELECT USING (true);
 CREATE POLICY "Users vote" ON weekly_event_votes FOR INSERT WITH CHECK (user_id = auth.uid());
 CREATE POLICY "Users unvote" ON weekly_event_votes FOR DELETE USING (user_id = auth.uid());
+
+-- DOWN
+-- Manual rollback:
+-- DROP POLICY IF EXISTS "Users unvote" ON weekly_event_votes;
+-- DROP POLICY IF EXISTS "Users vote" ON weekly_event_votes;
+-- DROP POLICY IF EXISTS "Anyone can view weekly votes" ON weekly_event_votes;
+-- DROP POLICY IF EXISTS "Users submit entries" ON weekly_event_entries;
+-- DROP POLICY IF EXISTS "Anyone can view weekly entries" ON weekly_event_entries;
+-- DROP POLICY IF EXISTS "Anyone can view weekly events" ON weekly_events;
+-- DROP POLICY IF EXISTS "Users remove RSVP" ON event_attendees;
+-- DROP POLICY IF EXISTS "Users update RSVP" ON event_attendees;
+-- DROP POLICY IF EXISTS "Users RSVP" ON event_attendees;
+-- DROP POLICY IF EXISTS "Anyone can view attendees" ON event_attendees;
+-- DROP POLICY IF EXISTS "Hosts update events" ON events;
+-- DROP POLICY IF EXISTS "Users create events" ON events;
+-- DROP POLICY IF EXISTS "Anyone can view events" ON events;
+-- DROP POLICY IF EXISTS "Users record visits" ON exhibition_visits;
+-- DROP POLICY IF EXISTS "Anyone can view visits" ON exhibition_visits;
+-- DROP POLICY IF EXISTS "Curators manage submissions" ON exhibition_submissions;
+-- DROP POLICY IF EXISTS "Users submit to exhibitions" ON exhibition_submissions;
+-- DROP POLICY IF EXISTS "Anyone can view submissions" ON exhibition_submissions;
+-- DROP POLICY IF EXISTS "Curators update own" ON exhibitions;
+-- DROP POLICY IF EXISTS "Curators create exhibitions" ON exhibitions;
+-- DROP POLICY IF EXISTS "Anyone can view live exhibitions" ON exhibitions;
+-- DROP INDEX IF EXISTS idx_weekly_event_votes_entry;
+-- DROP INDEX IF EXISTS idx_weekly_event_entries_event;
+-- DROP INDEX IF EXISTS idx_weekly_events_active;
+-- DROP INDEX IF EXISTS idx_event_attendees_event;
+-- DROP INDEX IF EXISTS idx_events_status;
+-- DROP INDEX IF EXISTS idx_events_starts;
+-- DROP INDEX IF EXISTS idx_exhibition_submissions_exhibition;
+-- DROP INDEX IF EXISTS idx_exhibitions_status;
+-- DROP TABLE IF EXISTS weekly_event_votes;
+-- DROP TABLE IF EXISTS weekly_event_entries;
+-- DROP TABLE IF EXISTS weekly_events;
+-- DROP TABLE IF EXISTS event_attendees;
+-- DROP TABLE IF EXISTS events;
+-- DROP TABLE IF EXISTS exhibition_visits;
+-- DROP TABLE IF EXISTS exhibition_submissions;
+-- DROP TABLE IF EXISTS exhibitions;

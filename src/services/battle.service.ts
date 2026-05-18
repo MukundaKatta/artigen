@@ -18,8 +18,11 @@
  */
 
 import { supabase } from '@/lib/supabase';
+import type { Database } from '@/types/database';
 
 const PAGE_SIZE = 20;
+type ArtBattleUpdate = Database['public']['Tables']['art_battles']['Update'];
+type BattleEntryUpdate = Database['public']['Tables']['battle_entries']['Update'];
 
 // ── Types ────────────────────────────────────────────
 
@@ -94,13 +97,15 @@ export async function createBattle(
 // ── Join a battle ────────────────────────────────────
 
 export async function joinBattle(battleId: string, userId: string) {
+  const updateData: ArtBattleUpdate = {
+    opponent_id: userId,
+    status: 'active',
+    started_at: new Date().toISOString(),
+  };
+
   const { data, error } = await supabase
     .from('art_battles')
-    .update({
-      opponent_id: userId,
-      status: 'active',
-      started_at: new Date().toISOString(),
-    } as any)
+    .update(updateData)
     .eq('id', battleId)
     .select()
     .single();
@@ -149,9 +154,13 @@ export async function voteBattleEntry(battleId: string, entryId: string, userId:
     .single();
 
   if (entry) {
+    const updateData: BattleEntryUpdate = {
+      vote_count: (entry.vote_count || 0) + 1,
+    };
+
     await supabase
       .from('battle_entries')
-      .update({ vote_count: (entry.vote_count || 0) + 1 } as any)
+      .update(updateData)
       .eq('id', entryId);
   }
 
@@ -186,9 +195,13 @@ export async function unvoteBattleEntry(battleId: string, userId: string) {
     .single();
 
   if (entry) {
+    const updateData: BattleEntryUpdate = {
+      vote_count: Math.max(0, (entry.vote_count || 0) - 1),
+    };
+
     await supabase
       .from('battle_entries')
-      .update({ vote_count: Math.max(0, (entry.vote_count || 0) - 1) } as any)
+      .update(updateData)
       .eq('id', vote.entry_id);
   }
 
@@ -267,13 +280,15 @@ export async function finalizeBattle(battleId: string) {
   const winner = entries[0];
   const isTie = entries.length > 1 && entries[0].vote_count === entries[1].vote_count;
 
+  const updateData: ArtBattleUpdate = {
+    status: 'completed',
+    winner_id: isTie ? null : winner.user_id,
+    completed_at: new Date().toISOString(),
+  };
+
   const { data, error } = await supabase
     .from('art_battles')
-    .update({
-      status: 'completed',
-      winner_id: isTie ? null : winner.user_id,
-      completed_at: new Date().toISOString(),
-    } as any)
+    .update(updateData)
     .eq('id', battleId)
     .select()
     .single();

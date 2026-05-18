@@ -4,15 +4,13 @@ import { Image } from 'expo-image';
 import { selectionAsync } from 'expo-haptics';
 import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
+import type { StylePreset } from '@/types/database';
 
-export type StylePreset = {
-  id: string;
-  name: string;
-  preview_url?: string | null;
-  category?: string | null;
+type Props = {
+  presets: StylePreset[];
+  selectedId?: string;
+  onSelect: (preset: StylePreset) => void;
 };
-
-type Props = { presets: StylePreset[]; selectedId?: string; onSelect: (preset: StylePreset) => void };
 
 export function StylePresetGrid({ presets, selectedId, onSelect }: Props) {
   return (

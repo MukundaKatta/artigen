@@ -23,3 +23,11 @@ AFTER UPDATE OF seen_by ON messages
 FOR EACH ROW
 WHEN (NEW.is_ephemeral = true)
 EXECUTE FUNCTION cleanup_ephemeral_messages();
+
+-- DOWN
+-- Manual rollback:
+-- DROP TRIGGER IF EXISTS trg_cleanup_ephemeral ON messages;
+-- DROP FUNCTION IF EXISTS cleanup_ephemeral_messages();
+-- ALTER TABLE messages DROP COLUMN IF EXISTS seen_by;
+-- ALTER TABLE messages DROP COLUMN IF EXISTS is_ephemeral;
+-- ALTER TABLE conversations DROP COLUMN IF EXISTS is_vanish_mode;

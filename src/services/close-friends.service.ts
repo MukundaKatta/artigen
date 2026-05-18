@@ -1,5 +1,9 @@
 import { supabase } from '@/lib/supabase';
-import type { Profile } from '@/types';
+import type { CloseFriend, Profile } from '@/types';
+
+type CloseFriendProfileResult = Pick<CloseFriend, 'friend_id'> & {
+  friend: Profile | null;
+};
 
 export async function getCloseFriends(userId: string) {
   const { data, error } = await supabase
@@ -9,8 +13,9 @@ export async function getCloseFriends(userId: string) {
 
   if (error || !data) return { data: [] as Profile[], error };
 
-  type CloseFriendRow = { friend_id: string; friend: Profile };
-  const friends = (data as unknown as CloseFriendRow[]).map((d) => d.friend);
+  const friends = (data as unknown as CloseFriendProfileResult[])
+    .map(({ friend }) => friend)
+    .filter((friend): friend is Profile => friend !== null);
   return { data: friends, error: null };
 }
 

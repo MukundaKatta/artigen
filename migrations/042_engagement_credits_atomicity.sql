@@ -94,3 +94,9 @@ BEGIN
   RETURN QUERY SELECT v_actual_credits, COALESCE(v_new_balance, 0::NUMERIC), NULL::TEXT;
 END;
 $$;
+
+-- DOWN
+-- Manual rollback:
+-- DROP FUNCTION IF EXISTS award_engagement_credits(UUID, TEXT, NUMERIC, JSONB, NUMERIC, INTEGER);
+-- DROP INDEX IF EXISTS idx_engagement_credits_reference_dedup;
+-- DROP INDEX IF EXISTS idx_engagement_credits_once_per_day;

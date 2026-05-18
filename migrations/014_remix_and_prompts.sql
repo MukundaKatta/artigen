@@ -43,3 +43,20 @@ CREATE POLICY "Users can delete own prompts" ON prompt_library FOR DELETE USING 
 CREATE POLICY "Anyone can view saves" ON prompt_saves FOR SELECT USING (true);
 CREATE POLICY "Users can save prompts" ON prompt_saves FOR INSERT WITH CHECK (user_id = auth.uid());
 CREATE POLICY "Users can unsave prompts" ON prompt_saves FOR DELETE USING (user_id = auth.uid());
+
+-- DOWN
+-- Manual rollback:
+-- DROP POLICY IF EXISTS "Users can unsave prompts" ON prompt_saves;
+-- DROP POLICY IF EXISTS "Users can save prompts" ON prompt_saves;
+-- DROP POLICY IF EXISTS "Anyone can view saves" ON prompt_saves;
+-- DROP POLICY IF EXISTS "Users can delete own prompts" ON prompt_library;
+-- DROP POLICY IF EXISTS "Users can update own prompts" ON prompt_library;
+-- DROP POLICY IF EXISTS "Users can insert own prompts" ON prompt_library;
+-- DROP POLICY IF EXISTS "Public prompts viewable by all" ON prompt_library;
+-- DROP INDEX IF EXISTS idx_prompt_saves_user;
+-- DROP INDEX IF EXISTS idx_prompt_library_tags;
+-- DROP INDEX IF EXISTS idx_prompt_library_user;
+-- DROP TABLE IF EXISTS prompt_saves;
+-- DROP TABLE IF EXISTS prompt_library;
+-- DROP INDEX IF EXISTS idx_posts_remix;
+-- ALTER TABLE posts DROP COLUMN IF EXISTS remix_of_post_id;

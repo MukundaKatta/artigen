@@ -24,3 +24,14 @@ CREATE POLICY "Members can post" ON community_posts FOR INSERT WITH CHECK (
   posted_by = auth.uid() AND
   community_id IN (SELECT community_id FROM community_members WHERE user_id = auth.uid())
 );
+
+-- DOWN
+-- Manual rollback:
+-- DROP POLICY IF EXISTS "Members can post" ON community_posts;
+-- DROP POLICY IF EXISTS "Community posts visible to members" ON community_posts;
+-- DROP INDEX IF EXISTS idx_community_posts_community;
+-- DROP TABLE IF EXISTS community_posts;
+-- DROP INDEX IF EXISTS idx_communities_slug;
+-- ALTER TABLE communities DROP COLUMN IF EXISTS custom_reactions;
+-- ALTER TABLE communities DROP COLUMN IF EXISTS post_count;
+-- ALTER TABLE communities DROP COLUMN IF EXISTS slug;

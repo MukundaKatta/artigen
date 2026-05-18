@@ -1,4 +1,7 @@
 import { supabase } from '@/lib/supabase';
+import type { Database } from '@/types/database';
+
+type UserTutorialProgressUpdate = Database['public']['Tables']['user_tutorial_progress']['Update'];
 
 // ── Types ────────────────────────────────────────────
 
@@ -21,7 +24,7 @@ export type TutorialLesson = {
   tutorial_id: string;
   title: string;
   content_type: 'text' | 'interactive' | 'quiz' | 'practice';
-  content: Record<string, any>;
+  content: Record<string, unknown>;
   sort_order: number;
   xp_reward: number;
 };
@@ -112,13 +115,14 @@ export async function updateProgress(userId: string, tutorialId: string, lessonI
     const completedLessons = existing.completed_lessons.includes(lessonIndex)
       ? existing.completed_lessons
       : [...existing.completed_lessons, lessonIndex];
+    const updateData: UserTutorialProgressUpdate = {
+      current_lesson: lessonIndex + 1,
+      completed_lessons: completedLessons,
+    };
 
     const { data, error } = await supabase
       .from('user_tutorial_progress')
-      .update({
-        current_lesson: lessonIndex + 1,
-        completed_lessons: completedLessons,
-      })
+      .update(updateData)
       .eq('user_id', userId)
       .eq('tutorial_id', tutorialId)
       .select()
@@ -144,12 +148,14 @@ export async function updateProgress(userId: string, tutorialId: string, lessonI
 // ── Complete tutorial ────────────────────────────────
 
 export async function completeTutorial(userId: string, tutorialId: string) {
+  const updateData: UserTutorialProgressUpdate = {
+    is_completed: true,
+    completed_at: new Date().toISOString(),
+  };
+
   const { data, error } = await supabase
     .from('user_tutorial_progress')
-    .update({
-      is_completed: true,
-      completed_at: new Date().toISOString(),
-    })
+    .update(updateData)
     .eq('user_id', userId)
     .eq('tutorial_id', tutorialId)
     .select()

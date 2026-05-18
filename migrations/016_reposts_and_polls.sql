@@ -57,3 +57,24 @@ CREATE POLICY "Poll creator can add options" ON poll_options FOR INSERT WITH CHE
 
 CREATE POLICY "Anyone can view votes" ON poll_votes FOR SELECT USING (true);
 CREATE POLICY "Users can vote" ON poll_votes FOR INSERT WITH CHECK (user_id = auth.uid());
+
+-- DOWN
+-- Manual rollback:
+-- DROP POLICY IF EXISTS "Users can vote" ON poll_votes;
+-- DROP POLICY IF EXISTS "Anyone can view votes" ON poll_votes;
+-- DROP POLICY IF EXISTS "Poll creator can add options" ON poll_options;
+-- DROP POLICY IF EXISTS "Anyone can view options" ON poll_options;
+-- DROP POLICY IF EXISTS "Post owner can create poll" ON post_polls;
+-- DROP POLICY IF EXISTS "Anyone can view polls" ON post_polls;
+-- DROP POLICY IF EXISTS "Users can unrepost" ON reposts;
+-- DROP POLICY IF EXISTS "Users can repost" ON reposts;
+-- DROP POLICY IF EXISTS "Anyone can view reposts" ON reposts;
+-- DROP INDEX IF EXISTS idx_poll_votes_poll;
+-- DROP INDEX IF EXISTS idx_poll_options_poll;
+-- DROP INDEX IF EXISTS idx_reposts_post;
+-- DROP INDEX IF EXISTS idx_reposts_user;
+-- DROP TABLE IF EXISTS poll_votes;
+-- DROP TABLE IF EXISTS poll_options;
+-- DROP TABLE IF EXISTS post_polls;
+-- ALTER TABLE posts DROP COLUMN IF EXISTS repost_count;
+-- DROP TABLE IF EXISTS reposts;

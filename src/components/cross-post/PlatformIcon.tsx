@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { colors, platformColors } from '@/lib/theme';
 
 type Props = {
   platform: string;
@@ -9,16 +10,16 @@ type Props = {
 };
 
 const PLATFORM_ICONS: Record<string, { name: keyof typeof Ionicons.glyphMap; color: string }> = {
-  photo: { name: 'camera-outline', color: '#E1306C' },
-  twitter: { name: 'logo-twitter', color: '#1DA1F2' },
-  tiktok: { name: 'logo-tiktok', color: '#000000' },
-  facebook: { name: 'logo-facebook', color: '#1877F2' },
-  pinterest: { name: 'logo-pinterest', color: '#E60023' },
-  threads: { name: 'at-outline', color: '#000000' },
+  photo: { name: 'camera-outline', color: platformColors.photo },
+  twitter: { name: 'logo-twitter', color: platformColors.twitter },
+  tiktok: { name: 'logo-tiktok', color: colors.backgroundDark },
+  facebook: { name: 'logo-facebook', color: platformColors.facebook },
+  pinterest: { name: 'logo-pinterest', color: platformColors.pinterest },
+  threads: { name: 'at-outline', color: colors.backgroundDark },
 };
 
 export function PlatformIcon({ platform, size = 24, color }: Props) {
-  const config = PLATFORM_ICONS[platform] || { name: 'share-outline' as const, color: '#666' };
+  const config = PLATFORM_ICONS[platform] || { name: 'share-outline' as const, color: colors.textSecondary };
   const iconColor = color || config.color;
 
   return (

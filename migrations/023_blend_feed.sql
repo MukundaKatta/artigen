@@ -42,3 +42,12 @@ ALTER TABLE blend_feeds ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users view own blends" ON blend_feeds FOR SELECT USING (user_a_id = auth.uid() OR user_b_id = auth.uid());
 CREATE POLICY "Users create blends" ON blend_feeds FOR INSERT WITH CHECK (user_a_id = auth.uid() OR user_b_id = auth.uid());
 CREATE POLICY "Users delete own blends" ON blend_feeds FOR DELETE USING (user_a_id = auth.uid() OR user_b_id = auth.uid());
+
+-- DOWN
+-- Manual rollback:
+-- DROP POLICY IF EXISTS "Users delete own blends" ON blend_feeds;
+-- DROP POLICY IF EXISTS "Users create blends" ON blend_feeds;
+-- DROP POLICY IF EXISTS "Users view own blends" ON blend_feeds;
+-- DROP FUNCTION IF EXISTS get_blend_feed(uuid, int, int);
+-- DROP INDEX IF EXISTS idx_blend_feeds_users;
+-- DROP TABLE IF EXISTS blend_feeds;

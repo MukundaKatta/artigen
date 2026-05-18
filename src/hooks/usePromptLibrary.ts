@@ -6,11 +6,19 @@ import {
   unsavePrompt,
   getSavedPrompts,
 } from '@/services/prompt-library.service';
-import type { PromptLibraryItem } from '@/types';
+import type { PromptLibraryItem, PromptSave } from '@/types';
 
 type PromptWithUser = PromptLibraryItem & {
   user: { id: string; username: string; avatar_url: string | null };
 };
+
+type SavedPromptWithJoin = PromptSave & {
+  prompt?: PromptWithUser | null;
+};
+
+function isPromptId(value: string | undefined): value is string {
+  return Boolean(value);
+}
 
 export function usePromptLibrary(userId: string | undefined) {
   const [prompts, setPrompts] = useState<PromptWithUser[]>([]);
@@ -43,12 +51,8 @@ export function usePromptLibrary(userId: string | undefined) {
   useEffect(() => {
     if (!userId) return;
     getSavedPrompts(userId).then(({ data }) => {
-      type SavedRow = { prompt_id?: string; prompt?: { id?: string } | null };
-      const ids = new Set(
-        (data as SavedRow[])
-          .map((s) => s.prompt_id || s.prompt?.id)
-          .filter((id): id is string => !!id),
-      );
+      const savedPrompts = data as unknown as SavedPromptWithJoin[];
+      const ids = new Set(savedPrompts.map((saved) => saved.prompt_id || saved.prompt?.id).filter(isPromptId));
       setSavedPromptIds(ids);
     });
   }, [userId]);

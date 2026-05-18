@@ -16,3 +16,11 @@ CREATE INDEX idx_prompt_remixes_author ON prompt_remixes(original_author_id);
 ALTER TABLE prompt_remixes ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Prompt remixes visible to all" ON prompt_remixes FOR SELECT USING (true);
 CREATE POLICY "Users create remixes" ON prompt_remixes FOR INSERT WITH CHECK (remixer_id = auth.uid());
+
+-- DOWN
+-- Manual rollback:
+-- DROP POLICY IF EXISTS "Users create remixes" ON prompt_remixes;
+-- DROP POLICY IF EXISTS "Prompt remixes visible to all" ON prompt_remixes;
+-- DROP INDEX IF EXISTS idx_prompt_remixes_author;
+-- DROP INDEX IF EXISTS idx_prompt_remixes_original;
+-- DROP TABLE IF EXISTS prompt_remixes;

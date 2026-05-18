@@ -1,6 +1,23 @@
 import { supabase } from '@/lib/supabase';
+import type { PostgrestError } from '@supabase/supabase-js';
+import type { Database, Profile } from '@/types/database';
 
 const PAGE_SIZE = 20;
+type PostCritiqueRow = Database['public']['Tables']['post_critiques']['Row'];
+type PostCritiqueUpdate = Database['public']['Tables']['post_critiques']['Update'];
+type CritiqueHelpfulVoteRow = Database['public']['Tables']['critique_helpful_votes']['Row'];
+type CritiqueRatingProjection = Pick<
+  PostCritiqueRow,
+  'composition_rating' | 'color_rating' | 'technique_rating' | 'prompt_craft_rating' | 'originality_rating' | 'overall_rating'
+>;
+type CritiqueUser = Pick<Profile, 'id' | 'username' | 'avatar_url'>;
+type CritiqueWithUserProjection = Pick<PostCritiqueRow, 'user_id'> & {
+  user: CritiqueUser | null;
+};
+type TopCritic = {
+  user: CritiqueUser | null;
+  count: number;
+};
 
 // ── Types ────────────────────────────────────────────
 
@@ -79,7 +96,7 @@ export async function getCritiques(postId: string, page = 0) {
 
 // ── Get average ratings summary for a post ───────────
 
-export async function getPostCritiqueSummary(postId: string): Promise<{ data: CritiqueSummary | null; error: Error | null }> {
+export async function getPostCritiqueSummary(postId: string): Promise<{ data: CritiqueSummary | null; error: PostgrestError | null }> {
   const { data, error } = await supabase
     .from('post_critiques')
     .select('composition_rating, color_rating, technique_rating, prompt_craft_rating, originality_rating, overall_rating')
@@ -100,9 +117,10 @@ export async function getPostCritiqueSummary(postId: string): Promise<{ data: Cr
     };
   }
 
-  const count = data.length;
-  const avg = (field: keyof typeof data[0]) =>
-    data.reduce((sum, c) => sum + ((c[field] as number) || 0), 0) / count;
+  const critiques = data as CritiqueRatingProjection[];
+  const count = critiques.length;
+  const avg = (field: keyof CritiqueRatingProjection) =>
+    critiques.reduce((sum, critique) => sum + (critique[field] ?? 0), 0) / count;
 
   return {
     data: {
@@ -135,9 +153,13 @@ export async function markHelpful(critiqueId: string, userId: string) {
     .single();
 
   if (critique) {
+    const updateData: PostCritiqueUpdate = {
+      helpful_count: (critique.helpful_count || 0) + 1,
+    };
+
     await supabase
       .from('post_critiques')
-      .update({ helpful_count: (critique.helpful_count || 0) + 1 } as any)
+      .update(updateData)
       .eq('id', critiqueId);
   }
 
@@ -163,9 +185,13 @@ export async function unmarkHelpful(critiqueId: string, userId: string) {
     .single();
 
   if (critique) {
+    const updateData: PostCritiqueUpdate = {
+      helpful_count: Math.max(0, (critique.helpful_count || 0) - 1),
+    };
+
     await supabase
       .from('post_critiques')
-      .update({ helpful_count: Math.max(0, (critique.helpful_count || 0) - 1) } as any)
+      .update(updateData)
       .eq('id', critiqueId);
   }
 
@@ -195,12 +221,9 @@ export async function getTopCritics(limit = 10) {
 
   if (error || !data) return { data: [], error };
 
-  type CriticUser = { id: string; username: string; avatar_url: string | null };
-  type CritiqueRow = { user_id: string; user: CriticUser };
-
   // Aggregate by user
-  const countMap = new Map<string, { user: CriticUser; count: number }>();
-  for (const row of data as unknown as CritiqueRow[]) {
+  const countMap = new Map<string, TopCritic>();
+  for (const row of data as unknown as CritiqueWithUserProjection[]) {
     const existing = countMap.get(row.user_id);
     if (existing) {
       existing.count++;
@@ -227,7 +250,8 @@ export async function getUserHelpfulVoteIds(critiqueIds: string[], userId: strin
     .in('critique_id', critiqueIds)
     .eq('user_id', userId);
 
-  return new Set((data ?? []).map((v) => v.critique_id as string));
+  const votes = (data ?? []) as Pick<CritiqueHelpfulVoteRow, 'critique_id'>[];
+  return new Set(votes.map((vote) => vote.critique_id));
 }
 
 // ── Get critique count for a post ────────────────────

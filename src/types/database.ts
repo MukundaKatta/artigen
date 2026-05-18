@@ -3458,6 +3458,35 @@ export type Database = {
           relevance_score: number;
         }[];
       };
+      get_trending_posts: {
+        Args: {
+          p_limit?: number;
+          p_offset?: number;
+          p_viewer_id?: string | null;
+        };
+        Returns: {
+          id: string;
+          user_id: string;
+          caption: string | null;
+          post_type: string;
+          location: string | null;
+          audience: string;
+          is_pinned: boolean;
+          is_archived: boolean;
+          is_draft: boolean;
+          likes_count: number;
+          comments_count: number;
+          views_count: number;
+          created_at: string;
+          username: string;
+          full_name: string;
+          avatar_url: string | null;
+          is_verified: boolean;
+          trending_score: number;
+          is_liked: boolean;
+          is_saved: boolean;
+        }[];
+      };
       refresh_trending: {
         Args: Record<string, never>;
         Returns: undefined;

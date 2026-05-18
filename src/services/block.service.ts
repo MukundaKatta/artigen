@@ -1,4 +1,7 @@
 import { supabase } from '@/lib/supabase';
+import type { Database } from '@/types';
+
+type UserBlockRow = Database['public']['Tables']['user_blocks']['Row'];
 
 export async function blockUser(blockerId: string, blockedId: string) {
   const { error } = await supabase
@@ -48,5 +51,6 @@ export async function getBlockedUserIds(userId: string) {
     .from('user_blocks')
     .select('blocked_id')
     .eq('blocker_id', userId);
-  return new Set(((data ?? []) as Array<{ blocked_id: string }>).map((d) => d.blocked_id));
+  const blocks = (data ?? []) as Pick<UserBlockRow, 'blocked_id'>[];
+  return new Set(blocks.map(({ blocked_id }) => blocked_id));
 }

@@ -1,7 +1,15 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
+import {
+  colors,
+  spacing,
+  fontSize,
+  typography,
+  borderRadius,
+  stickerColors,
+  withOpacity,
+} from '@/lib/theme';
 import type { StickerType } from '@/services/sticker.service';
 
 type Props = {
@@ -11,12 +19,27 @@ type Props = {
 };
 
 const STICKER_OPTIONS: { type: StickerType; icon: string; label: string; color: string }[] = [
-  { type: 'poll', icon: 'bar-chart', label: 'Poll', color: '#F59E0B' },
+  { type: 'poll', icon: 'bar-chart', label: 'Poll', color: stickerColors.poll },
   { type: 'quiz', icon: 'help-circle', label: 'Quiz', color: colors.accent },
-  { type: 'question', icon: 'chatbox-ellipses', label: 'Question', color: '#EC4899' },
-  { type: 'emoji_slider', icon: 'happy', label: 'Emoji Slider', color: '#F97316' },
-  { type: 'countdown', icon: 'timer', label: 'Countdown', color: '#EF4444' },
-  { type: 'link', icon: 'link', label: 'Link', color: '#3B82F6' },
+  {
+    type: 'question',
+    icon: 'chatbox-ellipses',
+    label: 'Question',
+    color: stickerColors.question,
+  },
+  {
+    type: 'emoji_slider',
+    icon: 'happy',
+    label: 'Emoji Slider',
+    color: stickerColors.emojiSlider,
+  },
+  {
+    type: 'countdown',
+    icon: 'timer',
+    label: 'Countdown',
+    color: stickerColors.countdown,
+  },
+  { type: 'link', icon: 'link', label: 'Link', color: stickerColors.link },
 ];
 
 export function StickerTray({ visible, onClose, onSelect }: Props) {
@@ -40,7 +63,7 @@ export function StickerTray({ visible, onClose, onSelect }: Props) {
                 onClose();
               }}
             >
-              <View style={[styles.iconCircle, { backgroundColor: `${opt.color}20` }]}>
+              <View style={[styles.iconCircle, { backgroundColor: withOpacity(opt.color, 0.12) }]}>
                 <Ionicons name={opt.icon as any} size={28} color={opt.color} />
               </View>
               <Text style={styles.optionLabel}>{opt.label}</Text>

@@ -87,7 +87,8 @@ export function StickerPickerSheet({ visible, onClose, onSelect, userId }: Props
   useEffect(() => {
     if (visible && userId) {
       stickerPackService.getSavedPacks(userId).then(({ data }) => {
-        const packList = (data || []).map((d: any) => d.pack || d);
+        type SavedPackRow = { pack?: Pack | null } & Pack;
+        const packList = ((data || []) as unknown as SavedPackRow[]).map((d) => d.pack || d);
         setPacks(packList);
         if (packList.length > 0 && !selectedPack) {
           setSelectedPack(packList[0].id);

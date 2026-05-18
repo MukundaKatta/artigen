@@ -86,8 +86,8 @@ export function MasonryGrid({ posts, onPostPress, onEndReached, loading }: Props
     const { post, height } = item;
     const firstMedia = post.media?.[0];
     const hasAiMetadata =
-      Array.isArray((post as any).ai_metadata) &&
-      (post as any).ai_metadata.length > 0;
+      Array.isArray(post.ai_metadata) &&
+      post.ai_metadata.length > 0;
 
     return (
       <Animated.View

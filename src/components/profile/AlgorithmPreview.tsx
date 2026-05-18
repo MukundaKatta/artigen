@@ -2,8 +2,9 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
+import type { TasteProfile } from '@/types/database';
 
-type Props = { profile: any };
+type Props = { profile: TasteProfile | null | undefined };
 
 export function AlgorithmPreview({ profile }: Props) {
   if (!profile) return null;

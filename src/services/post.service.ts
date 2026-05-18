@@ -1,22 +1,3 @@
-/**
- * post.service — data layer for the Post domain.
- *
- * Every exported function returns `{ data, error }` (mirrors Supabase's shape)
- * unless documented otherwise. Errors are not thrown — callers check `error`.
- *
- * Side effects worth noting:
- * - `createPost` triggers: hashtag linking, streak update, badge awards,
- *   notification creation for @mentions, taste-profile recording.
- * - `likePost`/`savePost` are optimistic at the hook layer (`useFeed`) — the
- *   service itself just writes the row.
- * - `deletePost` cascades via DB FK to comments, likes, saves, hashtags.
- * - `getFeed` reads from the union of (followed users + self) and excludes
- *   drafts, scheduled, and archived posts. Pagination is page-number based
- *   (`FEED_PAGE_SIZE`).
- *
- * Mocked in tests via `src/__mocks__/lib/supabase.ts`.
- */
-
 import { supabase } from '@/lib/supabase';
 import { FEED_PAGE_SIZE, EXPLORE_PAGE_SIZE } from '@/lib/constants';
 import { uploadFile } from '@/services/upload.service';
@@ -30,17 +11,11 @@ import type { FeedPost, PostWithUser, Post, AiMetadataInsert } from '@/types';
 import type { Database } from '@/types/database';
 
 type PostMediaInsert = Database['public']['Tables']['post_media']['Insert'];
+type HashtagRow = Database['public']['Tables']['hashtags']['Row'];
+type HashtagProjection = Pick<HashtagRow, 'id' | 'name' | 'post_count'>;
 
 // ── Feed ──────────────────────────────────────────────────────────
 
-/**
- * Returns posts from accounts the user follows plus their own, newest first.
- * Excludes drafts, scheduled, and archived posts. Joins user, media, and
- * ai_metadata. Adds `isLiked`/`isSaved` flags via batch lookups.
- *
- * @param userId Viewer's user id (used for follow set and like/save lookup)
- * @param page Zero-indexed page; size is `FEED_PAGE_SIZE`
- */
 export async function getFeed(userId: string, page = 0) {
   const from = page * FEED_PAGE_SIZE;
   const to = from + FEED_PAGE_SIZE - 1;
@@ -242,8 +217,6 @@ export async function createPost({
 
 // ── Hashtags (private) ────────────────────────────────────────────
 
-type HashtagRow = { id: string; name: string; post_count: number };
-
 async function linkHashtags(postId: string, tags: string[]) {
   if (tags.length === 0) return;
 
@@ -253,8 +226,9 @@ async function linkHashtags(postId: string, tags: string[]) {
     .select('id, name, post_count')
     .in('name', tags);
 
-  const existingMap = new Map<string, HashtagRow>(
-    ((existingTags as HashtagRow[] | null) ?? []).map((t) => [t.name, t])
+  const fetchedTags = (existingTags ?? []) as HashtagProjection[];
+  const existingMap = new Map(
+    fetchedTags.map((tag) => [tag.name, tag])
   );
 
   // Upsert missing hashtags in a single batch
@@ -267,9 +241,8 @@ async function linkHashtags(postId: string, tags: string[]) {
         { onConflict: 'name' }
       )
       .select('id, name, post_count');
-    ((created as HashtagRow[] | null) ?? []).forEach((t) =>
-      existingMap.set(t.name, t)
-    );
+    const createdTags = (created ?? []) as HashtagProjection[];
+    createdTags.forEach((tag) => existingMap.set(tag.name, tag));
   }
 
   // Increment counts for pre-existing hashtags
@@ -288,8 +261,8 @@ async function linkHashtags(postId: string, tags: string[]) {
   // Batch insert all post_hashtags in a single query
   const junctionRows = tags
     .map((t) => existingMap.get(t))
-    .filter((ht): ht is HashtagRow => ht != null)
-    .map((ht) => ({ post_id: postId, hashtag_id: ht.id }));
+    .filter((hashtag): hashtag is HashtagProjection => Boolean(hashtag))
+    .map((hashtag) => ({ post_id: postId, hashtag_id: hashtag.id }));
 
   if (junctionRows.length > 0) {
     await supabase.from('post_hashtags').insert(junctionRows);

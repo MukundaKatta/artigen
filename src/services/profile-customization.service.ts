@@ -1,16 +1,20 @@
 import { supabase } from '@/lib/supabase';
 import type { Profile, ProfileTopFriend } from '@/types';
 
-export type ProfileTheme = {
+export type ProfileTheme = Record<string, unknown> & {
   accentColor?: string;
   musicTitle?: string;
   musicArtist?: string;
 };
 
+type TopFriendProfileResult = Pick<ProfileTopFriend, 'friend_id' | 'sort_order'> & {
+  friend: Profile | null;
+};
+
 export async function updateProfileTheme(userId: string, theme: ProfileTheme) {
   const { error } = await supabase
     .from('profiles')
-    .update({ profile_theme: theme as any })
+    .update({ profile_theme: theme })
     .eq('id', userId);
   return { error };
 }
@@ -32,8 +36,9 @@ export async function getTopFriends(userId: string) {
 
   if (error || !data) return { data: [] as Profile[], error };
 
-  type TopFriendRow = { friend: Profile };
-  const friends = (data as unknown as TopFriendRow[]).map((d) => d.friend);
+  const friends = (data as unknown as TopFriendProfileResult[])
+    .map(({ friend }) => friend)
+    .filter((friend): friend is Profile => friend !== null);
   return { data: friends, error: null };
 }
 

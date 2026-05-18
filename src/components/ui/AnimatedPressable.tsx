@@ -39,7 +39,7 @@ export function AnimatedPressable({
         scale.value = withSpring(1, { damping: 15, stiffness: 300 });
         onPressOut?.(e);
       }}
-      style={[animatedStyle, style as any]}
+      style={[animatedStyle, style]}
       {...props}
     >
       {children}

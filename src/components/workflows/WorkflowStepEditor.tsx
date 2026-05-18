@@ -10,7 +10,9 @@ type Props = {
   onCancel: () => void;
 };
 
-const STEP_TYPES: { type: WorkflowStepType; icon: string; label: string; color: string }[] = [
+type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
+
+const STEP_TYPES: { type: WorkflowStepType; icon: IoniconName; label: string; color: string }[] = [
   { type: 'generate', icon: 'sparkles', label: 'Generate', color: colors.accent },
   { type: 'restyle', icon: 'color-palette', label: 'Restyle', color: '#EC4899' },
   { type: 'inpaint', icon: 'brush', label: 'Inpaint', color: '#F59E0B' },
@@ -62,7 +64,7 @@ export function WorkflowStepEditor({ step, onSave, onCancel }: Props) {
             onPress={() => setType(t.type)}
             activeOpacity={0.7}
           >
-            <Ionicons name={t.icon as any} size={16} color={type === t.type ? t.color : colors.textSecondary} />
+            <Ionicons name={t.icon} size={16} color={type === t.type ? t.color : colors.textSecondary} />
             <Text style={[styles.typeChipText, type === t.type && { color: t.color }]}>
               {t.label}
             </Text>

@@ -140,3 +140,31 @@ BEGIN
   LIMIT result_limit;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- DOWN
+-- Manual rollback:
+-- DROP FUNCTION IF EXISTS public.get_suggested_users(uuid, int);
+-- DROP POLICY IF EXISTS "Highlight owners can manage items" ON public.story_highlight_items;
+-- DROP POLICY IF EXISTS "Highlight items are viewable" ON public.story_highlight_items;
+-- DROP TABLE IF EXISTS public.story_highlight_items;
+-- DROP POLICY IF EXISTS "Users can manage own highlights" ON public.story_highlights;
+-- DROP POLICY IF EXISTS "Highlights are viewable by everyone" ON public.story_highlights;
+-- DROP TABLE IF EXISTS public.story_highlights;
+-- DROP POLICY IF EXISTS "Users can see own reports" ON public.reports;
+-- DROP POLICY IF EXISTS "Users can create reports" ON public.reports;
+-- DROP TABLE IF EXISTS public.reports;
+-- DROP POLICY IF EXISTS "Users can unblock" ON public.user_blocks;
+-- DROP POLICY IF EXISTS "Users can block" ON public.user_blocks;
+-- DROP POLICY IF EXISTS "Users can see own blocks" ON public.user_blocks;
+-- DROP TABLE IF EXISTS public.user_blocks;
+-- DROP POLICY IF EXISTS "Users can remove own reactions" ON public.message_reactions;
+-- DROP POLICY IF EXISTS "Users can add reactions" ON public.message_reactions;
+-- DROP POLICY IF EXISTS "Participants can view reactions" ON public.message_reactions;
+-- DROP TABLE IF EXISTS public.message_reactions;
+-- ALTER TABLE public.profiles DROP COLUMN IF EXISTS theme_preference;
+-- ALTER TABLE public.follows DROP COLUMN IF EXISTS status;
+-- ALTER TABLE public.posts DROP COLUMN IF EXISTS pinned_at;
+-- ALTER TABLE public.posts DROP COLUMN IF EXISTS is_pinned;
+-- DROP TRIGGER IF EXISTS on_comment_like_change ON public.comment_likes;
+-- DROP FUNCTION IF EXISTS public.handle_comment_like_count();
+-- ALTER TABLE public.comments DROP COLUMN IF EXISTS likes_count;

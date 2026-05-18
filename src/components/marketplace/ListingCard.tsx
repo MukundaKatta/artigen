@@ -5,17 +5,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { selectionAsync } from 'expo-haptics';
 import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
+import type { MarketplaceListing, PostMedia } from '@/types/database';
 
-export type Listing = {
-  id: string;
-  title: string;
-  price_cents: number;
-  listing_type: 'digital_download' | 'print' | string;
-  sales_count?: number;
-  post?: { media?: { media_url: string }[] } | null;
+type ListingCardData = MarketplaceListing & {
+  post?: { media?: Pick<PostMedia, 'media_url'>[] | null } | null;
 };
 
-type Props = { listing: Listing; onPress: () => void };
+type Props = { listing: ListingCardData; onPress: () => void };
 
 export const ListingCard = React.memo(function ListingCard({ listing, onPress }: Props) {
   const priceLabel = `$${(listing.price_cents / 100).toFixed(2)}`;

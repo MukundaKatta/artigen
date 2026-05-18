@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, StyleSheet } from 'react-native';
+import { Text, StyleSheet, StyleProp, TextStyle } from 'react-native';
 import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { colors, fontSize, typography } from '@/lib/theme';
@@ -7,7 +7,7 @@ import { parseRichText } from '@/lib/parse-rich-text';
 
 type RichTextProps = {
   children: string;
-  style?: any;
+  style?: StyleProp<TextStyle>;
   numberOfLines?: number;
   username?: string; // The post author's username (for display before caption)
 };

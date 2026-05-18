@@ -1,4 +1,8 @@
 import { supabase } from '@/lib/supabase';
+import type { Database } from '@/types/database';
+
+type WeeklyEventEntryUpdate = Database['public']['Tables']['weekly_event_entries']['Update'];
+type WeeklyEventVoteRow = Database['public']['Tables']['weekly_event_votes']['Row'];
 
 // ── Types ────────────────────────────────────────────
 
@@ -88,9 +92,13 @@ export async function voteWeeklyEntry(entryId: string, userId: string) {
     .single();
 
   if (entry) {
+    const updateData: WeeklyEventEntryUpdate = {
+      vote_count: (entry.vote_count || 0) + 1,
+    };
+
     await supabase
       .from('weekly_event_entries')
-      .update({ vote_count: (entry.vote_count || 0) + 1 })
+      .update(updateData)
       .eq('id', entryId);
   }
 
@@ -116,9 +124,13 @@ export async function unvoteWeeklyEntry(entryId: string, userId: string) {
     .single();
 
   if (entry) {
+    const updateData: WeeklyEventEntryUpdate = {
+      vote_count: Math.max(0, (entry.vote_count || 0) - 1),
+    };
+
     await supabase
       .from('weekly_event_entries')
-      .update({ vote_count: Math.max(0, (entry.vote_count || 0) - 1) })
+      .update(updateData)
       .eq('id', entryId);
   }
 
@@ -161,5 +173,6 @@ export async function getUserVotedWeeklyEntryIds(entryIds: string[], userId: str
     .in('entry_id', entryIds)
     .eq('user_id', userId);
 
-  return new Set((data ?? []).map((v) => v.entry_id));
+  const votes = (data ?? []) as Pick<WeeklyEventVoteRow, 'entry_id'>[];
+  return new Set(votes.map((vote) => vote.entry_id));
 }

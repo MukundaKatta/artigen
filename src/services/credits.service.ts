@@ -38,6 +38,15 @@ export const MODEL_CREDITS: Record<string, number> = {
 
 export const TEXT_AI_CREDITS = 5; // per call
 
+export type RazorpayOrder = {
+  order_id: string;
+  amount: number;
+  currency: string;
+  key_id: string;
+  credits: number;
+  label: string;
+};
+
 export async function getUserCredits(userId: string): Promise<number> {
   const { data } = await supabase
     .from('wallets')
@@ -69,16 +78,6 @@ export async function createStripeCheckout(
   return { checkout_url: data.checkout_url, error: null };
 }
 
-export type RazorpayOrder = {
-  id?: string;
-  order_id?: string;
-  key_id?: string;
-  amount?: number;
-  currency?: string;
-  receipt?: string;
-  status?: string;
-};
-
 export async function createRazorpayOrder(
   packageId: string
 ): Promise<{ order: RazorpayOrder | null; error: string | null }> {
@@ -86,9 +85,8 @@ export async function createRazorpayOrder(
     body: { package_id: packageId },
   });
   if (error) return { order: null, error: error.message };
-  const payload = data as { error?: string } & RazorpayOrder | null;
-  if (payload?.error) return { order: null, error: payload.error };
-  return { order: payload as RazorpayOrder, error: null };
+  if (data?.error) return { order: null, error: data.error };
+  return { order: data as RazorpayOrder, error: null };
 }
 
 export async function openStripeCheckout(packageId: string): Promise<{ error: string | null }> {

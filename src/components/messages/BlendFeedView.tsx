@@ -7,7 +7,11 @@ import { SCREEN_WIDTH, POST_GRID_GAP } from '@/lib/constants';
 const COLS = 2;
 const SIZE = (SCREEN_WIDTH - spacing.md * 2 - POST_GRID_GAP) / COLS;
 
-type BlendItem = { post_id: string; media_url: string; [key: string]: any };
+type BlendItem = {
+  post_id: string;
+  media_url: string;
+  relevance_score?: number;
+};
 type Props = { posts: BlendItem[]; onPostPress: (postId: string) => void; loading?: boolean };
 
 const BlendGridItem = React.memo(function BlendGridItem({

@@ -45,3 +45,12 @@ BEGIN
   WHERE user_id = p_user_id;
 END;
 $$ LANGUAGE plpgsql;
+
+-- DOWN
+-- Manual rollback:
+-- DROP FUNCTION IF EXISTS refund_generation_credits(UUID, INTEGER);
+-- DROP FUNCTION IF EXISTS deduct_generation_credits(UUID, INTEGER);
+-- DROP INDEX IF EXISTS idx_prompt_library_trending;
+-- DROP INDEX IF EXISTS idx_posts_active_feed;
+-- ALTER TABLE tips DROP CONSTRAINT IF EXISTS tips_amount_positive;
+-- ALTER TABLE wallets DROP CONSTRAINT IF EXISTS wallets_balance_non_negative;

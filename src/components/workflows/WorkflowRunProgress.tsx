@@ -9,7 +9,9 @@ type Props = {
   run: WorkflowRun;
 };
 
-const STEP_CONFIG: Record<string, { icon: string; label: string; color: string }> = {
+type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
+
+const STEP_CONFIG: Record<string, { icon: IoniconName; label: string; color: string }> = {
   generate: { icon: 'sparkles', label: 'Generate', color: colors.accent },
   restyle: { icon: 'color-palette', label: 'Restyle', color: '#EC4899' },
   inpaint: { icon: 'brush', label: 'Inpaint', color: '#F59E0B' },
@@ -51,7 +53,7 @@ export function WorkflowRunProgress({ run }: Props) {
       {/* Steps + results */}
       <View style={styles.stepsList}>
         {steps.map((step: WorkflowStep, index: number) => {
-          const config = STEP_CONFIG[step.type] || { icon: 'ellipsis-horizontal', label: step.type, color: colors.textSecondary };
+          const config = STEP_CONFIG[step.type] || { icon: 'ellipsis-horizontal' as IoniconName, label: step.type, color: colors.textSecondary };
           const isCompleted = index < run.current_step;
           const isActive = index === run.current_step && run.status === 'running';
           const result = results[index];
@@ -70,7 +72,7 @@ export function WorkflowRunProgress({ run }: Props) {
                   {isCompleted ? (
                     <Ionicons name="checkmark" size={12} color="#fff" />
                   ) : isActive ? (
-                    <Ionicons name={config.icon as any} size={12} color="#fff" />
+                    <Ionicons name={config.icon} size={12} color="#fff" />
                   ) : (
                     <Text style={styles.stepDotNumber}>{index + 1}</Text>
                   )}

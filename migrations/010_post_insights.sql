@@ -53,3 +53,15 @@ CREATE POLICY "Post owners can view insights" ON post_views FOR SELECT USING (
   EXISTS (SELECT 1 FROM posts WHERE id = post_id AND user_id = auth.uid())
 );
 CREATE POLICY "Anyone can insert views" ON post_views FOR INSERT WITH CHECK (true);
+
+-- DOWN
+-- Manual rollback:
+-- DROP POLICY IF EXISTS "Anyone can insert views" ON post_views;
+-- DROP POLICY IF EXISTS "Post owners can view insights" ON post_views;
+-- DROP TRIGGER IF EXISTS trg_sync_views_count ON post_views;
+-- DROP FUNCTION IF EXISTS sync_views_count();
+-- DROP FUNCTION IF EXISTS get_post_insights(uuid);
+-- ALTER TABLE posts DROP COLUMN IF EXISTS views_count;
+-- DROP INDEX IF EXISTS idx_post_views_viewer;
+-- DROP INDEX IF EXISTS idx_post_views_post;
+-- DROP TABLE IF EXISTS post_views;

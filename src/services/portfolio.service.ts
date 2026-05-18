@@ -1,25 +1,21 @@
 import { supabase } from '@/lib/supabase';
-import type { Post, PostMedia } from '@/types';
+import type { Database, Post, PostMedia } from '@/types';
 
-export type PortfolioPost = Post & { media?: PostMedia[] };
+type PortfolioSectionRow = Database['public']['Tables']['portfolio_sections']['Row'];
+type PortfolioItemRow = Database['public']['Tables']['portfolio_items']['Row'];
+type PortfolioMedia = PostMedia & {
+  url?: string | null;
+};
+type PortfolioPost = Post & {
+  media?: PortfolioMedia[];
+};
 
-export type PortfolioSection = {
-  id: string;
-  user_id: string;
-  title: string;
-  description: string | null;
-  sort_order: number;
-  created_at: string;
+export type PortfolioSection = PortfolioSectionRow & {
   items?: PortfolioItem[];
 };
 
-export type PortfolioItem = {
-  id: string;
-  section_id: string;
-  post_id: string;
-  caption_override: string | null;
-  sort_order: number;
-  post?: PortfolioPost;
+export type PortfolioItem = PortfolioItemRow & {
+  post?: PortfolioPost | null;
 };
 
 export async function getPortfolio(userId: string) {
@@ -31,10 +27,10 @@ export async function getPortfolio(userId: string) {
 
   if (error) return { data: [] as PortfolioSection[], error };
 
-  const typedSections = (sections ?? []) as unknown as PortfolioSection[];
-  const sorted: PortfolioSection[] = typedSections.map((s) => ({
-    ...s,
-    items: (s.items ?? []).slice().sort((a, b) => a.sort_order - b.sort_order),
+  const portfolioSections = (sections ?? []) as unknown as PortfolioSection[];
+  const sorted = portfolioSections.map((section) => ({
+    ...section,
+    items: [...(section.items ?? [])].sort((a, b) => a.sort_order - b.sort_order),
   }));
 
   return { data: sorted, error: null };

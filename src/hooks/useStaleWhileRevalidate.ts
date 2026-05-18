@@ -17,6 +17,16 @@ type SWROptions = {
   enabled?: boolean;
 };
 
+function errorMessage(error: unknown, fallback: string): string {
+  if (typeof error === 'string') return error;
+  if (error instanceof Error) return error.message || fallback;
+  if (error && typeof error === 'object' && 'message' in error) {
+    const message = (error as { message?: unknown }).message;
+    if (typeof message === 'string' && message) return message;
+  }
+  return fallback;
+}
+
 /**
  * Stale-while-revalidate hook.
  *
@@ -34,7 +44,7 @@ type SWROptions = {
  */
 export function useStaleWhileRevalidate<T>(
   keyParts: (string | number | undefined)[],
-  fetcher: () => Promise<{ data: T | null; error: any }>,
+  fetcher: () => Promise<{ data: T | null; error: unknown }>,
   options: SWROptions = {},
 ): SWRState<T> {
   const { ttlMs = 5 * 60 * 1000, enabled = true } = options;
@@ -62,15 +72,15 @@ export function useStaleWhileRevalidate<T>(
 
       if (result.error) {
         // Keep stale data on error, but set error state
-        setError(typeof result.error === 'string' ? result.error : result.error.message ?? 'Unknown error');
+        setError(errorMessage(result.error, 'Unknown error'));
       } else if (result.data !== null) {
         setCached(key, result.data, ttlMs);
         setData(result.data);
         setError(null);
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (!mountedRef.current) return;
-      setError(e.message ?? 'Network error');
+      setError(errorMessage(e, 'Network error'));
     } finally {
       if (mountedRef.current) {
         setLoading(false);

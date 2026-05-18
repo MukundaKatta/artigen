@@ -37,3 +37,14 @@ CREATE POLICY "Style presets visible to all" ON style_presets FOR SELECT USING (
 CREATE POLICY "Users view own restyle jobs" ON restyle_jobs FOR SELECT USING (user_id = auth.uid());
 CREATE POLICY "Users create restyle jobs" ON restyle_jobs FOR INSERT WITH CHECK (user_id = auth.uid());
 CREATE POLICY "Users update own restyle jobs" ON restyle_jobs FOR UPDATE USING (user_id = auth.uid());
+
+-- DOWN
+-- Manual rollback:
+-- DROP POLICY IF EXISTS "Users update own restyle jobs" ON restyle_jobs;
+-- DROP POLICY IF EXISTS "Users create restyle jobs" ON restyle_jobs;
+-- DROP POLICY IF EXISTS "Users view own restyle jobs" ON restyle_jobs;
+-- DROP POLICY IF EXISTS "Style presets visible to all" ON style_presets;
+-- DROP INDEX IF EXISTS idx_restyle_jobs_status;
+-- DROP INDEX IF EXISTS idx_restyle_jobs_user;
+-- DROP TABLE IF EXISTS restyle_jobs;
+-- DROP TABLE IF EXISTS style_presets;

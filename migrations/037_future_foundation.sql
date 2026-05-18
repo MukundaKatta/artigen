@@ -74,3 +74,14 @@ VALUES
   ('director_mode', false, 0, '{"phase":"foundation"}'::jsonb),
   ('commerce_v2', false, 0, '{"phase":"foundation"}'::jsonb)
 ON CONFLICT (key) DO NOTHING;
+
+-- DOWN
+-- Manual rollback:
+-- DELETE FROM feature_flags WHERE key IN ('live_provenance', 'transparency_center', 'localization_studio', 'spatial_gallery', 'director_mode', 'commerce_v2');
+-- DROP POLICY IF EXISTS "Users can read own telemetry events" ON app_telemetry_events;
+-- DROP POLICY IF EXISTS "Users can read feature flags" ON feature_flags;
+-- DROP INDEX IF EXISTS idx_app_telemetry_events_user_created;
+-- DROP INDEX IF EXISTS idx_app_telemetry_events_name_created;
+-- DROP INDEX IF EXISTS idx_feature_flags_enabled;
+-- DROP TABLE IF EXISTS app_telemetry_events;
+-- DROP TABLE IF EXISTS feature_flags;

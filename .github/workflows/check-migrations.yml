@@ -1,0 +1,23 @@
+name: migrations
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "migrations/**"
+      - "scripts/check_migration_prefixes.py"
+      - ".github/workflows/check-migrations.yml"
+  pull_request:
+    paths:
+      - "migrations/**"
+      - "scripts/check_migration_prefixes.py"
+      - ".github/workflows/check-migrations.yml"
+
+jobs:
+  duplicate-prefix-check:
+    name: no duplicate migration prefixes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for duplicate numeric prefixes
+        run: python3 scripts/check_migration_prefixes.py migrations

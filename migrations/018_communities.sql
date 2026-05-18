@@ -39,3 +39,20 @@ CREATE POLICY "Owner can delete" ON communities FOR DELETE USING (owner_id = aut
 CREATE POLICY "Members visible" ON community_members FOR SELECT USING (true);
 CREATE POLICY "Users can join" ON community_members FOR INSERT WITH CHECK (user_id = auth.uid());
 CREATE POLICY "Users can leave" ON community_members FOR DELETE USING (user_id = auth.uid() OR EXISTS(SELECT 1 FROM communities WHERE id = community_id AND owner_id = auth.uid()));
+
+-- DOWN
+-- Manual rollback:
+-- DROP POLICY IF EXISTS "Users can leave" ON community_members;
+-- DROP POLICY IF EXISTS "Users can join" ON community_members;
+-- DROP POLICY IF EXISTS "Members visible" ON community_members;
+-- DROP POLICY IF EXISTS "Owner can delete" ON communities;
+-- DROP POLICY IF EXISTS "Owner can update" ON communities;
+-- DROP POLICY IF EXISTS "Users can create communities" ON communities;
+-- DROP POLICY IF EXISTS "Public communities visible to all" ON communities;
+-- DROP INDEX IF EXISTS idx_posts_community;
+-- DROP INDEX IF EXISTS idx_community_members_user;
+-- DROP INDEX IF EXISTS idx_community_members_community;
+-- DROP INDEX IF EXISTS idx_communities_tags;
+-- ALTER TABLE posts DROP COLUMN IF EXISTS community_id;
+-- DROP TABLE IF EXISTS community_members;
+-- DROP TABLE IF EXISTS communities;

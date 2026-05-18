@@ -50,9 +50,12 @@ npm run lint         # ESLint
 npm run typecheck    # tsc --noEmit
 npm test             # Jest
 npm run format:check # Prettier
+npm run ci           # all of the above (lint + typecheck + test, runInBand)
 ```
 
-All four run in CI on every PR. Pre-commit hooks aren't wired up yet (see issue list); for now run them yourself.
+All four run in CI on every PR. Pre-commit hooks are wired via husky +
+lint-staged: staged `.ts`/`.tsx` files are auto-fixed on commit, and
+commit-msg is validated by commitlint.
 
 ## Layout
 
