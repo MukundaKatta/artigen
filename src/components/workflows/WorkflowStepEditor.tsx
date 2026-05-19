@@ -20,6 +20,7 @@ const STEP_TYPES: { type: WorkflowStepType; icon: IoniconName; label: string; co
 ];
 
 const SCALE_OPTIONS = [2, 4];
+const PROMPT_MAX_LENGTH = 2000;
 
 export function WorkflowStepEditor({ step, onSave, onCancel }: Props) {
   const [type, setType] = useState<WorkflowStepType>(step?.type || 'generate');
@@ -91,6 +92,7 @@ export function WorkflowStepEditor({ step, onSave, onCancel }: Props) {
             onChangeText={setPrompt}
             multiline
             numberOfLines={3}
+            maxLength={PROMPT_MAX_LENGTH}
           />
         </View>
       )}
@@ -106,6 +108,7 @@ export function WorkflowStepEditor({ step, onSave, onCancel }: Props) {
             onChangeText={setCustomPrompt}
             multiline
             numberOfLines={3}
+            maxLength={PROMPT_MAX_LENGTH}
           />
         </View>
       )}

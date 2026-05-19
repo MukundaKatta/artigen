@@ -10,7 +10,7 @@ export function useLocationSearch() {
   const search = useCallback((query: string) => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
-    if (!query.trim()) {
+    if (query.trim().length < 2) {
       setResults([]);
       setSearching(false);
       return;

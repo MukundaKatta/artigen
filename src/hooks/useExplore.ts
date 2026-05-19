@@ -1,7 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { EXPLORE_PAGE_SIZE } from '@/lib/constants';
 import { logger } from '@/lib/logger';
-import { getExploreFeed, searchPosts, searchHashtags, searchByPrompt, searchByModel } from '@/services/explore.service';
+import {
+  getExploreFeed,
+  searchPosts,
+  searchHashtags,
+  searchByPrompt,
+  searchByModel,
+} from '@/services/explore.service';
 import { searchUsers } from '@/services/profile.service';
 import type { PostWithUser, Profile } from '@/types';
 import { AI_MODELS } from '@/services/ai.service';
@@ -12,7 +18,9 @@ export function useExplore() {
   const [query, setQuery] = useState('');
   const [explorePosts, setExplorePosts] = useState<PostWithUser[]>([]);
   const [searchResultPosts, setSearchResultPosts] = useState<PostWithUser[]>([]);
-  const [searchResultUsers, setSearchResultUsers] = useState<Pick<Profile, 'id' | 'username' | 'full_name' | 'avatar_url' | 'is_verified'>[]>([]);
+  const [searchResultUsers, setSearchResultUsers] = useState<
+    Pick<Profile, 'id' | 'username' | 'full_name' | 'avatar_url' | 'is_verified'>[]
+  >([]);
   const [searchResultHashtags, setSearchResultHashtags] = useState<Hashtag[]>([]);
   const [searchResultPrompts, setSearchResultPrompts] = useState<PostWithUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,15 +35,18 @@ export function useExplore() {
   const isSearching = query.trim().length > 0;
 
   // Load explore feed
-  const fetchExplore = useCallback(async (filterAiOnly?: boolean) => {
-    const useAiOnly = filterAiOnly ?? aiOnly;
-    setLoading(true);
-    const { data } = await getExploreFeed(0, useAiOnly);
-    setExplorePosts(data);
-    setPage(0);
-    setHasMore(data.length >= EXPLORE_PAGE_SIZE);
-    setLoading(false);
-  }, [aiOnly]);
+  const fetchExplore = useCallback(
+    async (filterAiOnly?: boolean) => {
+      const useAiOnly = filterAiOnly ?? aiOnly;
+      setLoading(true);
+      const { data } = await getExploreFeed(0, useAiOnly);
+      setExplorePosts(data);
+      setPage(0);
+      setHasMore(data.length >= EXPLORE_PAGE_SIZE);
+      setLoading(false);
+    },
+    [aiOnly],
+  );
 
   const loadMore = useCallback(async () => {
     if (loadingMoreRef.current || !hasMore || isSearching) return;
@@ -66,7 +77,7 @@ export function useExplore() {
     setQuery(text);
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
-    if (!text.trim()) {
+    if (text.trim().length < 2) {
       setSearchResultUsers([]);
       setSearchResultPosts([]);
       setSearchResultHashtags([]);
