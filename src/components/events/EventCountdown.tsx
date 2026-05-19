@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
+import { EVENT_COUNTDOWN_TICK_MS } from '@/lib/constants';
 
 type Props = {
   startsAt: string;
@@ -26,7 +27,7 @@ export function EventCountdown({ startsAt, compact = false }: Props) {
   useEffect(() => {
     intervalRef.current = setInterval(() => {
       setTime(getTimeRemaining(startsAt));
-    }, 1000);
+    }, EVENT_COUNTDOWN_TICK_MS);
 
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);

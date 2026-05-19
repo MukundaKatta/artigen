@@ -1,14 +1,8 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  Modal,
-  StyleSheet,
-  TouchableOpacity,
-  Pressable,
-} from 'react-native';
+import { View, Text, Modal, StyleSheet, TouchableOpacity, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fontSize, spacing, typography } from '@/lib/theme';
+import { REPORT_SUBMIT_TOAST_DURATION_MS } from '@/lib/constants';
 
 const REPORT_REASONS = [
   'Spam',
@@ -37,7 +31,7 @@ export function ReportSheet({ visible, onClose, onReport, title = 'Report' }: Pr
     setTimeout(() => {
       setSubmitted(false);
       onClose();
-    }, 1500);
+    }, REPORT_SUBMIT_TOAST_DURATION_MS);
   }
 
   return (
@@ -50,7 +44,9 @@ export function ReportSheet({ visible, onClose, onReport, title = 'Report' }: Pr
             <View style={styles.successContainer}>
               <Ionicons name="checkmark-circle" size={48} color={colors.success} />
               <Text style={styles.successText}>Thanks for reporting</Text>
-              <Text style={styles.successSubtext}>We'll review this and take action if needed.</Text>
+              <Text style={styles.successSubtext}>
+                We'll review this and take action if needed.
+              </Text>
             </View>
           ) : (
             <>

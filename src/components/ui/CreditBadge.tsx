@@ -8,6 +8,7 @@ import { getUserCredits } from '@/services/credits.service';
 import { colors, fontSize, typography, borderRadius, spacing } from '@/lib/theme';
 import { formatNumber } from '@/utils/format-number';
 import { logger } from '@/lib/logger';
+import { CREDIT_REFRESH_INTERVAL_MS } from '@/lib/constants';
 
 // Explicit (currently empty) props contract — #218.
 export type CreditBadgeProps = Record<string, never>;
@@ -29,8 +30,7 @@ export function CreditBadge(_: CreditBadgeProps = {}) {
 
   useEffect(() => {
     fetchCredits();
-    // Refresh credits every 30 seconds while mounted
-    const interval = setInterval(fetchCredits, 30_000);
+    const interval = setInterval(fetchCredits, CREDIT_REFRESH_INTERVAL_MS);
     return () => clearInterval(interval);
   }, [fetchCredits]);
 

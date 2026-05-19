@@ -17,6 +17,7 @@ import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Avatar } from '@/components/ui/Avatar';
 import { colors, fontSize, spacing, typography, borderRadius } from '@/lib/theme';
+import { SEARCH_DEBOUNCE_MS } from '@/lib/constants';
 import { searchUsers } from '@/services/profile.service';
 import { getOrCreateConversation, sendMessage } from '@/services/message.service';
 
@@ -28,12 +29,7 @@ type ShareSheetProps = {
   recentConversations?: { userId: string; profile: any }[];
 };
 
-export function ShareSheet({
-  visible,
-  onClose,
-  postId,
-  currentUserId,
-}: ShareSheetProps) {
+export function ShareSheet({ visible, onClose, postId, currentUserId }: ShareSheetProps) {
   const [query, setQuery] = useState('');
   const [users, setUsers] = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
@@ -59,19 +55,22 @@ export function ShareSheet({
       const { data } = await searchUsers(query);
       setUsers((data || []).filter((u: any) => u.id !== currentUserId));
       setSearching(false);
-    }, 300);
+    }, SEARCH_DEBOUNCE_MS);
     return () => clearTimeout(timer);
   }, [query, currentUserId]);
 
-  const handleSend = useCallback(async (targetUserId: string) => {
-    setSending(targetUserId);
-    const { data: conversation } = await getOrCreateConversation(currentUserId, targetUserId);
-    if (conversation) {
-      await sendMessage(conversation.id, currentUserId, null, 'post_share', undefined, postId);
-    }
-    setSentTo((prev) => new Set(prev).add(targetUserId));
-    setSending(null);
-  }, [currentUserId, postId]);
+  const handleSend = useCallback(
+    async (targetUserId: string) => {
+      setSending(targetUserId);
+      const { data: conversation } = await getOrCreateConversation(currentUserId, targetUserId);
+      if (conversation) {
+        await sendMessage(conversation.id, currentUserId, null, 'post_share', undefined, postId);
+      }
+      setSentTo((prev) => new Set(prev).add(targetUserId));
+      setSending(null);
+    },
+    [currentUserId, postId],
+  );
 
   const handleExternalShare = useCallback(async () => {
     try {
@@ -84,12 +83,7 @@ export function ShareSheet({
   }, [postId, onClose]);
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={onClose}
-    >
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable style={styles.overlay} onPress={onClose}>
         <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
           <View style={styles.handle} />
@@ -160,10 +154,14 @@ export function ShareSheet({
           />
 
           {/* External share option */}
-          <AnimatedPressable style={styles.externalShare} onPress={() => {
-            if (Platform.OS !== 'web') selectionAsync();
-            handleExternalShare();
-          }} scaleValue={0.97}>
+          <AnimatedPressable
+            style={styles.externalShare}
+            onPress={() => {
+              if (Platform.OS !== 'web') selectionAsync();
+              handleExternalShare();
+            }}
+            scaleValue={0.97}
+          >
             <Ionicons name="share-outline" size={22} color={colors.text} />
             <Text style={styles.externalShareText}>Share externally...</Text>
           </AnimatedPressable>

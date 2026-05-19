@@ -15,7 +15,8 @@ export const SCREEN_HEIGHT = height;
 // Grid layout for profile posts (3 columns)
 export const POST_GRID_GAP = 2;
 export const POST_GRID_COLUMNS = 3;
-export const POST_GRID_SIZE = (SCREEN_WIDTH - POST_GRID_GAP * (POST_GRID_COLUMNS - 1)) / POST_GRID_COLUMNS;
+export const POST_GRID_SIZE =
+  (SCREEN_WIDTH - POST_GRID_GAP * (POST_GRID_COLUMNS - 1)) / POST_GRID_COLUMNS;
 
 // Pagination (larger on web for desktop screens)
 export const FEED_PAGE_SIZE = Platform.OS === 'web' ? 20 : 10;
@@ -54,20 +55,52 @@ export const TIP_PRESETS = [100, 200, 500, 1000, 2000] as const;
 
 // Taste profile options
 export const STYLE_OPTIONS: string[] = [
-  'Photorealistic', 'Anime', 'Oil Painting', 'Watercolor', 'Digital Art',
-  'Pixel Art', 'Abstract', 'Minimalist', 'Surreal', 'Pop Art',
-  'Sketch', 'Comic Book', '3D Render', 'Cinematic', 'Impressionist',
+  'Photorealistic',
+  'Anime',
+  'Oil Painting',
+  'Watercolor',
+  'Digital Art',
+  'Pixel Art',
+  'Abstract',
+  'Minimalist',
+  'Surreal',
+  'Pop Art',
+  'Sketch',
+  'Comic Book',
+  '3D Render',
+  'Cinematic',
+  'Impressionist',
 ];
 
 export const THEME_OPTIONS: string[] = [
-  'Nature', 'Sci-Fi', 'Fantasy', 'Urban', 'Portraits',
-  'Animals', 'Architecture', 'Food', 'Space', 'Underwater',
-  'Steampunk', 'Cyberpunk', 'Historical', 'Horror', 'Whimsical',
+  'Nature',
+  'Sci-Fi',
+  'Fantasy',
+  'Urban',
+  'Portraits',
+  'Animals',
+  'Architecture',
+  'Food',
+  'Space',
+  'Underwater',
+  'Steampunk',
+  'Cyberpunk',
+  'Historical',
+  'Horror',
+  'Whimsical',
 ];
 
 export const PALETTE_OPTIONS: string[] = [
-  'Warm', 'Cool', 'Pastel', 'Neon', 'Monochrome',
-  'Earth Tones', 'Vibrant', 'Dark', 'Light', 'Muted',
+  'Warm',
+  'Cool',
+  'Pastel',
+  'Neon',
+  'Monochrome',
+  'Earth Tones',
+  'Vibrant',
+  'Dark',
+  'Light',
+  'Muted',
 ];
 
 export const MARKETPLACE_PAGE_SIZE = 20;
@@ -96,11 +129,25 @@ export const REMIX_PAGE_SIZE = 20;
 export const TYPING_INDICATOR_TIMEOUT_MS = 3000;
 export const SEARCH_DEBOUNCE_MS = 400;
 
+// Timers and polling intervals
+export const CREDIT_REFRESH_INTERVAL_MS = 30_000;
+export const ACTIVITY_HEARTBEAT_MS = 5 * 60 * 1000;
+export const BATTLE_TIMER_TICK_MS = 1000;
+export const EVENT_COUNTDOWN_TICK_MS = 1000;
+export const COUNTDOWN_TICK_MS = 1000;
+
+// Sheet/menu animation delays
+export const ACTION_SHEET_DESKTOP_CLOSE_DELAY_MS = 100;
+export const ACTION_SHEET_MOBILE_CLOSE_DELAY_MS = 200;
+export const REPORT_SUBMIT_TOAST_DURATION_MS = 1500;
+
 // Offline cache
 export const OFFLINE_CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
 
 // XP Level thresholds
-export const XP_LEVEL_THRESHOLDS = [0, 100, 250, 500, 1000, 2000, 4000, 8000, 16000, 32000] as const;
+export const XP_LEVEL_THRESHOLDS = [
+  0, 100, 250, 500, 1000, 2000, 4000, 8000, 16000, 32000,
+] as const;
 
 // Pinned posts
 export const MAX_PINNED_POSTS = 3;

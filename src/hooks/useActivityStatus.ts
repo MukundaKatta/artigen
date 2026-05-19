@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
 import { updateLastActive } from '@/services/activity.service';
+import { ACTIVITY_HEARTBEAT_MS } from '@/lib/constants';
 
 export function useActivityStatus(userId: string | undefined) {
   const intervalRef = useRef<ReturnType<typeof setInterval>>();
@@ -17,8 +18,7 @@ export function useActivityStatus(userId: string | undefined) {
     // Initial heartbeat
     heartbeat();
 
-    // Periodic heartbeat every 5 minutes
-    intervalRef.current = setInterval(heartbeat, 5 * 60 * 1000);
+    intervalRef.current = setInterval(heartbeat, ACTIVITY_HEARTBEAT_MS);
 
     // App state listener
     const subscription = AppState.addEventListener('change', (state: AppStateStatus) => {

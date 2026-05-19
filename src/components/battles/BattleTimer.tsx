@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
+import { BATTLE_TIMER_TICK_MS } from '@/lib/constants';
 
 type Props = {
   /** ISO timestamp when the battle started */
@@ -42,7 +43,7 @@ export function BattleTimer({ startedAt, timeLimitMinutes, status, onTimeUp }: P
     };
 
     tick();
-    const interval = setInterval(tick, 1000);
+    const interval = setInterval(tick, BATTLE_TIMER_TICK_MS);
     return () => clearInterval(interval);
   }, [startedAt, timeLimitMinutes, status, onTimeUp]);
 
@@ -81,11 +82,7 @@ export function BattleTimer({ startedAt, timeLimitMinutes, status, onTimeUp }: P
 
   return (
     <View style={[styles.container, isUrgent && styles.urgentContainer]}>
-      <Ionicons
-        name={isExpired ? 'alarm' : 'time-outline'}
-        size={16}
-        color={timerColor}
-      />
+      <Ionicons name={isExpired ? 'alarm' : 'time-outline'} size={16} color={timerColor} />
       <Text style={[styles.timerText, { color: timerColor }]}>
         {isExpired ? 'Time is up!' : formatTime(remaining)}
       </Text>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, fontSize, typography, borderRadius, withOpacity } from '@/lib/theme';
+import { COUNTDOWN_TICK_MS } from '@/lib/constants';
 import type { StorySticker } from '@/types';
 
 type Props = {
@@ -35,7 +36,7 @@ export function CountdownSticker({ sticker, onRespond }: Props) {
     }
 
     update();
-    const interval = setInterval(update, 1000);
+    const interval = setInterval(update, COUNTDOWN_TICK_MS);
     return () => clearInterval(interval);
   }, [config.end_time]);
 
@@ -58,9 +59,7 @@ export function CountdownSticker({ sticker, onRespond }: Props) {
           size={14}
           color={colors.textLight}
         />
-        <Text style={styles.remindText}>
-          {reminded ? 'Reminded' : 'Remind Me'}
-        </Text>
+        <Text style={styles.remindText}>{reminded ? 'Reminded' : 'Remind Me'}</Text>
       </TouchableOpacity>
     </View>
   );
