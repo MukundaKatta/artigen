@@ -72,6 +72,7 @@ export const colors = {
   backgroundDarkSecondary: '#121212',
   borderDark: '#363636',
   surface: '#F5F5F5',
+  gold: '#FFD700',
 } as const;
 
 export const providerColors = {
@@ -101,7 +102,10 @@ export function withOpacity(color: string, opacity: number): string {
   const hex = color.slice(1);
   const normalized =
     hex.length === 3
-      ? hex.split('').map((value) => value + value).join('')
+      ? hex
+          .split('')
+          .map((value) => value + value)
+          .join('')
       : hex.slice(0, 6);
   const value = Number.parseInt(normalized, 16);
 

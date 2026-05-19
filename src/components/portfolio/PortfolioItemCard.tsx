@@ -29,17 +29,19 @@ export function PortfolioItemCard({ item, onPress, onRemove }: Props) {
       scaleValue={0.97}
     >
       {imageUrl ? (
-        <Image source={{ uri: imageUrl }} style={styles.image} contentFit="cover" transition={200} />
+        <Image
+          source={{ uri: imageUrl }}
+          style={styles.image}
+          contentFit="cover"
+          transition={200}
+        />
       ) : (
         <View style={[styles.image, styles.placeholder]}>
           <Ionicons name="image-outline" size={32} color={colors.textSecondary} />
         </View>
       )}
       {caption ? (
-        <LinearGradient
-          colors={['transparent', 'rgba(0,0,0,0.7)']}
-          style={styles.captionOverlay}
-        >
+        <LinearGradient colors={['transparent', 'rgba(0,0,0,0.7)']} style={styles.captionOverlay}>
           <Text style={styles.captionText} numberOfLines={2}>
             {caption}
           </Text>
@@ -83,7 +85,7 @@ const styles = StyleSheet.create({
   captionText: {
     fontSize: fontSize.xs,
     fontFamily: typography.medium,
-    color: '#FFFFFF',
+    color: colors.textLight,
   },
   removeButton: {
     position: 'absolute',

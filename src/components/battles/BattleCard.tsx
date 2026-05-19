@@ -35,10 +35,7 @@ function PulseBadge({ config }: { config: { label: string; color: string; icon: 
   useEffect(() => {
     if (config.label === 'LIVE') {
       opacity.value = withRepeat(
-        withSequence(
-          withTiming(0.4, { duration: 600 }),
-          withTiming(1, { duration: 600 }),
-        ),
+        withSequence(withTiming(0.4, { duration: 600 }), withTiming(1, { duration: 600 })),
         -1,
       );
     }
@@ -50,7 +47,7 @@ function PulseBadge({ config }: { config: { label: string; color: string; icon: 
 
   return (
     <Animated.View style={[styles.statusBadge, { backgroundColor: config.color }, animStyle]}>
-      <Ionicons name={config.icon} size={10} color="#fff" />
+      <Ionicons name={config.icon} size={10} color={colors.textLight} />
       <Text style={styles.statusText}>{config.label}</Text>
     </Animated.View>
   );
@@ -73,8 +70,12 @@ export const BattleCard = React.memo(function BattleCard({ battle }: Props) {
       <PulseBadge config={config} />
 
       {/* Theme + title */}
-      <Text style={styles.title} numberOfLines={1}>{battle.title}</Text>
-      <Text style={styles.theme} numberOfLines={1}>{battle.theme}</Text>
+      <Text style={styles.title} numberOfLines={1}>
+        {battle.title}
+      </Text>
+      <Text style={styles.theme} numberOfLines={1}>
+        {battle.theme}
+      </Text>
 
       {/* Participants */}
       <View style={styles.participantsRow}>
@@ -138,7 +139,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontFamily: typography.bold,
     fontWeight: '700',
-    color: '#fff',
+    color: colors.textLight,
     letterSpacing: 0.5,
   },
   title: {

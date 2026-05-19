@@ -1,10 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { typography } from '@/lib/theme';
+import { colors, typography } from '@/lib/theme';
 
 type Props = { label: string; color?: string };
 
-export function SubscriberBadge({ label, color = '#FFD700' }: Props) {
+export function SubscriberBadge({ label, color = colors.gold }: Props) {
   return (
     <View style={[styles.badge, { backgroundColor: color + '20', borderColor: color }]}>
       <Text style={[styles.text, { color }]}>{label}</Text>

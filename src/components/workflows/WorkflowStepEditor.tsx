@@ -14,9 +14,9 @@ type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
 
 const STEP_TYPES: { type: WorkflowStepType; icon: IoniconName; label: string; color: string }[] = [
   { type: 'generate', icon: 'sparkles', label: 'Generate', color: colors.accent },
-  { type: 'restyle', icon: 'color-palette', label: 'Restyle', color: '#EC4899' },
-  { type: 'inpaint', icon: 'brush', label: 'Inpaint', color: '#F59E0B' },
-  { type: 'upscale', icon: 'resize', label: 'Upscale', color: '#10B981' },
+  { type: 'restyle', icon: 'color-palette', label: 'Restyle', color: colors.like },
+  { type: 'inpaint', icon: 'brush', label: 'Inpaint', color: colors.warning },
+  { type: 'upscale', icon: 'resize', label: 'Upscale', color: colors.success },
 ];
 
 const SCALE_OPTIONS = [2, 4];
@@ -60,11 +60,18 @@ export function WorkflowStepEditor({ step, onSave, onCancel }: Props) {
         {STEP_TYPES.map((t) => (
           <TouchableOpacity
             key={t.type}
-            style={[styles.typeChip, type === t.type && { backgroundColor: t.color + '20', borderColor: t.color }]}
+            style={[
+              styles.typeChip,
+              type === t.type && { backgroundColor: t.color + '20', borderColor: t.color },
+            ]}
             onPress={() => setType(t.type)}
             activeOpacity={0.7}
           >
-            <Ionicons name={t.icon} size={16} color={type === t.type ? t.color : colors.textSecondary} />
+            <Ionicons
+              name={t.icon}
+              size={16}
+              color={type === t.type ? t.color : colors.textSecondary}
+            />
             <Text style={[styles.typeChipText, type === t.type && { color: t.color }]}>
               {t.label}
             </Text>
@@ -141,7 +148,9 @@ export function WorkflowStepEditor({ step, onSave, onCancel }: Props) {
                 onPress={() => setScaleFactor(s)}
                 activeOpacity={0.7}
               >
-                <Text style={[styles.scaleChipText, scaleFactor === s && styles.scaleChipTextActive]}>
+                <Text
+                  style={[styles.scaleChipText, scaleFactor === s && styles.scaleChipTextActive]}
+                >
                   {s}x
                 </Text>
               </TouchableOpacity>
@@ -237,8 +246,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   scaleChipActive: {
-    backgroundColor: '#10B981',
-    borderColor: '#10B981',
+    backgroundColor: colors.success,
+    borderColor: colors.success,
   },
   scaleChipText: {
     fontSize: fontSize.md,
@@ -246,7 +255,7 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   scaleChipTextActive: {
-    color: '#fff',
+    color: colors.textLight,
   },
   actions: {
     flexDirection: 'row',
@@ -277,6 +286,6 @@ const styles = StyleSheet.create({
     fontSize: fontSize.md,
     fontFamily: typography.semiBold,
     fontWeight: '600',
-    color: '#fff',
+    color: colors.textLight,
   },
 });
