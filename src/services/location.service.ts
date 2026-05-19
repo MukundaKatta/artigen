@@ -1,6 +1,10 @@
 import { supabase } from '@/lib/supabase';
 import type { Location } from '@/types';
 
+/**
+ * Search locations by name (case-insensitive substring match),
+ * ordered by tag popularity. Capped at 20 results.
+ */
 export async function searchLocations(query: string) {
   const { data, error } = await supabase
     .from('locations')
@@ -22,7 +26,16 @@ export async function getLocation(locationId: string) {
   return { data: data as unknown as Location | null, error };
 }
 
-export async function getOrCreateLocation(name: string, address?: string, lat?: number, lng?: number) {
+/**
+ * Look up a location by name, returning the existing row if found or
+ * creating a new one (with optional address + coordinates) if not.
+ */
+export async function getOrCreateLocation(
+  name: string,
+  address?: string,
+  lat?: number,
+  lng?: number,
+) {
   // Try to find existing
   const { data: existing } = await supabase
     .from('locations')
@@ -58,6 +71,10 @@ export async function getLocationPosts(locationId: string, page = 0) {
   return { data: data || [], error };
 }
 
+/**
+ * Find locations near a coordinate using a bounding-box approximation
+ * (radiusKm defaults to 10). Returns up to 50 results, popularity-sorted.
+ */
 export async function getNearbyLocations(lat: number, lng: number, radiusKm = 10) {
   // Simple bounding box query
   const latDelta = radiusKm / 111;

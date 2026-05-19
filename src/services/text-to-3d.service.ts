@@ -1,6 +1,10 @@
 import { supabase } from '@/lib/supabase';
 import { logger } from '@/lib/logger';
 
+/**
+ * Insert a pending text-to-3D job row and fire the generation edge function.
+ * Edge invoke is fire-and-forget; on failure the row is updated to 'failed'.
+ */
 export async function createText3DJob(
   userId: string,
   prompt: string,
@@ -39,6 +43,9 @@ export async function createText3DJob(
   return { data, error };
 }
 
+/**
+ * Fetch a single text-to-3D job by id. Used by job-polling consumers.
+ */
 export async function getText3DJob(jobId: string) {
   const { data, error } = await supabase
     .from('text_to_3d_jobs')
@@ -48,6 +55,9 @@ export async function getText3DJob(jobId: string) {
   return { data, error };
 }
 
+/**
+ * List the caller's text-to-3D jobs, newest first.
+ */
 export async function getMyText3DJobs(userId: string) {
   const { data, error } = await supabase
     .from('text_to_3d_jobs')

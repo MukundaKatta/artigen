@@ -33,6 +33,10 @@ export type MentorshipSessionWithPost = MentorshipSession & {
 
 // ── Request mentorship ───────────────────────────────
 
+/**
+ * Create a pending mentorship request from mentee to mentor with focus areas
+ * and an introduction message. Returns the row with both profiles joined.
+ */
 export async function requestMentorship(
   menteeId: string,
   mentorId: string,
@@ -47,7 +51,9 @@ export async function requestMentorship(
       focus_areas: focusAreas,
       message,
     })
-    .select('*, mentor:profiles!mentor_id(id, username, avatar_url), mentee:profiles!mentee_id(id, username, avatar_url)')
+    .select(
+      '*, mentor:profiles!mentor_id(id, username, avatar_url), mentee:profiles!mentee_id(id, username, avatar_url)',
+    )
     .single();
 
   return { data: data as unknown as MentorshipWithProfiles | null, error };
@@ -55,6 +61,10 @@ export async function requestMentorship(
 
 // ── Respond to mentorship request ────────────────────
 
+/**
+ * Accept or decline a mentorship request. Accepting flips status to 'active'
+ * and stamps accepted_at; declining sets 'cancelled'.
+ */
 export async function respondToMentorship(mentorshipId: string, accept: boolean) {
   const status = accept ? 'active' : 'cancelled';
   const updateData: Record<string, any> = { status };
@@ -66,7 +76,9 @@ export async function respondToMentorship(mentorshipId: string, accept: boolean)
     .from('mentorships')
     .update(updateData as any)
     .eq('id', mentorshipId)
-    .select('*, mentor:profiles!mentor_id(id, username, avatar_url), mentee:profiles!mentee_id(id, username, avatar_url)')
+    .select(
+      '*, mentor:profiles!mentor_id(id, username, avatar_url), mentee:profiles!mentee_id(id, username, avatar_url)',
+    )
     .single();
 
   return { data: data as unknown as MentorshipWithProfiles | null, error };
@@ -74,10 +86,15 @@ export async function respondToMentorship(mentorshipId: string, accept: boolean)
 
 // ── Get my mentorships ───────────────────────────────
 
+/**
+ * List every mentorship the user is part of as mentor or mentee, newest first.
+ */
 export async function getMyMentorships(userId: string) {
   const { data, error } = await supabase
     .from('mentorships')
-    .select('*, mentor:profiles!mentor_id(id, username, avatar_url), mentee:profiles!mentee_id(id, username, avatar_url)')
+    .select(
+      '*, mentor:profiles!mentor_id(id, username, avatar_url), mentee:profiles!mentee_id(id, username, avatar_url)',
+    )
     .or(`mentor_id.eq.${userId},mentee_id.eq.${userId}`)
     .order('created_at', { ascending: false });
 
@@ -86,6 +103,10 @@ export async function getMyMentorships(userId: string) {
 
 // ── Get sessions for a mentorship ────────────────────
 
+/**
+ * List feedback sessions for a mentorship, newest first, with linked post
+ * media if attached.
+ */
 export async function getMentorshipSessions(mentorshipId: string) {
   const { data, error } = await supabase
     .from('mentorship_sessions')
@@ -128,7 +149,13 @@ export async function findMentors(limit = 20) {
     .eq('badge_id', 'mentor')
     .limit(limit);
 
-  type MentorProfile = { id: string; username: string; full_name: string; avatar_url: string | null; is_verified: boolean };
+  type MentorProfile = {
+    id: string;
+    username: string;
+    full_name: string;
+    avatar_url: string | null;
+    is_verified: boolean;
+  };
   type MentorRow = { user: MentorProfile | null };
   const mentors = ((data ?? []) as unknown as MentorRow[])
     .map((row) => row.user)
