@@ -57,6 +57,8 @@ export function ReportSheet({ visible, onClose, onReport, title = 'Report' }: Pr
                   key={reason}
                   style={styles.reasonRow}
                   onPress={() => handleReport(reason)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Report reason: ${reason}`}
                 >
                   <Text style={styles.reasonText}>{reason}</Text>
                   <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />

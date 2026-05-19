@@ -30,6 +30,8 @@ export function StickerGrid({ stickers, onPress, onLongPress }: Props) {
           onPress={() => onPress?.(sticker)}
           onLongPress={() => onLongPress?.(sticker)}
           activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel={sticker.label || 'Sticker'}
         >
           <Image
             source={{ uri: sticker.image_url }}
@@ -37,13 +39,13 @@ export function StickerGrid({ stickers, onPress, onLongPress }: Props) {
             contentFit="contain"
           />
           {sticker.label ? (
-            <Text style={styles.label} numberOfLines={1}>{sticker.label}</Text>
+            <Text style={styles.label} numberOfLines={1}>
+              {sticker.label}
+            </Text>
           ) : null}
         </TouchableOpacity>
       ))}
-      {stickers.length === 0 && (
-        <Text style={styles.empty}>No stickers yet</Text>
-      )}
+      {stickers.length === 0 && <Text style={styles.empty}>No stickers yet</Text>}
     </View>
   );
 }

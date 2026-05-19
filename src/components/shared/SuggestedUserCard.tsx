@@ -12,7 +12,10 @@ type Props = {
   currentUserId: string;
 };
 
-export const SuggestedUserCard = React.memo(function SuggestedUserCard({ user, currentUserId }: Props) {
+export const SuggestedUserCard = React.memo(function SuggestedUserCard({
+  user,
+  currentUserId,
+}: Props) {
   const router = useRouter();
   const { isFollowing, loading, toggleFollow } = useFollow(currentUserId, user.id);
 
@@ -21,20 +24,22 @@ export const SuggestedUserCard = React.memo(function SuggestedUserCard({ user, c
       style={styles.card}
       onPress={() => router.push(`/(screens)/user/${user.id}`)}
       activeOpacity={0.8}
+      accessibilityRole="button"
+      accessibilityLabel={`Open profile for @${user.username}, ${user.full_name}`}
     >
       <Avatar uri={user.avatar_url} size="lg" />
-      <Text style={styles.username} numberOfLines={1}>{user.username}</Text>
-      <Text style={styles.fullName} numberOfLines={1}>{user.full_name}</Text>
+      <Text style={styles.username} numberOfLines={1}>
+        {user.username}
+      </Text>
+      <Text style={styles.fullName} numberOfLines={1}>
+        {user.full_name}
+      </Text>
       {user.mutual_count > 0 && (
         <Text style={styles.mutual}>
           {user.mutual_count} mutual {user.mutual_count === 1 ? 'friend' : 'friends'}
         </Text>
       )}
-      <FollowButton
-        isFollowing={isFollowing}
-        loading={loading}
-        onPress={toggleFollow}
-      />
+      <FollowButton isFollowing={isFollowing} loading={loading} onPress={toggleFollow} />
     </TouchableOpacity>
   );
 });

@@ -56,7 +56,8 @@ export function CommunityHeader({ community, isMember, isOwner, joining, onToggl
         </View>
 
         <Text style={styles.memberCount}>
-          {formatNumber(community.member_count)} {community.member_count === 1 ? 'member' : 'members'}
+          {formatNumber(community.member_count)}{' '}
+          {community.member_count === 1 ? 'member' : 'members'}
         </Text>
 
         {community.description ? (
@@ -80,6 +81,9 @@ export function CommunityHeader({ community, isMember, isOwner, joining, onToggl
             onPress={onToggleJoin}
             disabled={joining}
             activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={isMember ? `Leave ${community.name}` : `Join ${community.name}`}
+            accessibilityState={{ selected: isMember, disabled: joining, busy: joining }}
           >
             <Text style={[styles.joinButtonText, isMember && styles.joinedButtonText]}>
               {joining ? '...' : isMember ? 'Joined' : 'Join'}

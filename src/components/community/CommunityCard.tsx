@@ -22,7 +22,13 @@ export function CommunityCard({ community }: Props) {
   }
 
   return (
-    <AnimatedPressable style={styles.card} onPress={handlePress} scaleValue={0.97}>
+    <AnimatedPressable
+      style={styles.card}
+      onPress={handlePress}
+      scaleValue={0.97}
+      accessibilityRole="button"
+      accessibilityLabel={`${community.name}, ${formatNumber(community.member_count)} ${community.member_count === 1 ? 'member' : 'members'}${community.is_private ? ', private' : ''}`}
+    >
       <Image
         source={
           community.avatar_url
@@ -38,7 +44,8 @@ export function CommunityCard({ community }: Props) {
           {community.name}
         </Text>
         <Text style={styles.memberCount}>
-          {formatNumber(community.member_count)} {community.member_count === 1 ? 'member' : 'members'}
+          {formatNumber(community.member_count)}{' '}
+          {community.member_count === 1 ? 'member' : 'members'}
         </Text>
         {community.tags.length > 0 && (
           <View style={styles.tagsRow}>
@@ -51,7 +58,12 @@ export function CommunityCard({ community }: Props) {
         )}
       </View>
       {community.is_private && (
-        <Ionicons name="lock-closed" size={14} color={colors.textSecondary} style={styles.lockIcon} />
+        <Ionicons
+          name="lock-closed"
+          size={14}
+          color={colors.textSecondary}
+          style={styles.lockIcon}
+        />
       )}
     </AnimatedPressable>
   );

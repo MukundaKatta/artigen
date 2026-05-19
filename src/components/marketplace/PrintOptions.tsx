@@ -14,6 +14,9 @@ export function PrintOptions({ options, selected, onSelect }: Props) {
           key={`${opt.size}-${opt.material}`}
           style={[styles.option, selected === i && styles.optionActive]}
           onPress={() => onSelect(i)}
+          accessibilityRole="radio"
+          accessibilityState={{ selected: selected === i }}
+          accessibilityLabel={`${opt.size} on ${opt.material}, $${(opt.price_cents / 100).toFixed(2)}`}
         >
           <View>
             <Text style={styles.size}>{opt.size}</Text>

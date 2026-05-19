@@ -18,8 +18,18 @@ type Props = {
 };
 
 export function StickerPackCard({ pack, isSaved, onPress, onSave }: Props) {
+  const stickerCount = pack.sticker_count ?? 0;
+  const cardLabel = pack.creator?.username
+    ? `${pack.name}, ${stickerCount} stickers, by @${pack.creator.username}`
+    : `${pack.name}, ${stickerCount} stickers`;
   return (
-    <TouchableOpacity onPress={onPress} style={styles.card} activeOpacity={0.8}>
+    <TouchableOpacity
+      onPress={onPress}
+      style={styles.card}
+      activeOpacity={0.8}
+      accessibilityRole="button"
+      accessibilityLabel={cardLabel}
+    >
       <View style={styles.coverContainer}>
         {pack.cover_url ? (
           <Image source={{ uri: pack.cover_url }} style={styles.cover} contentFit="cover" />
@@ -30,14 +40,23 @@ export function StickerPackCard({ pack, isSaved, onPress, onSave }: Props) {
         )}
       </View>
       <View style={styles.info}>
-        <Text style={styles.name} numberOfLines={1}>{pack.name}</Text>
+        <Text style={styles.name} numberOfLines={1}>
+          {pack.name}
+        </Text>
         <Text style={styles.meta}>
           {pack.sticker_count ?? 0} stickers
           {pack.creator?.username ? ` · @${pack.creator.username}` : ''}
         </Text>
       </View>
       {onSave && (
-        <TouchableOpacity onPress={onSave} style={styles.saveButton} activeOpacity={0.7}>
+        <TouchableOpacity
+          onPress={onSave}
+          style={styles.saveButton}
+          activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel={isSaved ? 'Saved pack' : 'Save pack'}
+          accessibilityState={{ selected: !!isSaved }}
+        >
           <Ionicons
             name={isSaved ? 'bookmark' : 'bookmark-outline'}
             size={20}

@@ -28,13 +28,7 @@ const STATUS_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
   featured: 'star',
 };
 
-export function SubmissionCard({
-  submission,
-  isCurator,
-  onAccept,
-  onReject,
-  onFeature,
-}: Props) {
+export function SubmissionCard({ submission, isCurator, onAccept, onReject, onFeature }: Props) {
   const router = useRouter();
   const media = submission.post?.media?.[0];
 
@@ -44,13 +38,11 @@ export function SubmissionCard({
         style={styles.imageContainer}
         onPress={() => router.push(`/(screens)/post/${submission.post_id}`)}
         activeOpacity={0.8}
+        accessibilityRole="button"
+        accessibilityLabel={`Open submission by @${submission.user.username}`}
       >
         {media && (
-          <Image
-            source={{ uri: media.media_url }}
-            style={styles.image}
-            contentFit="cover"
-          />
+          <Image source={{ uri: media.media_url }} style={styles.image} contentFit="cover" />
         )}
       </TouchableOpacity>
 
@@ -92,18 +84,24 @@ export function SubmissionCard({
             <TouchableOpacity
               style={[styles.actionBtn, styles.acceptBtn]}
               onPress={() => onAccept?.(submission.id)}
+              accessibilityRole="button"
+              accessibilityLabel="Accept submission"
             >
               <Ionicons name="checkmark" size={16} color={colors.textLight} />
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.actionBtn, styles.featureBtn]}
               onPress={() => onFeature?.(submission.id)}
+              accessibilityRole="button"
+              accessibilityLabel="Feature submission"
             >
               <Ionicons name="star" size={16} color={colors.textLight} />
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.actionBtn, styles.rejectBtn]}
               onPress={() => onReject?.(submission.id)}
+              accessibilityRole="button"
+              accessibilityLabel="Reject submission"
             >
               <Ionicons name="close" size={16} color={colors.textLight} />
             </TouchableOpacity>

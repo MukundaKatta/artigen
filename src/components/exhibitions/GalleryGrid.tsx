@@ -44,6 +44,8 @@ export function GalleryGrid({ submissions }: Props) {
                 style={styles.featuredItem}
                 onPress={() => handlePress(item.post_id)}
                 activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel={`Featured artwork by @${item.user.username}`}
               >
                 {media && (
                   <Image
@@ -81,6 +83,8 @@ export function GalleryGrid({ submissions }: Props) {
               key={item.id}
               onPress={() => handlePress(item.post_id)}
               activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel={`Accepted artwork by @${item.user.username}`}
             >
               <View style={styles.gridItem}>
                 {media && (

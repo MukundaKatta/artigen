@@ -1,10 +1,6 @@
 import React, { useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text, LayoutChangeEvent } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-} from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import { colors, fontSize, spacing, typography } from '@/lib/theme';
 
 type Tab = {
@@ -55,11 +51,12 @@ export function AnimatedTabBar({ tabs, activeKey, onTabPress }: Props) {
             style={styles.tab}
             onPress={() => onTabPress(tab.key)}
             activeOpacity={0.7}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: isActive }}
+            accessibilityLabel={tab.label}
           >
             {tab.icon ?? (
-              <Text style={[styles.tabText, isActive && styles.activeTabText]}>
-                {tab.label}
-              </Text>
+              <Text style={[styles.tabText, isActive && styles.activeTabText]}>{tab.label}</Text>
             )}
           </TouchableOpacity>
         );

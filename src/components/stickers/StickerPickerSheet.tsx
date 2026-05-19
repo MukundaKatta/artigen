@@ -43,6 +43,9 @@ const PackTabItem = React.memo(function PackTabItem({
     <TouchableOpacity
       onPress={handlePress}
       style={[styles.packTab, isActive && styles.packTabActive]}
+      accessibilityRole="tab"
+      accessibilityState={{ selected: isActive }}
+      accessibilityLabel={`Sticker pack: ${pack.name}`}
     >
       {pack.cover_url ? (
         <Image source={{ uri: pack.cover_url }} style={styles.packTabImage} contentFit="cover" />
@@ -69,12 +72,13 @@ const StickerItem = React.memo(function StickerItem({
     onClose();
   }, [sticker, onSelect, onClose]);
   return (
-    <TouchableOpacity onPress={handlePress} activeOpacity={0.7}>
-      <Image
-        source={{ uri: sticker.image_url }}
-        style={styles.stickerImage}
-        contentFit="contain"
-      />
+    <TouchableOpacity
+      onPress={handlePress}
+      activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityLabel={sticker.label || 'Sticker'}
+    >
+      <Image source={{ uri: sticker.image_url }} style={styles.stickerImage} contentFit="contain" />
     </TouchableOpacity>
   );
 });
@@ -111,14 +115,14 @@ export function StickerPickerSheet({ visible, onClose, onSelect, userId }: Props
     ({ item }: { item: Pack }) => (
       <PackTabItem pack={item} isActive={selectedPack === item.id} onPress={handleSelectPack} />
     ),
-    [selectedPack, handleSelectPack]
+    [selectedPack, handleSelectPack],
   );
 
   const renderSticker = useCallback(
     ({ item }: { item: Sticker }) => (
       <StickerItem sticker={item} onSelect={onSelect} onClose={onClose} />
     ),
-    [onSelect, onClose]
+    [onSelect, onClose],
   );
 
   const packKeyExtractor = useCallback((item: Pack) => item.id, []);
