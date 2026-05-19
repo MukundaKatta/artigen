@@ -9,7 +9,7 @@ export async function createMusicJob(
     durationSeconds?: number;
     genre?: string;
     postId?: string;
-  }
+  },
 ) {
   const { data, error } = await supabase
     .from('music_generation_jobs')
@@ -26,10 +26,17 @@ export async function createMusicJob(
     .single();
 
   if (data) {
-    supabase.functions.invoke('generate-music', { body: { job_id: data.id } }).catch((err) => {
-      logger.warn('Music generation invoke failed:', err);
-      supabase.from('music_generation_jobs').update({ status: 'failed', error_message: 'Failed to start processing' }).eq('id', data.id);
-    });
+    void (async () => {
+      try {
+        await supabase.functions.invoke('generate-music', { body: { job_id: data.id } });
+      } catch (err) {
+        logger.warn('Music generation invoke failed:', err);
+        await supabase
+          .from('music_generation_jobs')
+          .update({ status: 'failed', error_message: 'Failed to start processing' })
+          .eq('id', data.id);
+      }
+    })();
   }
 
   return { data, error };

@@ -2,11 +2,7 @@ import { supabase } from '@/lib/supabase';
 import { logger } from '@/lib/logger';
 
 export async function getControlNetPresets(controlType?: string) {
-  let q = supabase
-    .from('controlnet_presets')
-    .select('*')
-    .eq('is_active', true)
-    .order('sort_order');
+  let q = supabase.from('controlnet_presets').select('*').eq('is_active', true).order('sort_order');
 
   if (controlType) q = q.eq('control_type', controlType);
   const { data, error } = await q;
@@ -38,10 +34,17 @@ export async function createControlNetJob(params: {
     .single();
 
   if (data) {
-    supabase.functions.invoke('controlnet', { body: { job_id: data.id } }).catch((err) => {
-      logger.warn('ControlNet invoke failed:', err);
-      supabase.from('controlnet_jobs').update({ status: 'failed', error_message: 'Failed to start processing' }).eq('id', data.id);
-    });
+    void (async () => {
+      try {
+        await supabase.functions.invoke('controlnet', { body: { job_id: data.id } });
+      } catch (err) {
+        logger.warn('ControlNet invoke failed:', err);
+        await supabase
+          .from('controlnet_jobs')
+          .update({ status: 'failed', error_message: 'Failed to start processing' })
+          .eq('id', data.id);
+      }
+    })();
   }
   return { data, error };
 }

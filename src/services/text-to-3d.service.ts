@@ -6,7 +6,7 @@ export async function createText3DJob(
   prompt: string,
   negativePrompt?: string,
   modelId?: string,
-  settings?: Record<string, any>
+  settings?: Record<string, any>,
 ) {
   const { data, error } = await supabase
     .from('text_to_3d_jobs')
@@ -22,10 +22,18 @@ export async function createText3DJob(
     .single();
 
   if (data) {
-    supabase.functions.invoke('text-to-3d', { body: { job_id: data.id } }).catch((err) => {
-      logger.warn('Text-to-3D invoke failed:', err);
-      supabase.from('text_to_3d_jobs').update({ status: 'failed', error_message: 'Failed to start processing' }).eq('id', data.id);
-    });
+    // Explicit fire-and-forget; the caller returns immediately while the job runs.
+    void (async () => {
+      try {
+        await supabase.functions.invoke('text-to-3d', { body: { job_id: data.id } });
+      } catch (err) {
+        logger.warn('Text-to-3D invoke failed:', err);
+        await supabase
+          .from('text_to_3d_jobs')
+          .update({ status: 'failed', error_message: 'Failed to start processing' })
+          .eq('id', data.id);
+      }
+    })();
   }
 
   return { data, error };
