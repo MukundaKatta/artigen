@@ -11,6 +11,9 @@
 import { supabase } from '@/lib/supabase';
 import { withRetry, type RetryOptions } from '@/lib/retry';
 import { deduplicatedFetch, cacheKey, invalidateCache } from '@/lib/api-cache';
+import type { Database } from '@/types/database';
+
+type TableName = keyof Database['public']['Tables'];
 
 // ── Result Type ──────────────────────────────────────────────────
 
@@ -138,20 +141,20 @@ export async function batchQuery<T, R>(
  * Common pattern for like/unlike, save/unsave, follow/unfollow.
  */
 export async function toggleRelation(
-  table: string,
+  table: TableName,
   matchColumns: Record<string, string>,
   shouldExist: boolean,
 ): Promise<ServiceResult<boolean>> {
   try {
     if (shouldExist) {
-      const { error } = await supabase.from(table as any).insert(matchColumns as any);
+      const { error } = await supabase.from(table).insert(matchColumns);
       if (error) {
         // Ignore duplicate key errors (already exists)
         if (error.code === '23505') return ok(true);
         throw new Error(error.message);
       }
     } else {
-      let query = supabase.from(table as any).delete();
+      let query = supabase.from(table).delete();
       for (const [col, val] of Object.entries(matchColumns)) {
         query = query.eq(col, val);
       }

@@ -1,16 +1,19 @@
 import React from 'react';
 import { View, Text, StyleSheet, Platform } from 'react-native';
-import { useRouter, usePathname } from 'expo-router';
+import { useRouter, usePathname, type Href } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { LogoText } from '@/components/ui/LogoText';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
 import { SIDEBAR_WIDTH, SIDEBAR_COLLAPSED_WIDTH } from '@/lib/constants';
 
+type IoniconName = keyof typeof Ionicons.glyphMap;
+type HoverEvent = { currentTarget: { style: { backgroundColor: string } } };
+
 type NavItem = {
   label: string;
-  icon: string;
-  activeIcon: string;
+  icon: IoniconName;
+  activeIcon: IoniconName;
   path: string;
 };
 
@@ -21,7 +24,12 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Messages', icon: 'chatbubble-outline', activeIcon: 'chatbubble', path: '/(messages)' },
   { label: 'Notifications', icon: 'heart-outline', activeIcon: 'heart', path: '/notifications' },
   { label: 'Create', icon: 'add-circle-outline', activeIcon: 'add-circle', path: '/(tabs)/create' },
-  { label: 'Profile', icon: 'person-circle-outline', activeIcon: 'person-circle', path: '/(tabs)/profile' },
+  {
+    label: 'Profile',
+    icon: 'person-circle-outline',
+    activeIcon: 'person-circle',
+    path: '/(tabs)/profile',
+  },
 ];
 
 type Props = {
@@ -56,23 +64,22 @@ export function DesktopSidebar({ collapsed = false }: Props) {
             <AnimatedPressable
               key={item.label}
               style={[styles.navItem, active && styles.navItemActive]}
-              onPress={() => router.push(item.path as any)}
+              onPress={() => router.push(item.path as Href)}
               scaleValue={0.97}
-              {...(Platform.OS === 'web' ? {
-                // @ts-ignore - web hover styles
-                onMouseEnter: (e: any) => { e.currentTarget.style.backgroundColor = colors.backgroundSecondary; },
-                onMouseLeave: (e: any) => { e.currentTarget.style.backgroundColor = active ? 'transparent' : 'transparent'; },
-              } : {})}
+              {...(Platform.OS === 'web'
+                ? {
+                    onMouseEnter: (e: HoverEvent) => {
+                      e.currentTarget.style.backgroundColor = colors.backgroundSecondary;
+                    },
+                    onMouseLeave: (e: HoverEvent) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    },
+                  }
+                : {})}
             >
-              <Ionicons
-                name={(active ? item.activeIcon : item.icon) as any}
-                size={26}
-                color={colors.text}
-              />
+              <Ionicons name={active ? item.activeIcon : item.icon} size={26} color={colors.text} />
               {!collapsed && (
-                <Text style={[styles.navLabel, active && styles.navLabelActive]}>
-                  {item.label}
-                </Text>
+                <Text style={[styles.navLabel, active && styles.navLabelActive]}>{item.label}</Text>
               )}
             </AnimatedPressable>
           );
@@ -82,7 +89,7 @@ export function DesktopSidebar({ collapsed = false }: Props) {
       <View style={styles.footer}>
         <AnimatedPressable
           style={styles.navItem}
-          onPress={() => router.push('/(screens)/settings' as any)}
+          onPress={() => router.push('/(screens)/settings' as Href)}
           scaleValue={0.97}
         >
           <Ionicons name="menu-outline" size={26} color={colors.text} />

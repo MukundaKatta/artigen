@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
@@ -39,8 +33,8 @@ export default function PortfolioViewRoute() {
   const { sections, loading } = usePortfolio(targetUserId);
   const isOwner = targetUserId === user?.id;
 
-  const portfolioBio = (profile as any)?.portfolio_bio;
-  const portfolioEmail = (profile as any)?.portfolio_contact_email;
+  const portfolioBio = profile?.portfolio_bio;
+  const portfolioEmail = profile?.portfolio_contact_email;
 
   if (loading) {
     return (
@@ -91,9 +85,7 @@ export default function PortfolioViewRoute() {
       {portfolioBio ? (
         <Animated.View entering={FadeInUp.duration(400)} style={styles.bioSection}>
           <Text style={styles.bioText}>{portfolioBio}</Text>
-          {portfolioEmail ? (
-            <Text style={styles.contactEmail}>{portfolioEmail}</Text>
-          ) : null}
+          {portfolioEmail ? <Text style={styles.contactEmail}>{portfolioEmail}</Text> : null}
         </Animated.View>
       ) : null}
 
@@ -103,9 +95,7 @@ export default function PortfolioViewRoute() {
           <PortfolioSection
             section={section}
             items={section.items || []}
-            onItemPress={(item) =>
-              router.push(`/(screens)/post/${item.post_id}`)
-            }
+            onItemPress={(item) => router.push(`/(screens)/post/${item.post_id}`)}
           />
         </Animated.View>
       ))}

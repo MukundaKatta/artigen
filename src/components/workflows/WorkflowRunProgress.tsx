@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
-import type { WorkflowRun, WorkflowStep } from '@/services/workflow.service';
+import type { WorkflowRun, WorkflowStep, WorkflowStepResult } from '@/services/workflow.service';
 
 type Props = {
   run: WorkflowRun;
@@ -35,10 +35,10 @@ export function WorkflowRunProgress({ run }: Props) {
           {run.status === 'completed'
             ? 'Completed'
             : run.status === 'failed'
-            ? 'Failed'
-            : run.status === 'paused'
-            ? 'Paused'
-            : `Step ${run.current_step + 1} of ${totalSteps}`}
+              ? 'Failed'
+              : run.status === 'paused'
+                ? 'Paused'
+                : `Step ${run.current_step + 1} of ${totalSteps}`}
         </Text>
       </View>
 
@@ -53,7 +53,11 @@ export function WorkflowRunProgress({ run }: Props) {
       {/* Steps + results */}
       <View style={styles.stepsList}>
         {steps.map((step: WorkflowStep, index: number) => {
-          const config = STEP_CONFIG[step.type] || { icon: 'ellipsis-horizontal' as IoniconName, label: step.type, color: colors.textSecondary };
+          const config = STEP_CONFIG[step.type] || {
+            icon: 'ellipsis-horizontal' as IoniconName,
+            label: step.type,
+            color: colors.textSecondary,
+          };
           const isCompleted = index < run.current_step;
           const isActive = index === run.current_step && run.status === 'running';
           const result = results[index];
@@ -108,23 +112,29 @@ export function WorkflowRunProgress({ run }: Props) {
       </View>
 
       {/* Final result */}
-      {run.status === 'completed' && results.length > 0 && results[results.length - 1]?.image_url && (
-        <View style={styles.finalResult}>
-          <Text style={styles.finalResultLabel}>Final Result</Text>
-          <Image
-            source={{ uri: results[results.length - 1].image_url }}
-            style={styles.finalResultImage}
-            contentFit="cover"
-          />
-        </View>
-      )}
+      {run.status === 'completed' &&
+        results.length > 0 &&
+        results[results.length - 1]?.image_url && (
+          <View style={styles.finalResult}>
+            <Text style={styles.finalResultLabel}>Final Result</Text>
+            <Image
+              source={{ uri: results[results.length - 1].image_url }}
+              style={styles.finalResultImage}
+              contentFit="cover"
+            />
+          </View>
+        )}
 
       {/* Intermediate results thumbnails */}
       {results.length > 1 && (
         <View style={styles.thumbnailSection}>
           <Text style={styles.thumbnailLabel}>Intermediate Results</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.thumbnailRow}>
-            {results.map((result: any, index: number) =>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.thumbnailRow}
+          >
+            {results.map((result: WorkflowStepResult, index: number) =>
               result?.image_url ? (
                 <Image
                   key={index}

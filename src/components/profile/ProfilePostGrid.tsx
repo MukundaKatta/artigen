@@ -8,7 +8,7 @@ import { POST_GRID_SIZE, POST_GRID_GAP } from '@/lib/constants';
 import { colors } from '@/lib/theme';
 import type { Post, PostMedia } from '@/types/database';
 
-type GridPost = Post & { media: PostMedia[]; is_pinned?: boolean };
+type GridPost = Post & { media: PostMedia[]; is_pinned?: boolean; pinned_at?: string | null };
 
 type Props = {
   posts: GridPost[];
@@ -21,7 +21,7 @@ export function ProfilePostGrid({ posts, onPostPress }: Props) {
     if (a.is_pinned && !b.is_pinned) return -1;
     if (!a.is_pinned && b.is_pinned) return 1;
     if (a.is_pinned && b.is_pinned) {
-      return new Date((b as any).pinned_at || 0).getTime() - new Date((a as any).pinned_at || 0).getTime();
+      return new Date(b.pinned_at || 0).getTime() - new Date(a.pinned_at || 0).getTime();
     }
     return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
   });
@@ -38,10 +38,7 @@ export function ProfilePostGrid({ posts, onPostPress }: Props) {
             key={post.id}
             entering={FadeInDown.delay(Math.min(index, 11) * 50).duration(300)}
           >
-            <AnimatedPressable
-              onPress={() => onPostPress(post.id)}
-              scaleValue={0.97}
-            >
+            <AnimatedPressable onPress={() => onPostPress(post.id)} scaleValue={0.97}>
               <View style={styles.gridItem}>
                 <Image
                   source={{ uri: firstMedia?.media_url }}
