@@ -1,7 +1,7 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
-import * as marketplaceService from '@/services/marketplace.service';
+import { useState, useCallback, useEffect } from 'react';
+import { getListingsForSeller, searchListings } from '@/services/marketplace.service';
 
-type SellerListing = NonNullable<Awaited<ReturnType<typeof marketplaceService.getListingsForSeller>>['data']>[number];
+type SellerListing = NonNullable<Awaited<ReturnType<typeof getListingsForSeller>>['data']>[number];
 
 export function useMarketplace(sellerId?: string) {
   const [listings, setListings] = useState<SellerListing[]>([]);
@@ -10,15 +10,17 @@ export function useMarketplace(sellerId?: string) {
   const fetchListings = useCallback(async () => {
     if (!sellerId) return;
     setLoading(true);
-    const { data } = await marketplaceService.getListingsForSeller(sellerId);
+    const { data } = await getListingsForSeller(sellerId);
     setListings(data || []);
     setLoading(false);
   }, [sellerId]);
 
-  useEffect(() => { fetchListings(); }, [fetchListings]);
+  useEffect(() => {
+    fetchListings();
+  }, [fetchListings]);
 
   const search = useCallback(async (query?: string, page = 0) => {
-    const { data, error } = await marketplaceService.searchListings(query, page);
+    const { data, error } = await searchListings(query, page);
     return { data: data || [], error };
   }, []);
 

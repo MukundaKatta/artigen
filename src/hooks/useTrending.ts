@@ -1,7 +1,11 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { EXPLORE_PAGE_SIZE } from '@/lib/constants';
-import * as trendingService from '@/services/trending.service';
-import type { TrendingPost } from '@/services/trending.service';
+import {
+  getTrendingPrompts,
+  getTrendingStyles,
+  getTrendingPosts,
+  type TrendingPost,
+} from '@/services/trending.service';
 
 export function useTrending() {
   const [prompts, setPrompts] = useState<any[]>([]);
@@ -10,16 +14,15 @@ export function useTrending() {
 
   const fetch = useCallback(async () => {
     setLoading(true);
-    const [promptRes, styleRes] = await Promise.all([
-      trendingService.getTrendingPrompts(),
-      trendingService.getTrendingStyles(),
-    ]);
+    const [promptRes, styleRes] = await Promise.all([getTrendingPrompts(), getTrendingStyles()]);
     setPrompts(promptRes.data || []);
     setStyles(styleRes.data || []);
     setLoading(false);
   }, []);
 
-  useEffect(() => { fetch(); }, [fetch]);
+  useEffect(() => {
+    fetch();
+  }, [fetch]);
 
   return { prompts, styles, loading, refresh: fetch };
 }
@@ -40,17 +43,15 @@ export function useTrendingPosts(viewerId: string | undefined) {
 
   useEffect(() => {
     isMounted.current = true;
-    return () => { isMounted.current = false; };
+    return () => {
+      isMounted.current = false;
+    };
   }, []);
 
   const fetchTrending = useCallback(async () => {
     setLoading(true);
     setError(null);
-    const { data, error: fetchError } = await trendingService.getTrendingPosts(
-      0,
-      EXPLORE_PAGE_SIZE,
-      viewerId,
-    );
+    const { data, error: fetchError } = await getTrendingPosts(0, EXPLORE_PAGE_SIZE, viewerId);
     if (!isMounted.current) return;
     if (fetchError) {
       setError(fetchError.message ?? 'Failed to load trending posts');
@@ -65,11 +66,7 @@ export function useTrendingPosts(viewerId: string | undefined) {
   const refresh = useCallback(async () => {
     if (!isMounted.current) return;
     setRefreshing(true);
-    const { data, error: refreshError } = await trendingService.getTrendingPosts(
-      0,
-      EXPLORE_PAGE_SIZE,
-      viewerId,
-    );
+    const { data, error: refreshError } = await getTrendingPosts(0, EXPLORE_PAGE_SIZE, viewerId);
     if (!isMounted.current) return;
     if (refreshError) {
       setError(refreshError.message ?? 'Failed to refresh trending');
@@ -86,7 +83,7 @@ export function useTrendingPosts(viewerId: string | undefined) {
     if (!viewerId || loadingMore || !hasMore) return;
     setLoadingMore(true);
     const nextPage = page + 1;
-    const { data, error: loadError } = await trendingService.getTrendingPosts(
+    const { data, error: loadError } = await getTrendingPosts(
       nextPage,
       EXPLORE_PAGE_SIZE,
       viewerId,

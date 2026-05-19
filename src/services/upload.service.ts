@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import * as FileSystem from 'expo-file-system';
+import { readAsStringAsync, EncodingType, cacheDirectory, downloadAsync } from 'expo-file-system';
 import { STORAGE_BUCKETS, MAX_IMAGE_SIZE_MB, MAX_VIDEO_SIZE_MB } from '@/lib/constants';
 import { decode } from 'base64-arraybuffer';
 
@@ -17,20 +17,25 @@ export async function uploadFile(
   bucket: BucketName,
   userId: string,
   fileUri: string,
-  fileName: string
+  fileName: string,
 ) {
   // Validate file extension
   const ext = fileName.split('.').pop()?.toLowerCase() || '';
   if (!ALLOWED_EXTENSIONS.has(ext)) {
-    return { url: null, error: { message: `File type ".${ext}" is not allowed. Accepted: ${[...ALLOWED_EXTENSIONS].join(', ')}` } };
+    return {
+      url: null,
+      error: {
+        message: `File type ".${ext}" is not allowed. Accepted: ${[...ALLOWED_EXTENSIONS].join(', ')}`,
+      },
+    };
   }
 
   // Sanitize filename — strip path traversal and special characters
   const sanitizedName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
 
   // Read the file as base64
-  const base64 = await FileSystem.readAsStringAsync(fileUri, {
-    encoding: FileSystem.EncodingType.Base64,
+  const base64 = await readAsStringAsync(fileUri, {
+    encoding: EncodingType.Base64,
   });
 
   // Validate file size
@@ -58,9 +63,7 @@ export async function uploadFile(
   if (error) return { url: null, error };
 
   // Get the public URL
-  const { data: urlData } = supabase.storage
-    .from(STORAGE_BUCKETS[bucket])
-    .getPublicUrl(data.path);
+  const { data: urlData } = supabase.storage.from(STORAGE_BUCKETS[bucket]).getPublicUrl(data.path);
 
   return { url: urlData.publicUrl, error: null };
 }
@@ -69,9 +72,7 @@ export async function uploadFile(
  * Deletes a file from Supabase Storage.
  */
 export async function deleteFile(bucket: BucketName, filePath: string) {
-  const { error } = await supabase.storage
-    .from(STORAGE_BUCKETS[bucket])
-    .remove([filePath]);
+  const { error } = await supabase.storage.from(STORAGE_BUCKETS[bucket]).remove([filePath]);
   return { error };
 }
 
@@ -81,8 +82,8 @@ export async function deleteFile(bucket: BucketName, filePath: string) {
  */
 export async function downloadToLocal(remoteUrl: string): Promise<string | null> {
   try {
-    const localPath = FileSystem.cacheDirectory + `ai_${Date.now()}.png`;
-    const { uri } = await FileSystem.downloadAsync(remoteUrl, localPath);
+    const localPath = cacheDirectory + `ai_${Date.now()}.png`;
+    const { uri } = await downloadAsync(remoteUrl, localPath);
     return uri;
   } catch {
     return null;

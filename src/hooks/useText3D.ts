@@ -1,15 +1,26 @@
 import { useCallback } from 'react';
-import * as text3DService from '@/services/text-to-3d.service';
+import { getText3DJob, createText3DJob } from '@/services/text-to-3d.service';
 import { useJobPolling } from '@/hooks/useJobPolling';
 
 export function useText3D(userId?: string) {
-  const { job, loading, setLoading, startPolling } = useJobPolling(text3DService.getText3DJob);
+  const { job, loading, setLoading, startPolling } = useJobPolling(getText3DJob);
 
   const generate = useCallback(
-    async (prompt: string, negativePrompt?: string, modelId?: string, settings?: Record<string, any>) => {
+    async (
+      prompt: string,
+      negativePrompt?: string,
+      modelId?: string,
+      settings?: Record<string, any>,
+    ) => {
       if (!userId) return;
       setLoading(true);
-      const { data, error } = await text3DService.createText3DJob(userId, prompt, negativePrompt, modelId, settings);
+      const { data, error } = await createText3DJob(
+        userId,
+        prompt,
+        negativePrompt,
+        modelId,
+        settings,
+      );
       if (data) {
         startPolling(data);
       } else {

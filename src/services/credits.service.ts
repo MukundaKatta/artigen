@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import * as WebBrowser from 'expo-web-browser';
+import { openBrowserAsync } from 'expo-web-browser';
 
 export type CreditPackage = {
   id: string;
@@ -12,10 +12,18 @@ export type CreditPackage = {
 };
 
 export const CREDIT_PACKAGES: CreditPackage[] = [
-  { id: 'starter', label: 'Starter',  price_usd: 2,  price_inr: 166,  credits: 2500,  bonus: 0 },
-  { id: 'popular', label: 'Popular',  price_usd: 5,  price_inr: 415,  credits: 6500,  bonus: 30,  popular: true },
-  { id: 'pro',     label: 'Pro',      price_usd: 10, price_inr: 830,  credits: 14000, bonus: 40 },
-  { id: 'studio',  label: 'Studio',   price_usd: 25, price_inr: 2075, credits: 37500, bonus: 50 },
+  { id: 'starter', label: 'Starter', price_usd: 2, price_inr: 166, credits: 2500, bonus: 0 },
+  {
+    id: 'popular',
+    label: 'Popular',
+    price_usd: 5,
+    price_inr: 415,
+    credits: 6500,
+    bonus: 30,
+    popular: true,
+  },
+  { id: 'pro', label: 'Pro', price_usd: 10, price_inr: 830, credits: 14000, bonus: 40 },
+  { id: 'studio', label: 'Studio', price_usd: 25, price_inr: 2075, credits: 37500, bonus: 50 },
 ];
 
 // Credit costs per model (mirrors edge function MODEL_CREDITS)
@@ -68,7 +76,7 @@ export async function getCreditTransactions(userId: string) {
 }
 
 export async function createStripeCheckout(
-  packageId: string
+  packageId: string,
 ): Promise<{ checkout_url: string | null; error: string | null }> {
   const { data, error } = await supabase.functions.invoke('create-checkout', {
     body: { package_id: packageId },
@@ -79,7 +87,7 @@ export async function createStripeCheckout(
 }
 
 export async function createRazorpayOrder(
-  packageId: string
+  packageId: string,
 ): Promise<{ order: RazorpayOrder | null; error: string | null }> {
   const { data, error } = await supabase.functions.invoke('create-razorpay-order', {
     body: { package_id: packageId },
@@ -92,6 +100,6 @@ export async function createRazorpayOrder(
 export async function openStripeCheckout(packageId: string): Promise<{ error: string | null }> {
   const { checkout_url, error } = await createStripeCheckout(packageId);
   if (error || !checkout_url) return { error: error || 'Failed to create checkout' };
-  await WebBrowser.openBrowserAsync(checkout_url);
+  await openBrowserAsync(checkout_url);
   return { error: null };
 }

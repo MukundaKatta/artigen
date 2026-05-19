@@ -1,28 +1,37 @@
 import { useCallback } from 'react';
-import * as upscalingService from '@/services/upscaling.service';
+import { getUpscalingJob, createUpscalingJob } from '@/services/upscaling.service';
 import { useJobPolling } from '@/hooks/useJobPolling';
 
 export function useUpscaling(userId?: string) {
-  const { job, loading, setLoading, startPolling } = useJobPolling(upscalingService.getUpscalingJob);
+  const { job, loading, setLoading, startPolling } = useJobPolling(getUpscalingJob);
 
-  const startUpscaling = useCallback(async (sourceImageUrl: string, scaleFactor?: number, sourcePostId?: string, originalWidth?: number, originalHeight?: number) => {
-    if (!userId) return;
-    setLoading(true);
-    const { data, error } = await upscalingService.createUpscalingJob({
-      userId,
-      sourcePostId,
-      sourceImageUrl,
-      scaleFactor,
-      originalWidth,
-      originalHeight,
-    });
-    if (data) {
-      startPolling(data);
-    } else {
-      setLoading(false);
-    }
-    return { data, error };
-  }, [userId, setLoading, startPolling]);
+  const startUpscaling = useCallback(
+    async (
+      sourceImageUrl: string,
+      scaleFactor?: number,
+      sourcePostId?: string,
+      originalWidth?: number,
+      originalHeight?: number,
+    ) => {
+      if (!userId) return;
+      setLoading(true);
+      const { data, error } = await createUpscalingJob({
+        userId,
+        sourcePostId,
+        sourceImageUrl,
+        scaleFactor,
+        originalWidth,
+        originalHeight,
+      });
+      if (data) {
+        startPolling(data);
+      } else {
+        setLoading(false);
+      }
+      return { data, error };
+    },
+    [userId, setLoading, startPolling],
+  );
 
   return { job, loading, startUpscaling };
 }
