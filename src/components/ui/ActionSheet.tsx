@@ -53,7 +53,7 @@ function DesktopActionSheet({ visible, onClose, items, title }: Props) {
           )}
           {items.map((item, index) => (
             <AnimatedPressable
-              key={index}
+              key={item.label}
               style={[desktopStyles.item, index < items.length - 1 && desktopStyles.itemBorder]}
               onPress={() => {
                 onClose();
@@ -216,7 +216,7 @@ export function ActionSheet({ visible, onClose, items, title }: Props) {
 
         {items.map((item, index) => (
           <AnimatedPressable
-            key={index}
+            key={item.label}
             style={[styles.item, index < items.length - 1 && styles.itemBorder]}
             onPress={() => handleItemPress(item)}
             scaleValue={0.97}

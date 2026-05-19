@@ -12,7 +12,18 @@ import * as Haptics from 'expo-haptics';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const CONFETTI_COUNT = 40;
-const CONFETTI_COLORS = ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#FF69B4', '#7C3AED', '#0095F6'];
+const CONFETTI_COLORS = [
+  '#FFD700',
+  '#FF6B6B',
+  '#4ECDC4',
+  '#45B7D1',
+  '#96CEB4',
+  '#FFEAA7',
+  '#DDA0DD',
+  '#FF69B4',
+  '#7C3AED',
+  '#0095F6',
+];
 
 type ConfettiPieceProps = {
   index: number;
@@ -38,7 +49,10 @@ function ConfettiPiece({ index, trigger, onFinish }: ConfettiPieceProps) {
     if (!trigger) return;
 
     opacity.value = withDelay(delay, withTiming(1, { duration: 100 }));
-    scale.value = withDelay(delay, withTiming(1, { duration: 200, easing: Easing.out(Easing.back(2)) }));
+    scale.value = withDelay(
+      delay,
+      withTiming(1, { duration: 200, easing: Easing.out(Easing.back(2)) }),
+    );
     translateY.value = withDelay(
       delay,
       withTiming(SCREEN_HEIGHT + 50, {
@@ -50,10 +64,7 @@ function ConfettiPiece({ index, trigger, onFinish }: ConfettiPieceProps) {
       delay,
       withTiming(drift, { duration: 2500, easing: Easing.inOut(Easing.sin) }),
     );
-    rotate.value = withDelay(
-      delay,
-      withTiming(360 * (2 + Math.random() * 3), { duration: 2500 }),
-    );
+    rotate.value = withDelay(delay, withTiming(360 * (2 + Math.random() * 3), { duration: 2500 }));
     opacity.value = withDelay(
       delay + 1800,
       withTiming(0, { duration: 500 }, () => {
@@ -111,6 +122,7 @@ export function ConfettiOverlay({ visible, onComplete }: Props) {
 
   return (
     <Animated.View style={StyleSheet.absoluteFill} pointerEvents="none">
+      {/* Index keys are correct here: the particle array is fixed-length and never reorders. */}
       {Array.from({ length: CONFETTI_COUNT }).map((_, i) => (
         <ConfettiPiece
           key={i}

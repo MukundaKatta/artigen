@@ -11,7 +11,7 @@ export function PrintOptions({ options, selected, onSelect }: Props) {
       <Text style={styles.title}>Print Options</Text>
       {options.map((opt, i) => (
         <TouchableOpacity
-          key={i}
+          key={`${opt.size}-${opt.material}`}
           style={[styles.option, selected === i && styles.optionActive]}
           onPress={() => onSelect(i)}
         >
@@ -28,8 +28,22 @@ export function PrintOptions({ options, selected, onSelect }: Props) {
 
 const styles = StyleSheet.create({
   container: { padding: spacing.md },
-  title: { fontSize: fontSize.md, fontFamily: typography.bold, color: colors.text, marginBottom: spacing.sm },
-  option: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: spacing.sm, borderRadius: 8, borderWidth: 1, borderColor: colors.border, marginBottom: spacing.xs },
+  title: {
+    fontSize: fontSize.md,
+    fontFamily: typography.bold,
+    color: colors.text,
+    marginBottom: spacing.sm,
+  },
+  option: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: spacing.sm,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginBottom: spacing.xs,
+  },
   optionActive: { borderColor: colors.primary, backgroundColor: colors.primary + '10' },
   size: { fontSize: fontSize.sm, fontFamily: typography.bold, color: colors.text },
   material: { fontSize: fontSize.xs, color: colors.textSecondary },
