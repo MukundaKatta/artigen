@@ -51,6 +51,9 @@ jobs:
       - name: Run TypeScript type check
         run: npx tsc --noEmit
 
+      - name: Type-coverage report (must stay ≥ 98%)
+        run: npm run typecoverage
+
   # ── 1b. Lint ────────────────────────────────────────────
   lint:
     name: Lint
@@ -143,6 +146,17 @@ jobs:
 
       - name: Patch HTML (SEO, PWA, mobile CSS)
         run: node scripts/patch-web-html.js
+
+      - name: Bundle size report
+        run: node scripts/bundle-size.js | tee bundle-size-report.md
+
+      - name: Upload bundle size report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bundle-size-report
+          path: bundle-size-report.md
+          retention-days: 14
 
   # ── 3. Firebase Preview Deployment ──────────────────────
   preview:

@@ -17,6 +17,31 @@ import type { FeedPost, ReactionType } from '@/types';
 
 const FEED_CACHE_TTL = 2 * 60 * 1000; // 2 minutes
 
+/**
+ * Primary feed hook for the home feed surface.
+ *
+ * Lifecycle:
+ * 1. Hydrates `posts` synchronously from the in-memory cache (`getCached`) for
+ *    instant render on tab return — stale-while-revalidate.
+ * 2. Fires a fresh `getFeed` against Supabase, replaces `posts` on success,
+ *    keeps stale data on failure (with `error` set).
+ * 3. `loadMore` paginates `FEED_PAGE_SIZE` at a time; guarded by
+ *    `loadingMoreRef` to prevent concurrent fetches when the user scrolls fast.
+ * 4. `like`/`save`/`react` apply optimistic updates and revert on error. Each
+ *    has a per-post pending Set so double-tapping doesn't fire duplicate
+ *    requests.
+ * 5. `onViewable` records views to insights and engagement to taste-profile.
+ *
+ * Differs from `useRealtimeFeed`: this hook does NOT subscribe to a Supabase
+ * realtime channel — it's a pull-based feed for the main timeline. Use
+ * `useRealtimeFeed` for surfaces that need live updates (e.g. trending now).
+ *
+ * Returns:
+ * - `posts`, `loading`, `error`, `hasMore`
+ * - `refresh()`, `loadMore()`
+ * - `like(id)`, `save(id)`, `react(id, type)`, `unreact(id)`
+ * - `onViewable(ids)` for FlatList viewability tracking
+ */
 export function useFeed(userId: string | undefined) {
   // Guards to prevent concurrent requests
   const loadingMoreRef = useRef(false);

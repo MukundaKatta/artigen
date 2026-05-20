@@ -11,14 +11,22 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
 
+// Single connectivity probe gives up after this long.
+const CONNECTIVITY_CHECK_TIMEOUT_MS = 5_000;
+// How often we re-check while the banner is mounted.
+const CONNECTIVITY_CHECK_INTERVAL_MS = 10_000;
+// How long the "Back online" confirmation stays visible.
+const BACK_ONLINE_DELAY_MS = 2_000;
+
+// Explicit (currently empty) props contract — #218.
+export type NetworkStatusBannerProps = Record<string, never>;
+
 /**
  * Persistent banner that shows when the device loses network connectivity.
  * Animates in from top when offline, auto-hides when back online.
  * Uses a lightweight fetch-based check (no extra dependencies).
  */
-export type NetworkStatusBannerProps = Record<string, never>;
-
-export function NetworkStatusBanner(_props: NetworkStatusBannerProps = {}) {
+export function NetworkStatusBanner(_: NetworkStatusBannerProps = {}) {
   const [isOffline, setIsOffline] = useState(false);
   const [showBanner, setShowBanner] = useState(false);
   const insets = useSafeAreaInsets();
@@ -29,7 +37,7 @@ export function NetworkStatusBanner(_props: NetworkStatusBannerProps = {}) {
   const checkConnectivity = async () => {
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 5000);
+      const timeout = setTimeout(() => controller.abort(), CONNECTIVITY_CHECK_TIMEOUT_MS);
       await fetch('https://clients3.google.com/generate_204', {
         method: 'HEAD',
         signal: controller.signal,
@@ -56,7 +64,7 @@ export function NetworkStatusBanner(_props: NetworkStatusBannerProps = {}) {
         // Show "Back online" briefly then hide
         setIsOffline(false);
         translateY.value = withDelay(
-          2000,
+          BACK_ONLINE_DELAY_MS,
           withTiming(-60, { duration: 300 }, () => {
             runOnJS(setShowBanner)(false);
           }),
@@ -66,7 +74,7 @@ export function NetworkStatusBanner(_props: NetworkStatusBannerProps = {}) {
 
     // Check on mount and periodically
     runCheck();
-    checkInterval.current = setInterval(runCheck, 10000);
+    checkInterval.current = setInterval(runCheck, CONNECTIVITY_CHECK_INTERVAL_MS);
 
     // Also check when app comes back to foreground
     const subscription = AppState.addEventListener('change', (state) => {

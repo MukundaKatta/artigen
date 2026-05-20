@@ -1,7 +1,12 @@
 import React, { useEffect, useCallback } from 'react';
 import { Text, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import {
+  notificationAsync,
+  impactAsync,
+  NotificationFeedbackType,
+  ImpactFeedbackStyle,
+} from 'expo-haptics';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -50,10 +55,10 @@ export function showToast(config: ToastConfig) {
 
 // ── Toast component ─────────────────────────────────
 
-/** Singleton mount point; takes no props (call `showToast` to enqueue). */
+// Explicit (currently empty) props contract — #218.
 export type ToastContainerProps = Record<string, never>;
 
-export function ToastContainer(_props: ToastContainerProps = {}) {
+export function ToastContainer(_: ToastContainerProps = {}) {
   const insets = useSafeAreaInsets();
   const [toast, setToast] = React.useState<ToastState | null>(null);
 
@@ -72,11 +77,11 @@ export function ToastContainer(_props: ToastContainerProps = {}) {
       // Haptic feedback
       if (Platform.OS !== 'web') {
         if (newToast.type === 'error') {
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+          notificationAsync(NotificationFeedbackType.Error);
         } else if (newToast.type === 'success') {
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          notificationAsync(NotificationFeedbackType.Success);
         } else {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          impactAsync(ImpactFeedbackStyle.Light);
         }
       }
 
@@ -121,6 +126,9 @@ export function ToastContainer(_props: ToastContainerProps = {}) {
         animatedStyle,
       ]}
       pointerEvents="box-none"
+      accessibilityRole={type === 'error' ? 'alert' : undefined}
+      accessibilityLiveRegion={type === 'error' ? 'assertive' : 'polite'}
+      accessibilityLabel={`${type}: ${toast.message}`}
     >
       <Animated.View style={[styles.toast, shadows.md]}>
         <Ionicons name={icon} size={20} color={tintColor} />

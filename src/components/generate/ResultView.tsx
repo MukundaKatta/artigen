@@ -44,15 +44,21 @@ export function ResultView({
           source={{ uri: displayUrl }}
           style={styles.resultImage}
           contentFit="contain"
+          accessible
+          accessibilityLabel={
+            prompt?.trim()
+              ? `Generated image. Prompt: ${prompt.trim()}`
+              : 'Generated image'
+          }
         />
         {upscaledUrl && (
-          <View style={styles.upscaleBadge}>
+          <View style={styles.upscaleBadge} accessibilityRole="text" accessibilityLabel="Upscaled 2x">
             <Ionicons name="resize-outline" size={12} color="#10B981" />
             <Text style={styles.upscaleBadgeText}>Upscaled 2x</Text>
           </View>
         )}
         <View style={styles.resultMeta}>
-          <View style={styles.resultMetaRow}>
+          <View style={styles.resultMetaRow} accessibilityRole="text" accessibilityLabel={`Model: ${modelName}`}>
             <Ionicons name="sparkles" size={16} color={colors.accent} />
             <Text style={styles.resultModelName}>{modelName}</Text>
           </View>
@@ -60,7 +66,7 @@ export function ResultView({
             Generated in {(generationTimeMs / 1000).toFixed(1)}s
           </Text>
         </View>
-        <Text style={styles.resultPromptLabel}>Prompt</Text>
+        <Text style={styles.resultPromptLabel} accessibilityRole="header">Prompt</Text>
         <Text style={styles.resultPromptText} selectable>
           {prompt}
         </Text>

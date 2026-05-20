@@ -71,7 +71,11 @@ export function ProfileHeader({
   return (
     <View style={[styles.container, accentColor && { borderBottomWidth: 2, borderBottomColor: accentColor }]}>
       {/* Top row: Avatar + Stats */}
-      <Animated.View entering={FadeIn.duration(400)} style={styles.topRow}>
+      <Animated.View
+        entering={FadeIn.duration(400)}
+        style={styles.topRow}
+        accessibilityLabel={`Profile avatar for ${profile.username}`}
+      >
         <Avatar uri={profile.avatar_url} size="xl" />
         <View style={styles.stats}>
           <StatItem label="Posts" value={profile.posts_count} />

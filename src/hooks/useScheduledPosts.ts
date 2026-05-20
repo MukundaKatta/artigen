@@ -4,6 +4,7 @@ import {
   cancelSchedule,
   publishScheduledPost,
 } from '@/services/schedule.service';
+import { logger } from '@/lib/logger';
 
 export function useScheduledPosts(userId: string | undefined) {
   const [posts, setPosts] = useState<any[]>([]);
@@ -15,9 +16,14 @@ export function useScheduledPosts(userId: string | undefined) {
       return;
     }
     setLoading(true);
-    const { data } = await getScheduledPosts(userId);
-    setPosts(data);
-    setLoading(false);
+    try {
+      const { data } = await getScheduledPosts(userId);
+      setPosts(data);
+    } catch (err) {
+      logger.warn('useScheduledPosts: failed to fetch', err);
+    } finally {
+      setLoading(false);
+    }
   }, [userId]);
 
   const cancel = useCallback(async (postId: string) => {

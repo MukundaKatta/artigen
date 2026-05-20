@@ -2,7 +2,7 @@ import React from 'react';
 import { View, ScrollView, Text, StyleSheet, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import { selectionAsync } from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Image } from 'expo-image';
 import { useAuth } from '@/providers/AuthProvider';
@@ -19,10 +19,10 @@ const STORY_AVATAR_SIZE = AVATAR_SIZES.lg;
 const RING_SIZE = STORY_AVATAR_SIZE + 10;
 const GAP = 2;
 
-/** Self-contained story bar; takes no props. */
+// Explicit (currently empty) props contract — #218.
 export type StoryBarProps = Record<string, never>;
 
-export function StoryBar(_props: StoryBarProps = {}) {
+export function StoryBar(_: StoryBarProps = {}) {
   const { profile, user } = useAuth();
   const { stories, loading } = useStories(user?.id);
   const router = useRouter();
@@ -36,7 +36,7 @@ export function StoryBar(_props: StoryBarProps = {}) {
   }
 
   function handleMyStoryPress() {
-    if (Platform.OS !== 'web') Haptics.selectionAsync();
+    if (Platform.OS !== 'web') selectionAsync();
     if (myStories && myStories.stories.length > 0) {
       router.push(`/(stories)/${user?.id}`);
     } else {
@@ -45,7 +45,7 @@ export function StoryBar(_props: StoryBarProps = {}) {
   }
 
   function handleStoryPress(userId: string) {
-    if (Platform.OS !== 'web') Haptics.selectionAsync();
+    if (Platform.OS !== 'web') selectionAsync();
     router.push(`/(stories)/${userId}`);
   }
 
@@ -57,7 +57,13 @@ export function StoryBar(_props: StoryBarProps = {}) {
         contentContainerStyle={styles.scroll}
       >
         {/* Your Story */}
-        <AnimatedPressable scaleValue={0.95} onPress={handleMyStoryPress} style={styles.storyItem}>
+        <AnimatedPressable
+          scaleValue={0.95}
+          onPress={handleMyStoryPress}
+          style={styles.storyItem}
+          accessibilityRole="button"
+          accessibilityLabel={myStories && myStories.stories.length > 0 ? 'View your story' : 'Create a new story'}
+        >
           <View>
             <Image
               source={profile?.avatar_url ? { uri: profile.avatar_url } : require('../../../assets/images/default-avatar.png')}
@@ -98,6 +104,9 @@ export function StoryBar(_props: StoryBarProps = {}) {
               scaleValue={0.95}
               onPress={() => handleStoryPress(userStory.userId)}
               style={styles.storyItem}
+              accessibilityRole="button"
+              accessibilityLabel={`Open story from ${userStory.username}`}
+              accessibilityState={{ selected: !userStory.hasUnviewed }}
             >
               <View>
                 <Image

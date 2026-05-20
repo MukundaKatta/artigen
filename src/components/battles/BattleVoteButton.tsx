@@ -34,6 +34,9 @@ export function BattleVoteButton({ entryId, voteCount, isVoted, disabled, onPres
       onPress={() => onPress(entryId)}
       disabled={disabled}
       activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityLabel={isVoted ? `Voted (${voteCount} votes)` : `Vote (${voteCount} votes)`}
+      accessibilityState={{ selected: isVoted, disabled: !!disabled }}
     >
       <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
         <Ionicons

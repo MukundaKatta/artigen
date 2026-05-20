@@ -1,18 +1,35 @@
 import React from 'react';
 import { View, Text, StyleSheet, ImageBackground, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import { selectionAsync } from 'expo-haptics';
 import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
 
-type Props = { challenge: any; onPress: () => void };
+// Shape used by this card. Loosely typed (#350) — the daily_challenges
+// table joins many other rows, so we describe just what the card reads.
+export type DailyChallenge = {
+  id: string;
+  title: string;
+  prompt_hint?: string | null;
+  cover_url?: string | null;
+  challenge_type?: string | null;
+  entry_count?: number | null;
+};
+
+type Props = { challenge: DailyChallenge; onPress: () => void };
 
 export function DailyChallengeCard({ challenge, onPress }: Props) {
   return (
-    <AnimatedPressable style={styles.card} onPress={() => {
-      if (Platform.OS !== 'web') Haptics.selectionAsync();
-      onPress();
-    }} scaleValue={0.97}>
+    <AnimatedPressable
+      style={styles.card}
+      onPress={() => {
+        if (Platform.OS !== 'web') selectionAsync();
+        onPress();
+      }}
+      scaleValue={0.97}
+      accessibilityRole="button"
+      accessibilityLabel={`${challenge.challenge_type ?? 'Daily'} challenge: ${challenge.title}. ${challenge.entry_count ?? 0} entries.`}
+    >
       <ImageBackground source={challenge.cover_url ? { uri: challenge.cover_url } : undefined} style={styles.bg} imageStyle={styles.bgImage}>
         <View style={styles.overlay}>
           <View style={styles.badge}>

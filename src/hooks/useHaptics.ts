@@ -1,5 +1,11 @@
 import { Platform } from 'react-native';
-import * as Haptics from 'expo-haptics';
+import {
+  impactAsync,
+  selectionAsync,
+  notificationAsync,
+  ImpactFeedbackStyle,
+  NotificationFeedbackType,
+} from 'expo-haptics';
 
 const noop = () => {};
 
@@ -9,11 +15,11 @@ export function useHaptics() {
   }
 
   return {
-    light: () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light),
-    medium: () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium),
-    heavy: () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy),
-    selection: () => Haptics.selectionAsync(),
-    success: () => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success),
-    error: () => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error),
+    light: () => impactAsync(ImpactFeedbackStyle.Light),
+    medium: () => impactAsync(ImpactFeedbackStyle.Medium),
+    heavy: () => impactAsync(ImpactFeedbackStyle.Heavy),
+    selection: () => selectionAsync(),
+    success: () => notificationAsync(NotificationFeedbackType.Success),
+    error: () => notificationAsync(NotificationFeedbackType.Error),
   };
 }

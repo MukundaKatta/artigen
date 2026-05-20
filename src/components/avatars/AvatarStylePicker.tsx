@@ -25,8 +25,12 @@ const STYLES: { key: AvatarStyle; label: string; icon: keyof typeof Ionicons.gly
 export function AvatarStylePicker({ selectedStyle, onSelect }: Props) {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Choose Style</Text>
-      <View style={styles.grid}>
+      <Text style={styles.title} accessibilityRole="header">Choose Style</Text>
+      <View
+        style={styles.grid}
+        accessibilityRole="radiogroup"
+        accessibilityLabel="Avatar style"
+      >
         {STYLES.map((style) => {
           const isSelected = style.key === selectedStyle;
           return (
@@ -39,6 +43,9 @@ export function AvatarStylePicker({ selectedStyle, onSelect }: Props) {
               ]}
               onPress={() => onSelect(style.key)}
               activeOpacity={0.7}
+              accessibilityRole="radio"
+              accessibilityLabel={`${style.label} style`}
+              accessibilityState={{ selected: isSelected }}
             >
               <View style={[styles.iconCircle, { backgroundColor: `${style.color}15` }]}>
                 <Ionicons name={style.icon} size={24} color={style.color} />

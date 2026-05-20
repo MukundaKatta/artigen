@@ -6,14 +6,15 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
 
-/** This component takes no props; all state comes from hooks. */
+// Explicit (currently empty) props contract so future additions are typed
+// and callers get autocomplete (#218).
 export type NetworkBannerProps = Record<string, never>;
 
 /**
  * Banner that appears when the device loses internet connectivity.
  * Automatically shows/hides based on network status.
  */
-export function NetworkBanner(_props: NetworkBannerProps = {}) {
+export function NetworkBanner(_: NetworkBannerProps = {}) {
   const { isOnline, isReconnecting } = useNetworkStatus();
   const insets = useSafeAreaInsets();
 

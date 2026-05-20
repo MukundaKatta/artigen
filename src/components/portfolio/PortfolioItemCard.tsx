@@ -16,7 +16,7 @@ type Props = {
 
 export function PortfolioItemCard({ item, onPress, onRemove }: Props) {
   const media = item.post?.media?.[0];
-  const imageUrl = media?.media_url || media?.url;
+  const imageUrl = media?.media_url;
   const caption = item.caption_override || item.post?.caption || '';
 
   return (

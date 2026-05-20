@@ -64,13 +64,20 @@ export function NoteComposer({ visible, onClose, onShare }: Props) {
         <View style={styles.container}>
           {/* Header */}
           <View style={styles.header}>
-            <TouchableOpacity onPress={handleClose}>
+            <TouchableOpacity
+              onPress={handleClose}
+              accessibilityRole="button"
+              accessibilityLabel="Cancel note"
+            >
               <Text style={styles.cancelText}>Cancel</Text>
             </TouchableOpacity>
-            <Text style={styles.title}>New note</Text>
+            <Text style={styles.title} accessibilityRole="header">New note</Text>
             <TouchableOpacity
               onPress={handleShare}
               disabled={!canShare || sharing}
+              accessibilityRole="button"
+              accessibilityLabel="Share note"
+              accessibilityState={{ disabled: !canShare || sharing, busy: sharing }}
             >
               <Text
                 style={[
@@ -103,6 +110,8 @@ export function NoteComposer({ visible, onClose, onShare }: Props) {
             maxLength={MAX_NOTE_LENGTH}
             multiline={false}
             autoFocus
+            accessibilityLabel="Note text"
+            accessibilityHint={`Up to ${MAX_NOTE_LENGTH} characters`}
           />
 
           {/* Character count */}
@@ -116,7 +125,7 @@ export function NoteComposer({ visible, onClose, onShare }: Props) {
           </Text>
 
           {/* Emoji picker row */}
-          <View style={styles.emojiRow}>
+          <View style={styles.emojiRow} accessibilityRole="radiogroup" accessibilityLabel="Note emoji">
             {EMOJI_OPTIONS.map((emoji) => (
               <TouchableOpacity
                 key={emoji || 'none'}
@@ -125,6 +134,9 @@ export function NoteComposer({ visible, onClose, onShare }: Props) {
                   selectedEmoji === emoji && styles.emojiSelected,
                 ]}
                 onPress={() => setSelectedEmoji(emoji)}
+                accessibilityRole="radio"
+                accessibilityLabel={emoji ? `Emoji ${emoji}` : 'No emoji'}
+                accessibilityState={{ selected: selectedEmoji === emoji }}
               >
                 {emoji ? (
                   <Text style={styles.emojiText}>{emoji}</Text>

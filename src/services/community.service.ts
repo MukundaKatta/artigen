@@ -98,8 +98,11 @@ export async function getUserCommunities(userId: string) {
     .eq('user_id', userId)
     .order('joined_at', { ascending: false });
 
-  const communities = (data || []).map((row: any) => row.community).filter(Boolean);
-  return { data: communities as unknown as Community[], error };
+  type MemberRow = { community: Community | null };
+  const communities = ((data ?? []) as unknown as MemberRow[])
+    .map((row) => row.community)
+    .filter((c): c is Community => c != null);
+  return { data: communities, error };
 }
 
 export async function discoverCommunities(page = 0) {
