@@ -10,7 +10,7 @@ const TONE_PROMPTS: Record<CaptionTone, string> = {
   minimal: 'Write a minimal, short social media caption for this image. Maximum 10 words, no hashtags.',
 };
 
-export async function generateCaption(imageUrl: string, tone: CaptionTone): Promise<{ data: string | null; error: any }> {
+export async function generateCaption(imageUrl: string, tone: CaptionTone): Promise<{ data: string | null; error: Error | null }> {
   try {
     // Call edge function for caption generation
     const { data, error } = await supabase.functions.invoke('generate-caption', {
@@ -22,8 +22,9 @@ export async function generateCaption(imageUrl: string, tone: CaptionTone): Prom
     });
 
     if (error) return { data: null, error };
-    return { data: data?.caption || null, error: null };
-  } catch (e: any) {
+    const captionData = data as { caption?: string } | null;
+    return { data: captionData?.caption || null, error: null };
+  } catch {
     // Fallback: generate a simple caption locally based on tone
     const fallbacks: Record<CaptionTone, string[]> = {
       casual: ['Living my best life', 'Good vibes only', 'Another day, another adventure'],

@@ -202,7 +202,6 @@ Functions in `supabase/functions/`:
 Current implementation details to be aware of:
 - `restyle`, `animate`, `embed-image`, and `safety-check` include placeholder external provider endpoints in function code.
 - Wallet deposit/withdraw UI exists, but external payment/payout rails are still incomplete.
-- Critique/avatar screen auth wiring has remaining TODO markers in a few app routes.
 
 ## 7. Operational Guidance
 

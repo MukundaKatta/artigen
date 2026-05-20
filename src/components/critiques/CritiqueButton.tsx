@@ -22,8 +22,10 @@ export function CritiqueButton({ postId }: Props) {
       style={styles.container}
       onPress={() => router.push(`/(screens)/critiques/${postId}`)}
       activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityLabel={count > 0 ? `View ${count} critique${count === 1 ? '' : 's'}` : 'Add critique'}
     >
-      <Ionicons name="school-outline" size={20} color="#F59E0B" />
+      <Ionicons name="school-outline" size={20} color={colors.warning} />
       <Text style={styles.text}>
         {count > 0 ? `${count} ${count === 1 ? 'Critique' : 'Critiques'}` : 'Critique'}
       </Text>
@@ -42,6 +44,6 @@ const styles = StyleSheet.create({
   text: {
     fontSize: fontSize.sm,
     fontFamily: typography.medium,
-    color: '#F59E0B',
+    color: colors.warning,
   },
 });

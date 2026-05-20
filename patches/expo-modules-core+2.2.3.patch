@@ -1,3 +1,37 @@
+## ARTI-PATCH: expo-modules-core@2.2.3 — web module registration
+
+### Why this patch exists
+
+`registerWebModule` in `expo-modules-core@2.2.3` reads the module name from
+`moduleImplementation.name`. When the web bundle is minified (production
+build), class names are mangled to short identifiers (`e`, `t`, etc.) — so
+two unrelated modules end up registering under the same name and the
+second one silently replaces the first.
+
+### What the patch changes
+
+1. Accept an optional explicit `name?: string` argument so the caller can
+   pass a stable identifier instead of relying on `.name`.
+2. Fall back to `moduleImplementation.name` if `name` is not provided so
+   existing call sites still work unchanged.
+3. Cast to `any` on the `new moduleImplementation()` call because TS
+   narrows the constructor signature to `new () => InstanceType<...>`,
+   which trips strict-mode TS in some downstream apps.
+
+### Upstream status
+
+- Tracked: search expo/expo issues for "registerWebModule minified class
+  name" before removing — the upstream may have published a fix in 2.3+.
+- Next time expo-modules-core is bumped: re-run `npx expo install` then
+  diff `node_modules/expo-modules-core/src/registerWebModule.ts` against
+  this patch. If upstream now passes a `name` argument, drop the patch.
+
+### Owner
+
+@MukundaKatta — bump-and-remove tracked in #196.
+
+---
+
 diff --git a/node_modules/expo-modules-core/src/registerWebModule.ts b/node_modules/expo-modules-core/src/registerWebModule.ts
 index eaee38e..b02e459 100644
 --- a/node_modules/expo-modules-core/src/registerWebModule.ts
@@ -9,7 +43,7 @@ index eaee38e..b02e459 100644
 ->(moduleImplementation: ModuleType): ModuleType {
 +>(moduleImplementation: ModuleType, name?: string): ModuleType {
    ensureNativeModulesAreInstalled();
- 
+
 -  const moduleName = moduleImplementation.name;
 +  const moduleName = name || moduleImplementation.name;
    if (!moduleName) {

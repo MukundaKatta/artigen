@@ -1,5 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { logger } from '@/lib/logger';
+
+// How long the floating "+N credits" toast lingers before being cleared.
+const CREDIT_TOAST_DURATION_MS = 3_000;
 import {
   awardEngagementCredits,
   getEngagementSummary,
@@ -117,7 +120,7 @@ export function useEngagementCredits(userId: string | undefined): UseEngagementC
     // after a generous window so stale data doesn't linger.
     toastTimer.current = setTimeout(() => {
       setToast(null);
-    }, 3000);
+    }, CREDIT_TOAST_DURATION_MS);
   }, []);
 
   const dismissToast = useCallback(() => {

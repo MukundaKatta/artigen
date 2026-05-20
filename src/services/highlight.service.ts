@@ -23,20 +23,28 @@ export async function getHighlights(userId: string) {
   if (error || !data) return { data: [] as HighlightWithStories[], error };
 
   // Fetch items for each highlight
-  const highlightIds = data.map((h: any) => h.id);
+  type HighlightIdRow = { id: string };
+  const highlightIds = (data as unknown as HighlightIdRow[]).map((h) => h.id);
   const { data: items } = await supabase
     .from('story_highlight_items')
     .select('highlight_id, story_id, stories!story_id(media_url, media_type)')
     .in('highlight_id', highlightIds)
     .order('sort_order', { ascending: true });
 
-  const itemsMap = new Map<string, any[]>();
-  (items || []).forEach((item: any) => {
-    const list = itemsMap.get(item.highlight_id) || [];
+  type HighlightItemRow = {
+    highlight_id: string;
+    story_id: string;
+    stories: { media_url: string; media_type: string } | null;
+  };
+  type HighlightItem = HighlightWithStories['items'][number];
+
+  const itemsMap = new Map<string, HighlightItem[]>();
+  ((items ?? []) as unknown as HighlightItemRow[]).forEach((item) => {
+    const list = itemsMap.get(item.highlight_id) ?? [];
     list.push({
       story_id: item.story_id,
-      media_url: item.stories?.media_url,
-      media_type: item.stories?.media_type,
+      media_url: item.stories?.media_url ?? '',
+      media_type: item.stories?.media_type ?? '',
     });
     itemsMap.set(item.highlight_id, list);
   });
@@ -59,7 +67,7 @@ export async function createHighlight(userId: string, title: string, storyIds: s
   if (error || !highlight) return { data: null, error };
 
   const items = storyIds.map((storyId, i) => ({
-    highlight_id: (highlight as any).id,
+    highlight_id: (highlight as StoryHighlight).id,
     story_id: storyId,
     sort_order: i,
   }));

@@ -106,25 +106,23 @@ export async function submitToExhibition(exhibitionId: string, userId: string, p
     .single();
 
   if (!error) {
-    // Increment submission_count
-    supabase
+    // Increment submission_count. Awaited so the caller's returned promise
+    // doesn't resolve before the DB row reflects the new count.
+    const { data: exhibition } = await supabase
       .from('exhibitions')
       .select('submission_count')
       .eq('id', exhibitionId)
-      .single()
-      .then(({ data: exhibition }) => {
-        if (exhibition) {
-          const updateData: ExhibitionUpdate = {
-            submission_count: (exhibition.submission_count || 0) + 1,
-          };
+      .single();
 
-          supabase
-            .from('exhibitions')
-            .update(updateData)
-            .eq('id', exhibitionId)
-            .then(() => {});
-        }
-      });
+    if (exhibition) {
+      const updateData: ExhibitionUpdate = {
+        submission_count: (exhibition.submission_count || 0) + 1,
+      };
+      await supabase
+        .from('exhibitions')
+        .update(updateData)
+        .eq('id', exhibitionId);
+    }
   }
 
   return { data: data as unknown as ExhibitionSubmissionWithDetails | null, error };
@@ -173,25 +171,22 @@ export async function recordVisit(exhibitionId: string, userId: string) {
     );
 
   if (!error) {
-    // Increment view_count
-    supabase
+    // Increment view_count (awaited so the caller sees the real result).
+    const { data } = await supabase
       .from('exhibitions')
       .select('view_count')
       .eq('id', exhibitionId)
-      .single()
-      .then(({ data }) => {
-        if (data) {
-          const updateData: ExhibitionUpdate = {
-            view_count: (data.view_count || 0) + 1,
-          };
+      .single();
 
-          supabase
-            .from('exhibitions')
-            .update(updateData)
-            .eq('id', exhibitionId)
-            .then(() => {});
-        }
-      });
+    if (data) {
+      const updateData: ExhibitionUpdate = {
+        view_count: (data.view_count || 0) + 1,
+      };
+      await supabase
+        .from('exhibitions')
+        .update(updateData)
+        .eq('id', exhibitionId);
+    }
   }
 
   return { error };

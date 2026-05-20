@@ -10,11 +10,20 @@ export type WorkflowStep = {
   type: WorkflowStepType;
   prompt?: string;
   model_id?: string;
-  settings?: Record<string, any>;
+  settings?: Record<string, string | number | boolean | null>;
   style_preset_id?: string;
   custom_prompt?: string;
   mask_prompt?: string;
   scale_factor?: number;
+};
+
+export type WorkflowStepResult = {
+  step_index?: number;
+  image_url?: string;
+  output_url?: string;
+  prompt_used?: string;
+  error?: string;
+  metadata?: Record<string, string | number | boolean | null>;
 };
 
 export type WorkflowTemplate = {
@@ -38,7 +47,7 @@ export type WorkflowRun = {
   steps: WorkflowStep[];
   current_step: number;
   status: 'pending' | 'running' | 'paused' | 'completed' | 'failed';
-  results: any[];
+  results: WorkflowStepResult[];
   error_message: string | null;
   created_at: string;
   completed_at: string | null;
@@ -203,7 +212,7 @@ export async function getUserSavedTemplateIds(templateIds: string[], userId: str
     .in('template_id', templateIds)
     .eq('user_id', userId);
 
-  return new Set((data || []).map((s: any) => s.template_id));
+  return new Set((data ?? []).map((s) => s.template_id as string));
 }
 
 // ── Runs ─────────────────────────────────────────────

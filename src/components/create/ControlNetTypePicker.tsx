@@ -27,6 +27,9 @@ export function ControlNetTypePicker({ selected, onSelect }: Props) {
           key={key}
           style={[styles.card, selected === key && styles.cardActive]}
           onPress={() => onSelect(key)}
+          accessibilityRole="button"
+          accessibilityLabel={`${label} control type`}
+          accessibilityState={{ selected: selected === key }}
         >
           <Text style={[styles.icon, selected === key && styles.textActive]}>{icon}</Text>
           <Text style={[styles.label, selected === key && styles.textActive]}>{label}</Text>

@@ -36,7 +36,8 @@ export function useRealtimeFeed(
         },
         (payload) => {
           // Only notify if it's not our own post
-          if (payload.new && (payload.new as any).user_id !== userId) {
+          const newRow = payload.new as { user_id?: string } | null;
+          if (newRow && newRow.user_id !== userId) {
             setNewPostCount((c) => c + 1);
             onNewPost?.();
           }

@@ -34,7 +34,11 @@ export async function batchCheckRelation(
         .eq('user_id', userId)
         .in(relatedColumn, relatedIds);
 
-      return new Set((data || []).map((row: any) => row[relatedColumn] as string));
+      return new Set(
+        ((data ?? []) as unknown as Array<Record<string, string>>).map(
+          (row) => row[relatedColumn],
+        ),
+      );
     },
     15_000, // 15 second cache for relation checks
   );
@@ -70,7 +74,7 @@ export async function optimizedFeedQuery(
     return { posts: posts || [], likedIds: new Set<string>(), savedIds: new Set<string>() };
   }
 
-  const postIds = posts.map((p: any) => p.id as string);
+  const postIds = (posts as Array<{ id: string }>).map((p) => p.id);
 
   // Batch check likes and saves in parallel (2 queries instead of 2N)
   const [likedIds, savedIds] = await Promise.all([

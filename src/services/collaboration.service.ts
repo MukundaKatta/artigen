@@ -41,7 +41,7 @@ export async function respondToInvite(postId: string, userId: string, accept: bo
       createNotification({
         type: 'collab_accepted',
         senderId: userId,
-        recipientId: (post as any).user_id,
+        recipientId: (post as { user_id: string }).user_id,
         postId,
       });
     }
@@ -59,7 +59,8 @@ export async function getCollaborators(postId: string) {
 
   if (error || !data) return { data: [] as Profile[], error };
 
-  const profiles = data.map((d: any) => d.user as Profile);
+  type CollabRow = { user: Profile };
+  const profiles = (data as unknown as CollabRow[]).map((d) => d.user);
   return { data: profiles, error: null };
 }
 

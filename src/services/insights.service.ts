@@ -12,7 +12,7 @@ export async function trackView(postId: string, viewerId: string | null, source:
   return { error };
 }
 
-export async function getPostInsights(postId: string): Promise<{ data: PostInsights | null; error: any }> {
+export async function getPostInsights(postId: string): Promise<{ data: PostInsights | null; error: Error | null }> {
   // Get views count
   const { count: totalViews } = await supabase
     .from('post_views')
@@ -26,7 +26,9 @@ export async function getPostInsights(postId: string): Promise<{ data: PostInsig
     .eq('post_id', postId)
     .not('viewer_id', 'is', null);
 
-  const uniqueViewers = new Set((viewers || []).map((v: any) => v.viewer_id)).size;
+  const uniqueViewers = new Set(
+    ((viewers ?? []) as Array<{ viewer_id: string }>).map((v) => v.viewer_id),
+  ).size;
 
   // Get post stats
   const { data: post } = await supabase
