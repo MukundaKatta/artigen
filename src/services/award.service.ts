@@ -14,6 +14,17 @@ export async function getAwardTypes() {
 
 // ── Give Award ───────────────────────────────────────
 
+/**
+ * Award a post on behalf of `userId` with the chosen `awardTypeId`.
+ *
+ * Awards cost credits — the cost is on the award_types row and is
+ * deducted server-side via a trigger. A unique constraint on
+ * (post_id, user_id, award_type_id) prevents the same user from giving
+ * the same award twice to the same post, so the insert is the gate.
+ *
+ * Side effect: triggers a `post_awarded` notification to the recipient
+ * (post author).
+ */
 export async function giveAward(postId: string, userId: string, awardTypeId: string) {
   const { data, error } = await supabase
     .from('post_awards')

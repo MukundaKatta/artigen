@@ -88,7 +88,7 @@ export async function awardXp(
         level,
         xp_to_next_level: xpToNextLevel,
         updated_at: new Date().toISOString(),
-      } as any)
+      })
       .eq('user_id', userId)
       .select()
       .single();

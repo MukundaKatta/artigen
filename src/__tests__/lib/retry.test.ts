@@ -1,4 +1,8 @@
-import { withRetry } from '@/lib/retry';
+import { withRetry, _resetRetryBudgetForTests, getRetryBudgetState } from '@/lib/retry';
+
+beforeEach(() => {
+  _resetRetryBudgetForTests();
+});
 
 describe('withRetry', () => {
   it('returns result on first success', async () => {
@@ -63,5 +67,57 @@ describe('withRetry', () => {
 
     expect(result).toBe('ok');
     expect(fn).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('withRetry global budget', () => {
+  it('records consumed retries in the budget', async () => {
+    const fn = jest
+      .fn()
+      .mockRejectedValueOnce(new Error('Network error'))
+      .mockResolvedValue('ok');
+
+    expect(getRetryBudgetState().used).toBe(0);
+
+    await withRetry(fn, { maxRetries: 2, baseDelay: 1, maxDelay: 1, jitter: false });
+
+    // One retry consumed
+    expect(getRetryBudgetState().used).toBe(1);
+  });
+
+  it('does not consume budget on first-attempt success', async () => {
+    const fn = jest.fn().mockResolvedValue('ok');
+    await withRetry(fn);
+    expect(getRetryBudgetState().used).toBe(0);
+  });
+
+  it('fails fast (without sleeping/retrying) when budget is exhausted', async () => {
+    // Fill the budget by calling the internal reset and then pushing 100 retries
+    // via the public API. Each iteration uses maxRetries:1 so each failing call
+    // consumes exactly one budget entry.
+    const failing = jest.fn().mockRejectedValue(new Error('Network error'));
+    for (let i = 0; i < 100; i++) {
+      try {
+        await withRetry(failing, { maxRetries: 1, baseDelay: 1, maxDelay: 1, jitter: false });
+      } catch {
+        // expected
+      }
+    }
+
+    expect(getRetryBudgetState().used).toBe(100);
+
+    // Next retryable failure should NOT retry — should reject after the first attempt
+    const nextFn = jest.fn().mockRejectedValue(new Error('Network error'));
+    await expect(
+      withRetry(nextFn, { maxRetries: 5, baseDelay: 1, maxDelay: 1, jitter: false }),
+    ).rejects.toThrow('Network error');
+
+    expect(nextFn).toHaveBeenCalledTimes(1);
+  });
+
+  it('exposes window/limit via getRetryBudgetState', () => {
+    const state = getRetryBudgetState();
+    expect(state.limit).toBe(100);
+    expect(state.windowMs).toBe(60_000);
   });
 });

@@ -134,3 +134,34 @@ export function getThumbnailUrl(publicUrl: string): string {
 export function getFeedUrl(publicUrl: string): string {
   return getResizedUrl(publicUrl, PRESETS.feed.maxWidth);
 }
+
+// ── Network-aware quality selection ─────────────────────────────
+
+/**
+ * NetInfo's `effectiveType` values, plus an offline flag we model ourselves.
+ * Match the values reported by `@react-native-community/netinfo` so callers
+ * can pass `netInfo.details.effectiveType` directly.
+ */
+export type NetworkQuality = 'offline' | '2g' | '3g' | '4g' | '5g' | 'unknown';
+
+const QUALITY_SCALE: Record<NetworkQuality, number> = {
+  offline: 0.5, // serve a small cached-friendly variant if we still try
+  '2g': 0.5,
+  '3g': 0.65,
+  '4g': 1,
+  '5g': 1,
+  unknown: 1,
+};
+
+/**
+ * Pick a feed image width based on network quality. Slow connections get
+ * a smaller variant; 4g+ gets the full feed preset.
+ */
+export function getFeedUrlForNetwork(
+  publicUrl: string,
+  network: NetworkQuality = 'unknown',
+): string {
+  const scale = QUALITY_SCALE[network] ?? 1;
+  const width = Math.max(360, Math.round(PRESETS.feed.maxWidth * scale));
+  return getResizedUrl(publicUrl, width);
+}

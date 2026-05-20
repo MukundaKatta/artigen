@@ -35,9 +35,9 @@ export async function getReactionsForMessages(messageIds: string[]) {
     .in('message_id', messageIds);
 
   const map = new Map<string, MessageReaction[]>();
-  (data || []).forEach((r: any) => {
-    const existing = map.get(r.message_id) || [];
-    existing.push(r as MessageReaction);
+  ((data ?? []) as unknown as MessageReaction[]).forEach((r) => {
+    const existing = map.get(r.message_id) ?? [];
+    existing.push(r);
     map.set(r.message_id, existing);
   });
   return map;

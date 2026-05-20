@@ -30,17 +30,31 @@ export function SavePromptModal({
       onRequestClose={onCancel}
     >
       <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>Save Prompt</Text>
+        <View
+          style={styles.modalContent}
+          accessibilityViewIsModal
+          accessibilityRole="alert"
+          accessibilityLabel="Save prompt dialog"
+        >
+          <Text style={styles.modalTitle} accessibilityRole="header">Save Prompt</Text>
           <TextInput
             style={[styles.input, styles.modalInput]}
             placeholder="Title (optional)"
             value={title}
             onChangeText={onTitleChange}
+            accessibilityLabel="Prompt title"
+            accessibilityHint="Optional name for this saved prompt"
           />
           <View style={styles.switchRow}>
-            <Text style={styles.modalLabel}>Public</Text>
-            <Switch value={isPublic} onValueChange={onPublicChange} />
+            <Text style={styles.modalLabel} nativeID="save-prompt-public-label">Public</Text>
+            <Switch
+              value={isPublic}
+              onValueChange={onPublicChange}
+              accessibilityLabel="Make prompt public"
+              accessibilityLabelledBy="save-prompt-public-label"
+              accessibilityRole="switch"
+              accessibilityState={{ checked: isPublic }}
+            />
           </View>
           <View style={styles.modalButtons}>
             <Button title="Cancel" variant="outline" onPress={onCancel} />

@@ -11,7 +11,7 @@ function todayDateString(): string {
 
 // ── Fetch today's challenge ──────────────────────────
 
-export async function getTodayChallenge(): Promise<{ data: DailyChallenge | null; error: any }> {
+export async function getTodayChallenge(): Promise<{ data: DailyChallenge | null; error: Error | null }> {
   const today = todayDateString();
 
   const { data, error } = await supabase
@@ -152,7 +152,7 @@ export async function getUserVotedEntryIds(entryIds: string[], userId: string): 
     .in('entry_id', entryIds)
     .eq('user_id', userId);
 
-  return new Set((data || []).map((v: any) => v.entry_id));
+  return new Set(((data ?? []) as Array<{ entry_id: string }>).map((v) => v.entry_id));
 }
 
 // ── Enhanced Challenges (Round 3) ───────────────────

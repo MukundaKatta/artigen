@@ -12,8 +12,12 @@ import type { MessageWithSender } from '@/types';
 import type { Database } from '@/types/database';
 
 type MessageRow = Database['public']['Tables']['messages']['Row'];
-type ConversationParticipantRow = Database['public']['Tables']['conversation_participants']['Row'];
-type TypingPresence = { userId: string; typing: boolean };
+type ConversationParticipantRow =
+  Database['public']['Tables']['conversation_participants']['Row'];
+type TypingPresence = {
+  userId: string;
+  typing?: boolean;
+};
 
 export function useChat(conversationId: string | undefined, userId: string | undefined) {
   const [messages, setMessages] = useState<MessageWithSender[]>([]);
@@ -178,20 +182,40 @@ export function useChat(conversationId: string | undefined, userId: string | und
       config: { presence: { key: userId } },
     });
 
-    presenceChannel
-      .on('presence', { event: 'sync' }, () => {
-        const state = presenceChannel.presenceState();
-        let otherIsTyping = false;
-        for (const key of Object.keys(state)) {
-          if (key !== userId) {
-            const presences = state[key] as unknown as TypingPresence[];
-            if (presences?.some((p) => p.typing)) {
-              otherIsTyping = true;
-              break;
-            }
+    // Throttle presence updates to at most one per 250ms — group conversations
+    // can otherwise emit several presence syncs per second and thrash layout.
+    let lastUpdate = 0;
+    let pendingTimer: ReturnType<typeof setTimeout> | null = null;
+    const THROTTLE_MS = 250;
+
+    const computeAndSet = () => {
+      const state = presenceChannel.presenceState();
+      let otherIsTyping = false;
+      for (const key of Object.keys(state)) {
+        if (key !== userId) {
+          const presences = state[key] as unknown as TypingPresence[];
+          if (presences?.some((p) => p.typing)) {
+            otherIsTyping = true;
+            break;
           }
         }
-        setIsOtherTyping(otherIsTyping);
+      }
+      setIsOtherTyping(otherIsTyping);
+      lastUpdate = Date.now();
+    };
+
+    presenceChannel
+      .on('presence', { event: 'sync' }, () => {
+        const elapsed = Date.now() - lastUpdate;
+        if (elapsed >= THROTTLE_MS) {
+          computeAndSet();
+          return;
+        }
+        if (pendingTimer) return;
+        pendingTimer = setTimeout(() => {
+          pendingTimer = null;
+          computeAndSet();
+        }, THROTTLE_MS - elapsed);
       })
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
@@ -203,6 +227,7 @@ export function useChat(conversationId: string | undefined, userId: string | und
 
     return () => {
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      if (pendingTimer) clearTimeout(pendingTimer);
       supabase.removeChannel(presenceChannel);
     };
   }, [conversationId, userId]);

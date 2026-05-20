@@ -11,6 +11,7 @@ import type {
   WeeklyEvent,
   WeeklyEventEntryWithDetails,
 } from '@/services/weekly-event.service';
+import { logger } from '@/lib/logger';
 
 export function useWeeklyEvent(userId: string | undefined) {
   const [event, setEvent] = useState<WeeklyEvent | null>(null);
@@ -22,22 +23,26 @@ export function useWeeklyEvent(userId: string | undefined) {
   const fetchData = useCallback(async () => {
     setLoading(true);
 
-    const { data: activeEvent } = await getActiveWeeklyEvent();
-    setEvent(activeEvent);
+    try {
+      const { data: activeEvent } = await getActiveWeeklyEvent();
+      setEvent(activeEvent);
 
-    if (activeEvent) {
-      const { data: eventEntries } = await getWeeklyEntries(activeEvent.id);
-      setEntries(eventEntries);
+      if (activeEvent) {
+        const { data: eventEntries } = await getWeeklyEntries(activeEvent.id);
+        setEntries(eventEntries);
 
-      // Fetch user votes
-      if (userId && eventEntries.length > 0) {
-        const entryIds = eventEntries.map((e) => e.id);
-        const voted = await getUserVotedWeeklyEntryIds(entryIds, userId);
-        setUserVotes(voted);
+        // Fetch user votes
+        if (userId && eventEntries.length > 0) {
+          const entryIds = eventEntries.map((e) => e.id);
+          const voted = await getUserVotedWeeklyEntryIds(entryIds, userId);
+          setUserVotes(voted);
+        }
       }
+    } catch (err) {
+      logger.warn('useWeeklyEvent: failed to load data', err);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   }, [userId]);
 
   useEffect(() => {

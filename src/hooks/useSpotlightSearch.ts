@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { useDebouncedCallback } from '@/hooks/useDebounce';
 
 export type SpotlightResult = {
   id: string;
@@ -40,15 +41,10 @@ export function useSpotlightSearch() {
   const [results, setResults] = useState<SpotlightResult[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const search = useCallback(async (searchQuery: string) => {
-    setQuery(searchQuery);
-
-    if (!searchQuery.trim()) {
-      // Show top quick actions when no query
-      setResults(QUICK_ACTIONS.slice(0, 8));
-      return;
-    }
-
+  // Network search debounced to 300ms — every keystroke updates `query`
+  // immediately for input responsiveness but the Supabase round-trip only
+  // fires after the user pauses typing.
+  const runNetworkSearch = useDebouncedCallback(async (searchQuery: string) => {
     setLoading(true);
     const q = searchQuery.toLowerCase();
 
@@ -97,7 +93,19 @@ export function useSpotlightSearch() {
 
     setResults([...actionResults, ...userResults, ...communityResults].slice(0, 15));
     setLoading(false);
-  }, []);
+  }, 300);
+
+  const search = useCallback(
+    (searchQuery: string) => {
+      setQuery(searchQuery);
+      if (!searchQuery.trim()) {
+        setResults(QUICK_ACTIONS.slice(0, 8));
+        return;
+      }
+      runNetworkSearch(searchQuery);
+    },
+    [runNetworkSearch],
+  );
 
   const clearSearch = useCallback(() => {
     setQuery('');

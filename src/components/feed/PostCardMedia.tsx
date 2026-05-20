@@ -12,12 +12,19 @@ type PostCardMediaProps = {
   media: PostMedia[];
   onDoubleTap: () => void;
   heartStyle: StyleProp<ViewStyle>;
+  /**
+   * Caption for screen readers. PostCard passes the post caption, falling
+   * back to the AI prompt. Used as the accessibilityLabel on each image
+   * (with "image N of M" prepended for carousels).
+   */
+  altText?: string;
 };
 
 export const PostCardMedia = React.memo(function PostCardMedia({
   media,
   onDoubleTap,
   heartStyle,
+  altText,
 }: PostCardMediaProps) {
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -26,26 +33,43 @@ export const PostCardMedia = React.memo(function PostCardMedia({
     setActiveIndex(index);
   }, []);
 
+  const baseLabel = altText?.trim() ? altText.trim() : 'Post image';
+
   const renderCarouselItem = useCallback(
-    ({ item }: { item: PostMedia }) => (
-      <Image
-        source={{ uri: item.media_url }}
-        placeholder={item.blurhash ? { blurhash: item.blurhash } : undefined}
-        style={styles.postImage}
-        contentFit="cover"
-        cachePolicy="memory-disk"
-        transition={300}
-        recyclingKey={item.id}
-      />
-    ),
-    []
+    ({ item, index }: { item: PostMedia; index: number }) => {
+      // The active page and its immediate neighbors render at high priority;
+      // anything further out defers until the user scrolls to it.
+      const distance = Math.abs(index - activeIndex);
+      const priority = distance === 0 ? 'high' : distance === 1 ? 'normal' : 'low';
+      return (
+        <Image
+          source={{ uri: item.media_url }}
+          placeholder={item.blurhash ? { blurhash: item.blurhash } : undefined}
+          style={styles.postImage}
+          contentFit="cover"
+          cachePolicy="memory-disk"
+          priority={priority}
+          transition={300}
+          recyclingKey={item.id}
+          accessible
+          accessibilityLabel={`${baseLabel}. Image ${index + 1} of ${media.length}`}
+        />
+      );
+    },
+    [activeIndex, baseLabel, media.length]
   );
 
   const keyExtractor = useCallback((item: PostMedia) => item.id, []);
 
+  const singleLabel = `${baseLabel}. Double tap to like.`;
+
   return (
     <>
-      <Pressable onPress={onDoubleTap} accessibilityRole="image" accessibilityLabel="Post image, double tap to like">
+      <Pressable
+        onPress={onDoubleTap}
+        accessibilityRole="image"
+        accessibilityLabel={singleLabel}
+      >
         <View>
           {media.length === 1 ? (
             <Image
@@ -56,6 +80,8 @@ export const PostCardMedia = React.memo(function PostCardMedia({
               cachePolicy="memory-disk"
               transition={300}
               recyclingKey={media[0]?.id}
+              accessible
+              accessibilityLabel={baseLabel}
             />
           ) : (
             <FlatList
@@ -79,9 +105,9 @@ export const PostCardMedia = React.memo(function PostCardMedia({
       {/* Carousel dots */}
       {media.length > 1 && (
         <View style={styles.dotsContainer}>
-          {media.map((_, i) => (
+          {media.map((item, i) => (
             <Animated.View
-              key={i}
+              key={item.id}
               style={[
                 styles.dot,
                 i === activeIndex && styles.activeDot,

@@ -12,6 +12,8 @@ module.exports = {
     '^react-native$': '<rootDir>/src/__mocks__/react-native.ts',
     '^expo-file-system$': '<rootDir>/src/__mocks__/expo-file-system.ts',
     '^expo-modules-core$': '<rootDir>/src/__mocks__/expo-modules-core.ts',
+    '^expo-linking$': '<rootDir>/src/__mocks__/expo-linking.ts',
+    '^expo-router$': '<rootDir>/src/__mocks__/expo-router.ts',
     '^@/(.*)$': '<rootDir>/src/$1',
   },
   transform: {
@@ -37,4 +39,14 @@ module.exports = {
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'text-summary', 'lcov'],
+  // Floor set just below current baseline (lines ~10%, branches ~7%) so the
+  // gate catches regressions today and can be ratcheted up as coverage grows.
+  coverageThreshold: {
+    global: {
+      branches: 5,
+      functions: 5,
+      lines: 8,
+      statements: 8,
+    },
+  },
 };

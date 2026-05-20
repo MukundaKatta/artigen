@@ -35,6 +35,9 @@ export function PlatformSelector({ accounts, selectedPlatforms, onTogglePlatform
             onPress={() => isConnected && onTogglePlatform(platform)}
             disabled={!isConnected}
             activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={`${getPlatformLabel(platform)}${isConnected ? '' : ', not connected'}`}
+            accessibilityState={{ selected: isSelected, disabled: !isConnected }}
           >
             <PlatformIcon platform={platform} size={28} />
             <Text

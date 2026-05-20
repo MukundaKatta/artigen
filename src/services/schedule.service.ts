@@ -1,5 +1,7 @@
 import { supabase } from '@/lib/supabase';
-import type { Post } from '@/types';
+import type { Post, PostMedia } from '@/types';
+
+export type ScheduledPost = Post & { media?: PostMedia[] };
 
 export async function getScheduledPosts(userId: string) {
   const { data, error } = await supabase
@@ -10,7 +12,7 @@ export async function getScheduledPosts(userId: string) {
     .gt('scheduled_at', new Date().toISOString())
     .order('scheduled_at', { ascending: true });
 
-  return { data: (data || []) as any[], error };
+  return { data: (data ?? []) as unknown as ScheduledPost[], error };
 }
 
 export async function schedulePost(postId: string, scheduledAt: Date) {
@@ -55,5 +57,5 @@ export async function getDraftPosts(userId: string) {
     .is('scheduled_at', null)
     .order('created_at', { ascending: false });
 
-  return { data: (data || []) as any[], error };
+  return { data: (data ?? []) as unknown as ScheduledPost[], error };
 }

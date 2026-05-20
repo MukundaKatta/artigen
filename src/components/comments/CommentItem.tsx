@@ -7,7 +7,7 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import { impactAsync, selectionAsync, ImpactFeedbackStyle } from 'expo-haptics';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -62,7 +62,7 @@ export const CommentItem = React.memo(function CommentItem({
   }
 
   const handleLike = useCallback(() => {
-    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (Platform.OS !== 'web') impactAsync(ImpactFeedbackStyle.Light);
     likeScale.value = withSequence(
       withSpring(1.4, { damping: 4, stiffness: 300 }),
       withSpring(1, { damping: 6, stiffness: 300 })
@@ -78,6 +78,8 @@ export const CommentItem = React.memo(function CommentItem({
       <Pressable
         onLongPress={handleLongPress}
         style={styles.container}
+        accessibilityLabel={`Comment by ${comment.user.username}: ${comment.content}`}
+        accessibilityHint={comment.user_id === currentUserId ? 'Long press to delete' : undefined}
       >
         <Avatar
           uri={comment.user.avatar_url}
@@ -103,16 +105,29 @@ export const CommentItem = React.memo(function CommentItem({
               </Text>
             )}
             {!isReply && onReply && (
-              <AnimatedPressable onPress={() => {
-                if (Platform.OS !== 'web') Haptics.selectionAsync();
-                onReply(comment.id, comment.user.username);
-              }} scaleValue={0.9}>
+              <AnimatedPressable
+                onPress={() => {
+                  if (Platform.OS !== 'web') selectionAsync();
+                  onReply(comment.id, comment.user.username);
+                }}
+                scaleValue={0.9}
+                accessibilityRole="button"
+                accessibilityLabel={`Reply to ${comment.user.username}`}
+              >
                 <Text style={styles.replyButton}>Reply</Text>
               </AnimatedPressable>
             )}
           </View>
         </View>
-        <AnimatedPressable onPress={handleLike} hitSlop={8} style={styles.likeButton} scaleValue={0.85}>
+        <AnimatedPressable
+          onPress={handleLike}
+          hitSlop={8}
+          style={styles.likeButton}
+          scaleValue={0.85}
+          accessibilityRole="button"
+          accessibilityLabel={comment.isLiked ? 'Unlike comment' : 'Like comment'}
+          accessibilityState={{ selected: !!comment.isLiked }}
+        >
           <Animated.View style={likeButtonStyle}>
             <Ionicons
               name={comment.isLiked ? 'heart' : 'heart-outline'}
@@ -127,7 +142,7 @@ export const CommentItem = React.memo(function CommentItem({
       {showRepliesSection && !replies && onViewReplies && (
         <AnimatedPressable
           onPress={() => {
-            if (Platform.OS !== 'web') Haptics.selectionAsync();
+            if (Platform.OS !== 'web') selectionAsync();
             onViewReplies(comment.id);
           }}
           style={styles.viewRepliesButton}

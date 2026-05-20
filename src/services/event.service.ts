@@ -133,21 +133,18 @@ export async function rsvpEvent(
         .eq('user_id', userId);
 
       if (!error) {
-        // Decrement attendee_count
-        supabase
+        // Decrement attendee_count (awaited so caller sees real result)
+        const { data } = await supabase
           .from('events')
           .select('attendee_count')
           .eq('id', eventId)
-          .single()
-          .then(({ data }) => {
-            if (data) {
-              supabase
-                .from('events')
-                .update({ attendee_count: Math.max(0, (data.attendee_count || 1) - 1) } as any)
-                .eq('id', eventId)
-                .then(() => {});
-            }
-          });
+          .single();
+        if (data) {
+          await supabase
+            .from('events')
+            .update({ attendee_count: Math.max(0, (data.attendee_count || 1) - 1) })
+            .eq('id', eventId);
+        }
       }
 
       return { error };
@@ -155,7 +152,7 @@ export async function rsvpEvent(
 
     const { error } = await supabase
       .from('event_attendees')
-      .update({ rsvp_status: status } as any)
+      .update({ rsvp_status: status })
       .eq('event_id', eventId)
       .eq('user_id', userId);
 
@@ -167,21 +164,18 @@ export async function rsvpEvent(
     .insert({ event_id: eventId, user_id: userId, rsvp_status: status });
 
   if (!error && status !== 'not_going') {
-    // Increment attendee_count
-    supabase
+    // Increment attendee_count (awaited)
+    const { data } = await supabase
       .from('events')
       .select('attendee_count')
       .eq('id', eventId)
-      .single()
-      .then(({ data }) => {
-        if (data) {
-          supabase
-            .from('events')
-            .update({ attendee_count: (data.attendee_count || 0) + 1 } as any)
-            .eq('id', eventId)
-            .then(() => {});
-        }
-      });
+      .single();
+    if (data) {
+      await supabase
+        .from('events')
+        .update({ attendee_count: (data.attendee_count || 0) + 1 })
+        .eq('id', eventId);
+    }
   }
 
   return { error };
@@ -204,7 +198,7 @@ export async function getAttendees(eventId: string) {
 export async function updateEventStatus(eventId: string, status: AppEvent['status']) {
   const { error } = await supabase
     .from('events')
-    .update({ status } as any)
+    .update({ status })
     .eq('id', eventId);
 
   return { error };

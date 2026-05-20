@@ -18,7 +18,7 @@ export async function getExploreFeed(page = 0, aiOnly = false) {
 
     if (!aiPosts || aiPosts.length === 0) return { data: [] as PostWithUser[], error: null };
 
-    const postIds = aiPosts.map((a: any) => a.post_id as string);
+    const postIds = aiPosts.map((a: { post_id: string }) => a.post_id);
 
     const { data, error } = await supabase
       .from('posts')
@@ -61,7 +61,7 @@ export async function searchByPrompt(query: string, limit = 20) {
 
   if (!aiPosts || aiPosts.length === 0) return { data: [] as PostWithUser[], error };
 
-  const postIds = aiPosts.map((a: any) => a.post_id as string);
+  const postIds = aiPosts.map((a: { post_id: string }) => a.post_id);
 
   const { data: posts, error: postError } = await supabase
     .from('posts')
@@ -83,7 +83,7 @@ export async function searchByModel(modelId: string, limit = 20) {
 
   if (!aiPosts || aiPosts.length === 0) return { data: [] as PostWithUser[], error: null };
 
-  const postIds = aiPosts.map((a: any) => a.post_id as string);
+  const postIds = aiPosts.map((a: { post_id: string }) => a.post_id);
 
   const { data: posts, error } = await supabase
     .from('posts')
@@ -129,7 +129,7 @@ export async function getHashtagPosts(hashtagName: string, page = 0) {
 
   if (!links || links.length === 0) return { data: [], hashtag: typedHashtag, error: null };
 
-  const postIds = links.map((l: any) => l.post_id as string);
+  const postIds = links.map((l: { post_id: string }) => l.post_id);
 
   // Fetch full posts
   const { data: posts, error } = await supabase
