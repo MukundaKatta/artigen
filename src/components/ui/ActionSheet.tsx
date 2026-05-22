@@ -1,5 +1,16 @@
 import React, { useCallback, useMemo, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, Platform, Modal, Pressable, ViewStyle, DimensionValue } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Platform,
+  Modal,
+  Pressable,
+  ViewStyle,
+  DimensionValue,
+  AccessibilityInfo,
+  findNodeHandle,
+} from 'react-native';
 import BottomSheet, { BottomSheetBackdrop, BottomSheetBackdropProps } from '@gorhom/bottom-sheet';
 import * as Haptics from 'expo-haptics';
 import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
@@ -21,33 +32,55 @@ type Props = {
 };
 
 function DesktopActionSheet({ visible, onClose, items, title }: Props) {
+  const titleRef = useRef<Text>(null);
+  const accessibilityTitle = title || 'Action menu';
+
+  useEffect(() => {
+    if (!visible) return;
+
+    const timeout = setTimeout(() => {
+      const titleNode = findNodeHandle(titleRef.current);
+      if (titleNode) {
+        AccessibilityInfo.setAccessibilityFocus(titleNode);
+      }
+      AccessibilityInfo.announceForAccessibility(accessibilityTitle);
+    }, 100);
+
+    return () => clearTimeout(timeout);
+  }, [accessibilityTitle, visible]);
+
   if (!visible) return null;
 
   return (
     <Modal transparent visible={visible} onRequestClose={onClose} animationType="fade">
-      <Pressable
-        style={desktopStyles.overlay}
-        onPress={onClose}
-        accessibilityLabel="Close dialog"
-      >
+      <Pressable style={desktopStyles.overlay} onPress={onClose} accessibilityLabel="Close dialog">
         <Pressable
           style={desktopStyles.dialog}
           onPress={(e) => e.stopPropagation()}
           accessibilityViewIsModal
           accessibilityRole="menu"
-          accessibilityLabel={title || 'Action menu'}
+          accessibilityLabel={accessibilityTitle}
         >
-          {title && <Text style={desktopStyles.title} accessibilityRole="header">{title}</Text>}
+          {title && (
+            <Text ref={titleRef} style={desktopStyles.title} accessibilityRole="header" accessible>
+              {title}
+            </Text>
+          )}
           {items.map((item, index) => (
             <AnimatedPressable
               key={index}
               style={[desktopStyles.item, index < items.length - 1 && desktopStyles.itemBorder]}
-              onPress={() => { onClose(); setTimeout(() => item.onPress(), 100); }}
+              onPress={() => {
+                onClose();
+                setTimeout(() => item.onPress(), 100);
+              }}
               scaleValue={0.97}
               accessibilityRole="menuitem"
               accessibilityLabel={item.label}
             >
-              <Text style={[desktopStyles.itemText, item.destructive && desktopStyles.destructiveText]}>
+              <Text
+                style={[desktopStyles.itemText, item.destructive && desktopStyles.destructiveText]}
+              >
                 {item.label}
               </Text>
             </AnimatedPressable>
@@ -129,6 +162,8 @@ export function ActionSheet({ visible, onClose, items, title }: Props) {
 
   // All hooks must be called unconditionally (rules-of-hooks)
   const bottomSheetRef = useRef<BottomSheet>(null);
+  const titleRef = useRef<Text>(null);
+  const accessibilityTitle = title || 'Action menu';
   const snapPoints = useMemo(() => {
     const itemHeight = 56;
     const cancelHeight = 56;
@@ -142,21 +177,26 @@ export function ActionSheet({ visible, onClose, items, title }: Props) {
     if (useDesktop) return;
     if (visible) {
       bottomSheetRef.current?.expand();
-    } else {
-      bottomSheetRef.current?.close();
+
+      const timeout = setTimeout(() => {
+        const titleNode = findNodeHandle(titleRef.current);
+        if (titleNode) {
+          AccessibilityInfo.setAccessibilityFocus(titleNode);
+        }
+        AccessibilityInfo.announceForAccessibility(accessibilityTitle);
+      }, 300);
+
+      return () => clearTimeout(timeout);
     }
-  }, [visible, useDesktop]);
+
+    bottomSheetRef.current?.close();
+  }, [accessibilityTitle, visible, useDesktop]);
 
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
-      <BottomSheetBackdrop
-        {...props}
-        disappearsOnIndex={-1}
-        appearsOnIndex={0}
-        opacity={0.4}
-      />
+      <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} opacity={0.4} />
     ),
-    []
+    [],
   );
 
   const handleItemPress = (item: ActionSheetItem) => {
@@ -193,9 +233,13 @@ export function ActionSheet({ visible, onClose, items, title }: Props) {
         style={styles.content}
         accessibilityViewIsModal
         accessibilityRole="menu"
-        accessibilityLabel={title || 'Action menu'}
+        accessibilityLabel={accessibilityTitle}
       >
-        {title && <Text style={styles.title} accessibilityRole="header">{title}</Text>}
+        {title && (
+          <Text ref={titleRef} style={styles.title} accessibilityRole="header" accessible>
+            {title}
+          </Text>
+        )}
 
         {items.map((item, index) => (
           <AnimatedPressable
