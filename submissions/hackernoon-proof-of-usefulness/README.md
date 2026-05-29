@@ -5,7 +5,8 @@ Draft articles for the 9 projects scored in the HackerNoon Proof of Usefulness H
 1. Open the draft markdown file in this folder.
 2. Edit/tighten in your voice. Add a hero image and screenshots where called out.
 3. Paste into the HackerNoon draft editor via the "Finish My Submission" link from the alert email for that project.
-4. Submit to editors.
+4. Fill the title/subtitle/meta-description/TLDR/tags from [submission-metadata.md](./submission-metadata.md).
+5. Submit to editors.
 
 ## Submissions
 
