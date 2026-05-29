@@ -21,6 +21,9 @@ const REPORT_REASONS = [
   'Other',
 ];
 
+// How long the "Report submitted" confirmation stays up before auto-closing.
+const REPORT_CONFIRM_DURATION_MS = 1_500;
+
 type Props = {
   visible: boolean;
   onClose: () => void;
@@ -37,7 +40,7 @@ export function ReportSheet({ visible, onClose, onReport, title = 'Report' }: Pr
     setTimeout(() => {
       setSubmitted(false);
       onClose();
-    }, 1500);
+    }, REPORT_CONFIRM_DURATION_MS);
   }
 
   return (

@@ -3,6 +3,9 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
 
+// Re-render cadence for the countdown digits.
+const BATTLE_TIMER_TICK_MS = 1_000;
+
 type Props = {
   /** ISO timestamp when the battle started */
   startedAt: string | null;
@@ -42,7 +45,7 @@ export function BattleTimer({ startedAt, timeLimitMinutes, status, onTimeUp }: P
     };
 
     tick();
-    const interval = setInterval(tick, 1000);
+    const interval = setInterval(tick, BATTLE_TIMER_TICK_MS);
     return () => clearInterval(interval);
   }, [startedAt, timeLimitMinutes, status, onTimeUp]);
 

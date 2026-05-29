@@ -12,6 +12,9 @@ import { logger } from '@/lib/logger';
 // Explicit (currently empty) props contract — #218.
 export type CreditBadgeProps = Record<string, never>;
 
+// How often we re-fetch the credit balance while the badge is mounted.
+const CREDIT_REFRESH_INTERVAL_MS = 30_000;
+
 export function CreditBadge(_: CreditBadgeProps = {}) {
   const { user } = useAuth();
   const router = useRouter();
@@ -29,8 +32,8 @@ export function CreditBadge(_: CreditBadgeProps = {}) {
 
   useEffect(() => {
     fetchCredits();
-    // Refresh credits every 30 seconds while mounted
-    const interval = setInterval(fetchCredits, 30_000);
+    // Refresh credits while mounted
+    const interval = setInterval(fetchCredits, CREDIT_REFRESH_INTERVAL_MS);
     return () => clearInterval(interval);
   }, [fetchCredits]);
 

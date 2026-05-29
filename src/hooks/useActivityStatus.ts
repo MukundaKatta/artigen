@@ -2,6 +2,9 @@ import { useEffect, useRef, useCallback } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
 import { updateLastActive } from '@/services/activity.service';
 
+// How often we ping last-active while the app is foregrounded.
+const ACTIVITY_HEARTBEAT_MS = 5 * 60 * 1000;
+
 export function useActivityStatus(userId: string | undefined) {
   const intervalRef = useRef<ReturnType<typeof setInterval>>();
 
@@ -17,8 +20,8 @@ export function useActivityStatus(userId: string | undefined) {
     // Initial heartbeat
     heartbeat();
 
-    // Periodic heartbeat every 5 minutes
-    intervalRef.current = setInterval(heartbeat, 5 * 60 * 1000);
+    // Periodic heartbeat
+    intervalRef.current = setInterval(heartbeat, ACTIVITY_HEARTBEAT_MS);
 
     // App state listener
     const subscription = AppState.addEventListener('change', (state: AppStateStatus) => {
