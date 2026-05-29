@@ -8,6 +8,9 @@ import { AI_MODELS } from '@/services/ai.service';
 
 type Hashtag = { id: string; name: string; post_count: number };
 
+// Don't fan out the 4 search queries until the term is at least this long.
+const MIN_SEARCH_LENGTH = 2;
+
 export function useExplore() {
   const [query, setQuery] = useState('');
   const [explorePosts, setExplorePosts] = useState<PostWithUser[]>([]);
@@ -66,7 +69,7 @@ export function useExplore() {
     setQuery(text);
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
-    if (!text.trim()) {
+    if (text.trim().length < MIN_SEARCH_LENGTH) {
       setSearchResultUsers([]);
       setSearchResultPosts([]);
       setSearchResultHashtags([]);

@@ -13,6 +13,11 @@ type Props = {
 };
 
 function ChipGroup({ title, options, selected, onToggle }: { title: string; options: string[]; selected: string[]; onToggle: (v: string) => void }) {
+  // Defensive: only forward values that belong to this group's allowed set,
+  // so a stray value can never be persisted to the taste profile.
+  const handleToggle = (value: string) => {
+    if (options.includes(value)) onToggle(value);
+  };
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>{title}</Text>
@@ -21,7 +26,10 @@ function ChipGroup({ title, options, selected, onToggle }: { title: string; opti
           <TouchableOpacity
             key={opt}
             style={[styles.chip, selected.includes(opt) && styles.chipActive]}
-            onPress={() => onToggle(opt)}
+            onPress={() => handleToggle(opt)}
+            accessibilityRole="button"
+            accessibilityState={{ selected: selected.includes(opt) }}
+            accessibilityLabel={`${opt}${selected.includes(opt) ? ', selected' : ''}`}
           >
             <Text style={[styles.chipText, selected.includes(opt) && styles.chipTextActive]}>{opt}</Text>
           </TouchableOpacity>
