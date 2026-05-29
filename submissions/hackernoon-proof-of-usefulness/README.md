@@ -9,17 +9,20 @@ Draft articles for the 9 projects scored in the HackerNoon Proof of Usefulness H
 
 ## Submissions
 
-| Project | Score | Tier | File |
-|---|---|---|---|
-| agentsnap | 61.33 | You're In Business | [agentsnap.md](./agentsnap.md) |
-| agentguard | 60.66 | You're In Business | [agentguard.md](./agentguard.md) |
-| agentcast | 53.76 | You're In Business | [agentcast.md](./agentcast.md) |
-| driftvane | 53.19 | You're In Business | [driftvane.md](./driftvane.md) |
-| agentvet | 49.23 | You're In Business | [agentvet.md](./agentvet.md) |
-| bedrock-kit | 49 | You're In Business | [bedrock-kit.md](./bedrock-kit.md) |
-| agentmemory | 48 | You're In Business | [agentmemory.md](./agentmemory.md) |
-| agenttrace | 45 | You're In Business | [agenttrace.md](./agenttrace.md) |
-| cachebench | 38 | You're In Business | [cachebench.md](./cachebench.md) |
+Ten articles. Nine are per-project deep-dives for the scored projects; the tenth is a standalone overview/manifesto that ties the suite together and can be published as its own HackerNoon story.
+
+| # | Project | Score | Tier | File |
+|---|---|---|---|---|
+| 1 | agentsnap | 61.33 | You're In Business | [agentsnap.md](./agentsnap.md) |
+| 2 | agentguard | 60.66 | You're In Business | [agentguard.md](./agentguard.md) |
+| 3 | agentcast | 53.76 | You're In Business | [agentcast.md](./agentcast.md) |
+| 4 | driftvane | 53.19 | You're In Business | [driftvane.md](./driftvane.md) |
+| 5 | agentvet | 49.23 | You're In Business | [agentvet.md](./agentvet.md) |
+| 6 | bedrock-kit | 49 | You're In Business | [bedrock-kit.md](./bedrock-kit.md) |
+| 7 | agentmemory | 48 | You're In Business | [agentmemory.md](./agentmemory.md) |
+| 8 | agenttrace | 45 | You're In Business | [agenttrace.md](./agenttrace.md) |
+| 9 | cachebench | 38 | You're In Business | [cachebench.md](./cachebench.md) |
+| 10 | agent-stack (overview) | — | Standalone | [agent-stack-overview.md](./agent-stack-overview.md) |
 
 ## Voice / framing notes
 
