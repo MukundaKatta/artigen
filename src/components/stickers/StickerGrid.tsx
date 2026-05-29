@@ -30,6 +30,8 @@ export function StickerGrid({ stickers, onPress, onLongPress }: Props) {
           onPress={() => onPress?.(sticker)}
           onLongPress={() => onLongPress?.(sticker)}
           activeOpacity={0.7}
+          accessibilityRole="imagebutton"
+          accessibilityLabel={sticker.label || 'Sticker'}
         >
           <Image
             source={{ uri: sticker.image_url }}

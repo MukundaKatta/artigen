@@ -43,6 +43,9 @@ const PackTabItem = React.memo(function PackTabItem({
     <TouchableOpacity
       onPress={handlePress}
       style={[styles.packTab, isActive && styles.packTabActive]}
+      accessibilityRole="tab"
+      accessibilityLabel={`${pack.name} sticker pack`}
+      accessibilityState={{ selected: isActive }}
     >
       {pack.cover_url ? (
         <Image source={{ uri: pack.cover_url }} style={styles.packTabImage} contentFit="cover" />
@@ -69,7 +72,12 @@ const StickerItem = React.memo(function StickerItem({
     onClose();
   }, [sticker, onSelect, onClose]);
   return (
-    <TouchableOpacity onPress={handlePress} activeOpacity={0.7}>
+    <TouchableOpacity
+      onPress={handlePress}
+      activeOpacity={0.7}
+      accessibilityRole="imagebutton"
+      accessibilityLabel={sticker.label || 'Sticker'}
+    >
       <Image
         source={{ uri: sticker.image_url }}
         style={styles.stickerImage}

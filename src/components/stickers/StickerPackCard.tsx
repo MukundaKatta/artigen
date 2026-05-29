@@ -19,7 +19,13 @@ type Props = {
 
 export function StickerPackCard({ pack, isSaved, onPress, onSave }: Props) {
   return (
-    <TouchableOpacity onPress={onPress} style={styles.card} activeOpacity={0.8}>
+    <TouchableOpacity
+      onPress={onPress}
+      style={styles.card}
+      activeOpacity={0.8}
+      accessibilityRole="button"
+      accessibilityLabel={`${pack.name}, ${pack.sticker_count ?? 0} stickers${pack.creator?.username ? `, by ${pack.creator.username}` : ''}`}
+    >
       <View style={styles.coverContainer}>
         {pack.cover_url ? (
           <Image source={{ uri: pack.cover_url }} style={styles.cover} contentFit="cover" />
@@ -37,7 +43,14 @@ export function StickerPackCard({ pack, isSaved, onPress, onSave }: Props) {
         </Text>
       </View>
       {onSave && (
-        <TouchableOpacity onPress={onSave} style={styles.saveButton} activeOpacity={0.7}>
+        <TouchableOpacity
+          onPress={onSave}
+          style={styles.saveButton}
+          activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel={isSaved ? `Unsave ${pack.name}` : `Save ${pack.name}`}
+          accessibilityState={{ selected: !!isSaved }}
+        >
           <Ionicons
             name={isSaved ? 'bookmark' : 'bookmark-outline'}
             size={20}
