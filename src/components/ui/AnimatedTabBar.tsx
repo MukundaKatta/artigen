@@ -55,6 +55,9 @@ export function AnimatedTabBar({ tabs, activeKey, onTabPress }: Props) {
             style={styles.tab}
             onPress={() => onTabPress(tab.key)}
             activeOpacity={0.7}
+            accessibilityRole="tab"
+            accessibilityLabel={tab.label}
+            accessibilityState={{ selected: isActive }}
           >
             {tab.icon ?? (
               <Text style={[styles.tabText, isActive && styles.activeTabText]}>
