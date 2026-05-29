@@ -33,6 +33,13 @@ export type MentorshipSessionWithPost = MentorshipSession & {
 
 // ── Request mentorship ───────────────────────────────
 
+/**
+ * Create a pending mentorship request from `menteeId` to `mentorId`.
+ * The mentor responds via {@link respondToMentorship}.
+ *
+ * @param focusAreas — skill/topic tags the mentee wants help with
+ * @returns the new row with both profiles joined
+ */
 export async function requestMentorship(
   menteeId: string,
   mentorId: string,
@@ -55,6 +62,12 @@ export async function requestMentorship(
 
 // ── Respond to mentorship request ────────────────────
 
+/**
+ * Accept or decline a pending request. Accepting flips status to 'active'
+ * and stamps `accepted_at`; declining sets 'cancelled'.
+ *
+ * @returns the updated row with both profiles joined
+ */
 export async function respondToMentorship(mentorshipId: string, accept: boolean) {
   const status = accept ? 'active' : 'cancelled';
   const updateData: Record<string, any> = { status };
@@ -74,6 +87,10 @@ export async function respondToMentorship(mentorshipId: string, accept: boolean)
 
 // ── Get my mentorships ───────────────────────────────
 
+/**
+ * List every mentorship where the user is either the mentor or the mentee,
+ * newest first, with both profiles joined.
+ */
 export async function getMyMentorships(userId: string) {
   const { data, error } = await supabase
     .from('mentorships')
@@ -86,6 +103,10 @@ export async function getMyMentorships(userId: string) {
 
 // ── Get sessions for a mentorship ────────────────────
 
+/**
+ * List the feedback sessions logged under a mentorship, newest first, each
+ * with its referenced post (and that post's media) joined.
+ */
 export async function getMentorshipSessions(mentorshipId: string) {
   const { data, error } = await supabase
     .from('mentorship_sessions')

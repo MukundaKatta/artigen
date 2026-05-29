@@ -1,5 +1,12 @@
 import { supabase } from '@/lib/supabase';
 
+/**
+ * Create a "blend" — a shared feed that mixes two users' content, optionally
+ * tied to a conversation. The (user_a, user_b) pair is sorted before insert so
+ * the same two users always map to one canonical row regardless of order.
+ *
+ * @returns `{ data: blend_feeds row | null, error }`
+ */
 export async function createBlend(userAId: string, userBId: string, conversationId?: string) {
   const [a, b] = [userAId, userBId].sort();
   const { data, error } = await supabase
@@ -10,6 +17,7 @@ export async function createBlend(userAId: string, userBId: string, conversation
   return { data, error };
 }
 
+/** Fetch a single blend_feeds row by id. */
 export async function getBlend(blendId: string) {
   const { data, error } = await supabase
     .from('blend_feeds')
@@ -19,6 +27,12 @@ export async function getBlend(blendId: string) {
   return { data, error };
 }
 
+/**
+ * Fetch one page (20 items) of the merged feed for a blend via the
+ * `get_blend_feed` RPC, which interleaves both users' posts server-side.
+ *
+ * @param page — zero-based page index (offset = page * 20)
+ */
 export async function getBlendFeed(blendId: string, page = 0) {
   const { data, error } = await supabase.rpc('get_blend_feed', {
     blend_id: blendId,
@@ -28,6 +42,7 @@ export async function getBlendFeed(blendId: string, page = 0) {
   return { data, error };
 }
 
+/** Hard-delete a blend. The RLS policy restricts this to either participant. */
 export async function deleteBlend(blendId: string) {
   const { error } = await supabase
     .from('blend_feeds')
@@ -36,6 +51,7 @@ export async function deleteBlend(blendId: string) {
   return { error };
 }
 
+/** List the current user's active blends, with both participants' profiles joined. */
 export async function getMyBlends(userId: string) {
   const { data, error } = await supabase
     .from('blend_feeds')

@@ -1,6 +1,11 @@
 import { supabase } from '@/lib/supabase';
 import type { Location } from '@/types';
 
+/**
+ * Case-insensitive prefix/substring search over location names, ordered by
+ * popularity (post_count desc), capped at 20 results. Caller should debounce
+ * + enforce a min query length before calling.
+ */
 export async function searchLocations(query: string) {
   const { data, error } = await supabase
     .from('locations')
@@ -22,6 +27,12 @@ export async function getLocation(locationId: string) {
   return { data: data as unknown as Location | null, error };
 }
 
+/**
+ * Idempotent get-or-create by exact name: returns the existing location if one
+ * matches, otherwise inserts a new row. Used when tagging a post with a place
+ * the user typed in. Note: matches on `name` only — two distinct venues sharing
+ * a name will collide (acceptable for the current tagging UX).
+ */
 export async function getOrCreateLocation(name: string, address?: string, lat?: number, lng?: number) {
   // Try to find existing
   const { data: existing } = await supabase
@@ -58,6 +69,11 @@ export async function getLocationPosts(locationId: string, page = 0) {
   return { data: data || [], error };
 }
 
+/**
+ * Find locations within ~`radiusKm` of a point using a simple lat/lng bounding
+ * box (not a true great-circle radius — corners extend slightly past the
+ * radius). Ordered by post_count desc, capped at 50.
+ */
 export async function getNearbyLocations(lat: number, lng: number, radiusKm = 10) {
   // Simple bounding box query
   const latDelta = radiusKm / 111;
