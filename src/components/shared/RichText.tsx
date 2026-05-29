@@ -44,10 +44,11 @@ export function RichText({ children, style, numberOfLines, username }: RichTextP
         <Text style={styles.username}>{username}  </Text>
       )}
       {parts.map((part, index) => {
+        const key = `${index}-${part}`;
         if (part.startsWith('@')) {
           return (
             <Text
-              key={index}
+              key={key}
               style={styles.mention}
               onPress={() => handleMentionPress(part)}
             >
@@ -58,7 +59,7 @@ export function RichText({ children, style, numberOfLines, username }: RichTextP
         if (part.startsWith('#')) {
           return (
             <Text
-              key={index}
+              key={key}
               style={styles.hashtag}
               onPress={() => handleHashtagPress(part)}
             >
@@ -66,7 +67,7 @@ export function RichText({ children, style, numberOfLines, username }: RichTextP
             </Text>
           );
         }
-        return <Text key={index}>{part}</Text>;
+        return <Text key={key}>{part}</Text>;
       })}
     </Text>
   );

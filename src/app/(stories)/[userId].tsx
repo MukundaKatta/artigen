@@ -158,8 +158,8 @@ export default function StoryViewerRoute() {
       <Animated.View entering={FadeInDown.duration(350)} style={[styles.overlay, { paddingTop: insets.top + spacing.sm }]}>
         {/* Progress bars */}
         <View style={styles.progressContainer}>
-          {stories.map((_, i) => (
-            <View key={i} style={styles.progressTrack}>
+          {stories.map((story, i) => (
+            <View key={story.id} style={styles.progressTrack}>
               <View
                 style={[
                   styles.progressFill,
