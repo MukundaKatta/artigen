@@ -20,12 +20,21 @@ import { colors, fontSize, spacing, typography, borderRadius } from '@/lib/theme
 import { searchUsers } from '@/services/profile.service';
 import { getOrCreateConversation, sendMessage } from '@/services/message.service';
 
+// Shape returned by searchUsers() — the columns it selects from `profiles`.
+type SearchedUser = {
+  id: string;
+  username: string;
+  full_name: string | null;
+  avatar_url: string | null;
+  is_verified: boolean;
+};
+
 type ShareSheetProps = {
   visible: boolean;
   onClose: () => void;
   postId: string;
   currentUserId: string;
-  recentConversations?: { userId: string; profile: any }[];
+  recentConversations?: { userId: string; profile: SearchedUser }[];
 };
 
 export function ShareSheet({
@@ -35,7 +44,7 @@ export function ShareSheet({
   currentUserId,
 }: ShareSheetProps) {
   const [query, setQuery] = useState('');
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<SearchedUser[]>([]);
   const [searching, setSearching] = useState(false);
   const [sentTo, setSentTo] = useState<Set<string>>(new Set());
   const [sending, setSending] = useState<string | null>(null);
@@ -57,7 +66,7 @@ export function ShareSheet({
     const timer = setTimeout(async () => {
       setSearching(true);
       const { data } = await searchUsers(query);
-      setUsers((data || []).filter((u: any) => u.id !== currentUserId));
+      setUsers((data || []).filter((u) => u.id !== currentUserId));
       setSearching(false);
     }, 300);
     return () => clearTimeout(timer);

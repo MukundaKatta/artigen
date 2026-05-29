@@ -39,8 +39,8 @@ export default function PortfolioViewRoute() {
   const { sections, loading } = usePortfolio(targetUserId);
   const isOwner = targetUserId === user?.id;
 
-  const portfolioBio = (profile as any)?.portfolio_bio;
-  const portfolioEmail = (profile as any)?.portfolio_contact_email;
+  const portfolioBio = profile?.portfolio_bio;
+  const portfolioEmail = profile?.portfolio_contact_email;
 
   if (loading) {
     return (

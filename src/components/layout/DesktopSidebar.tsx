@@ -1,18 +1,24 @@
 import React from 'react';
 import { View, Text, StyleSheet, Platform } from 'react-native';
-import { useRouter, usePathname } from 'expo-router';
+import { useRouter, usePathname, type Href } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { LogoText } from '@/components/ui/LogoText';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
 import { SIDEBAR_WIDTH, SIDEBAR_COLLAPSED_WIDTH } from '@/lib/constants';
 
+type IoniconName = keyof typeof Ionicons.glyphMap;
+
 type NavItem = {
   label: string;
-  icon: string;
-  activeIcon: string;
+  icon: IoniconName;
+  activeIcon: IoniconName;
   path: string;
 };
+
+// On react-native-web, Pressable forwards DOM mouse events whose target is
+// the underlying element; RN's types don't model this, so narrow locally.
+type WebMouseEvent = { currentTarget: { style: { backgroundColor: string } } };
 
 const NAV_ITEMS: NavItem[] = [
   { label: 'Home', icon: 'home-outline', activeIcon: 'home', path: '/(tabs)' },
@@ -56,16 +62,15 @@ export function DesktopSidebar({ collapsed = false }: Props) {
             <AnimatedPressable
               key={item.label}
               style={[styles.navItem, active && styles.navItemActive]}
-              onPress={() => router.push(item.path as any)}
+              onPress={() => router.push(item.path as Href)}
               scaleValue={0.97}
               {...(Platform.OS === 'web' ? {
-                // @ts-ignore - web hover styles
-                onMouseEnter: (e: any) => { e.currentTarget.style.backgroundColor = colors.backgroundSecondary; },
-                onMouseLeave: (e: any) => { e.currentTarget.style.backgroundColor = active ? 'transparent' : 'transparent'; },
+                onMouseEnter: (e: WebMouseEvent) => { e.currentTarget.style.backgroundColor = colors.backgroundSecondary; },
+                onMouseLeave: (e: WebMouseEvent) => { e.currentTarget.style.backgroundColor = 'transparent'; },
               } : {})}
             >
               <Ionicons
-                name={(active ? item.activeIcon : item.icon) as any}
+                name={active ? item.activeIcon : item.icon}
                 size={26}
                 color={colors.text}
               />

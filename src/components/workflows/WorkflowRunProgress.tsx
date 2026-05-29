@@ -9,6 +9,9 @@ type Props = {
   run: WorkflowRun;
 };
 
+// Each completed step writes a result object; we only render its image.
+type StepResult = { image_url?: string | null } | null;
+
 type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
 
 const STEP_CONFIG: Record<string, { icon: IoniconName; label: string; color: string }> = {
@@ -20,7 +23,7 @@ const STEP_CONFIG: Record<string, { icon: IoniconName; label: string; color: str
 
 export function WorkflowRunProgress({ run }: Props) {
   const steps = Array.isArray(run.steps) ? run.steps : [];
-  const results = Array.isArray(run.results) ? run.results : [];
+  const results: StepResult[] = Array.isArray(run.results) ? run.results : [];
   const totalSteps = steps.length;
   const progress = totalSteps > 0 ? (run.current_step / totalSteps) * 100 : 0;
 
@@ -112,7 +115,7 @@ export function WorkflowRunProgress({ run }: Props) {
         <View style={styles.finalResult}>
           <Text style={styles.finalResultLabel}>Final Result</Text>
           <Image
-            source={{ uri: results[results.length - 1].image_url }}
+            source={{ uri: results[results.length - 1]?.image_url ?? undefined }}
             style={styles.finalResultImage}
             contentFit="cover"
           />
@@ -124,7 +127,7 @@ export function WorkflowRunProgress({ run }: Props) {
         <View style={styles.thumbnailSection}>
           <Text style={styles.thumbnailLabel}>Intermediate Results</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.thumbnailRow}>
-            {results.map((result: any, index: number) =>
+            {results.map((result, index) =>
               result?.image_url ? (
                 <Image
                   key={index}
