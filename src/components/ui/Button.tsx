@@ -102,7 +102,8 @@ export function Button({
         style,
       ] as ViewStyle[]}
       accessibilityRole="button"
-      accessibilityLabel={title}
+      accessibilityLabel={accessibilityLabel ?? title}
+      accessibilityHint={accessibilityHint}
       accessibilityState={{ disabled: isDisabled, busy: loading }}
     >
       {inner}
