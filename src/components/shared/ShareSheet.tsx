@@ -19,6 +19,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { colors, fontSize, spacing, typography, borderRadius } from '@/lib/theme';
 import { searchUsers } from '@/services/profile.service';
 import { getOrCreateConversation, sendMessage } from '@/services/message.service';
+import { logger } from '@/lib/logger';
 import type { Profile } from '@/types/database';
 
 /** Trimmed profile shape returned by `searchUsers` (id, username, full_name, avatar_url, is_verified). */
@@ -83,7 +84,10 @@ export function ShareSheet({
         message: `Check out this post on Artigen!`,
         url: `artigen://post/${postId}`,
       });
-    } catch {}
+    } catch (err) {
+      // User-cancelled shares throw; only log unexpected failures
+      logger.warn('ShareSheet: external share failed', err);
+    }
     onClose();
   }, [postId, onClose]);
 

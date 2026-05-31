@@ -35,7 +35,9 @@ export function useVoicePlayer() {
           setProgress(status.positionMillis / status.durationMillis);
         }
       });
-    } catch {}
+    } catch (err) {
+      logger.warn('useVoicePlayer: play failed', err);
+    }
   }, [speed]);
 
   const pause = useCallback(async () => {

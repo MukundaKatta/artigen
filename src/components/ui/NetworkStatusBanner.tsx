@@ -11,6 +11,17 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
 
+/**
+ * URL used to probe for connectivity. Defaults to a Google-owned `generate_204`
+ * endpoint (designed exactly for this purpose), with an override via
+ * `EXPO_PUBLIC_CONNECTIVITY_PROBE_URL` for regions where the default is blocked.
+ *
+ * Whatever endpoint is used, it MUST respond with a 2xx status and a very
+ * small body, support CORS for the web build, and not require auth.
+ */
+const CONNECTIVITY_PROBE_URL =
+  process.env.EXPO_PUBLIC_CONNECTIVITY_PROBE_URL ?? 'https://clients3.google.com/generate_204';
+
 // Single connectivity probe gives up after this long.
 const CONNECTIVITY_CHECK_TIMEOUT_MS = 5_000;
 // How often we re-check while the banner is mounted.
@@ -38,7 +49,7 @@ export function NetworkStatusBanner(_: NetworkStatusBannerProps = {}) {
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), CONNECTIVITY_CHECK_TIMEOUT_MS);
-      await fetch('https://clients3.google.com/generate_204', {
+      await fetch(CONNECTIVITY_PROBE_URL, {
         method: 'HEAD',
         signal: controller.signal,
       });
