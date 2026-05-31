@@ -4,6 +4,7 @@ import tsParser from '@typescript-eslint/parser';
 import reactPlugin from 'eslint-plugin-react';
 import reactHooksPlugin from 'eslint-plugin-react-hooks';
 import jsxA11yPlugin from 'eslint-plugin-jsx-a11y';
+import rnA11yPlugin from 'eslint-plugin-react-native-a11y';
 import prettierConfig from 'eslint-config-prettier';
 
 export default [
@@ -56,6 +57,7 @@ export default [
       react: reactPlugin,
       'react-hooks': reactHooksPlugin,
       'jsx-a11y': jsxA11yPlugin,
+      'react-native-a11y': rnA11yPlugin,
     },
     settings: {
       react: { version: 'detect' },
@@ -78,6 +80,13 @@ export default [
       'jsx-a11y/anchor-is-valid': 'warn',
       'jsx-a11y/no-autofocus': 'warn',
       'jsx-a11y/role-supports-aria-props': 'warn',
+      // react-native-a11y — catches a11y omissions on Touchable / Pressable
+      // that jsx-a11y can't see. Warn level so existing code doesn't break
+      // CI; can be ratcheted to error as violations are addressed.
+      'react-native-a11y/has-accessibility-hint': 'warn',
+      'react-native-a11y/has-accessibility-props': 'warn',
+      'react-native-a11y/has-valid-accessibility-role': 'warn',
+      'react-native-a11y/no-nested-touchables': 'warn',
       '@typescript-eslint/no-unused-vars': [
         'warn',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },

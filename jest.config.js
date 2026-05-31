@@ -9,6 +9,7 @@ module.exports = {
   testMatch: ['**/__tests__/**/*.test.ts', '**/__tests__/**/*.test.tsx'],
   moduleNameMapper: {
     '^@/lib/supabase$': '<rootDir>/src/__mocks__/lib/supabase.ts',
+    '^@/lib/storage$': '<rootDir>/src/__mocks__/lib/storage.ts',
     '^react-native$': '<rootDir>/src/__mocks__/react-native.ts',
     '^react-native-reanimated$': '<rootDir>/src/__mocks__/react-native-reanimated.ts',
     '^react-native-safe-area-context$': '<rootDir>/src/__mocks__/react-native-safe-area-context.ts',
