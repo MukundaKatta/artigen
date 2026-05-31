@@ -3,10 +3,10 @@ import {
   View,
   Text,
   StyleSheet,
-  FlatList,
   TouchableOpacity,
   Platform,
 } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -115,10 +115,11 @@ export default function MessagesIndexRoute() {
           {[...Array(5)].map((_, i) => <UserRowSkeleton key={i} />)}
         </View>
       ) : (
-        <FlatList
+        <FlashList
           data={conversations}
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
+          estimatedItemSize={72}
           refreshing={false}
           onRefresh={refresh}
           ListHeaderComponent={

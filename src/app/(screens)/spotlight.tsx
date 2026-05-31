@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TextInput, FlatList, Platform, Keyboard } from 'react-native';
+import { View, Text, StyleSheet, TextInput, Platform, Keyboard } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
@@ -96,12 +97,13 @@ export default function SpotlightScreen() {
       </Text>
 
       {/* Results */}
-      <FlatList
+      <FlashList
         data={results}
         keyExtractor={(item) => item.id}
         renderItem={({ item, index }) => (
           <ResultItem item={item} index={index} onPress={() => handleSelect(item)} />
         )}
+        estimatedItemSize={64}
         contentContainerStyle={styles.list}
         keyboardShouldPersistTaps="handled"
         ListEmptyComponent={
