@@ -1,14 +1,14 @@
 import { useCallback } from 'react';
-import * as outpaintingService from '@/services/outpainting.service';
+import { createOutpaintingJob, getOutpaintingJob } from '@/services/outpainting.service';
 import { useJobPolling } from '@/hooks/useJobPolling';
 
 export function useOutpainting(userId?: string) {
-  const { job, loading, setLoading, startPolling } = useJobPolling(outpaintingService.getOutpaintingJob);
+  const { job, loading, setLoading, startPolling } = useJobPolling(getOutpaintingJob);
 
   const startOutpainting = useCallback(async (sourceImageUrl: string, direction: 'left' | 'right' | 'up' | 'down' | 'all', sourcePostId?: string, prompt?: string, expandPixels?: number) => {
     if (!userId) return;
     setLoading(true);
-    const { data, error } = await outpaintingService.createOutpaintingJob({
+    const { data, error } = await createOutpaintingJob({
       userId,
       sourcePostId,
       sourceImageUrl,

@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import * as blendService from '@/services/blend.service';
+import { getBlendFeed } from '@/services/blend.service';
 
 export function useBlendFeed(blendId?: string) {
   const [posts, setPosts] = useState<any[]>([]);
@@ -9,7 +9,7 @@ export function useBlendFeed(blendId?: string) {
   const fetch = useCallback(async (p = 0) => {
     if (!blendId) return;
     setLoading(true);
-    const { data } = await blendService.getBlendFeed(blendId, p);
+    const { data } = await getBlendFeed(blendId, p);
     if (p === 0) setPosts(data || []);
     else setPosts(prev => [...prev, ...(data || [])]);
     setLoading(false);

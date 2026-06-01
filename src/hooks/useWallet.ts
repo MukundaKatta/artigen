@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import * as walletService from '@/services/wallet.service';
+import { getTransactions, getWallet } from '@/services/wallet.service';
 
 export function useWallet(userId?: string) {
   const [wallet, setWallet] = useState<any>(null);
@@ -9,14 +9,14 @@ export function useWallet(userId?: string) {
   const fetchWallet = useCallback(async () => {
     if (!userId) return;
     setLoading(true);
-    const { data } = await walletService.getWallet(userId);
+    const { data } = await getWallet(userId);
     setWallet(data);
     setLoading(false);
   }, [userId]);
 
   const fetchTransactions = useCallback(async (page = 0) => {
     if (!wallet?.id) return;
-    const { data } = await walletService.getTransactions(wallet.id, page);
+    const { data } = await getTransactions(wallet.id, page);
     if (page === 0) setTransactions(data || []);
     else setTransactions(prev => [...prev, ...(data || [])]);
   }, [wallet?.id]);

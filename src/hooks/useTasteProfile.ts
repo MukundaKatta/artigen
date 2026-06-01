@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import * as tasteService from '@/services/taste-profile.service';
+import { getTasteProfile, updateTasteProfile } from '@/services/taste-profile.service';
 
 export function useTasteProfile(userId?: string) {
   const [profile, setProfile] = useState<any>(null);
@@ -8,7 +8,7 @@ export function useTasteProfile(userId?: string) {
   const fetch = useCallback(async () => {
     if (!userId) return;
     setLoading(true);
-    const { data } = await tasteService.getTasteProfile(userId);
+    const { data } = await getTasteProfile(userId);
     setProfile(data);
     setLoading(false);
   }, [userId]);
@@ -24,7 +24,7 @@ export function useTasteProfile(userId?: string) {
     dislikedThemes?: string[];
   }) => {
     if (!userId) return;
-    const { data, error } = await tasteService.updateTasteProfile(userId, updates);
+    const { data, error } = await updateTasteProfile(userId, updates);
     if (!error && data) setProfile(data);
     return { error };
   }, [userId]);

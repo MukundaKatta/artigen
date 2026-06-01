@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/providers/AuthProvider';
-import * as marketplaceService from '@/services/marketplace.service';
+import { createListing } from '@/services/marketplace.service';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
 
 export default function CreateListingScreen() {
@@ -17,7 +17,7 @@ export default function CreateListingScreen() {
   const handleCreate = async () => {
     if (!user?.id || !title || !price) return;
     setSaving(true);
-    await marketplaceService.createListing({
+    await createListing({
       postId: '', // would come from route params in real flow
       sellerId: user.id,
       listingType: type,

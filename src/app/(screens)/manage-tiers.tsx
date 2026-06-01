@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/providers/AuthProvider';
-import * as subscriptionService from '@/services/subscription.service';
+import { deleteTier, getCreatorTiers } from '@/services/subscription.service';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
 
@@ -16,7 +16,7 @@ export default function ManageTiersScreen() {
   async function fetchTiers() {
     if (!user?.id) return;
     setLoading(true);
-    const { data } = await subscriptionService.getCreatorTiers(user.id);
+    const { data } = await getCreatorTiers(user.id);
     setTiers(data || []);
     setLoading(false);
   }
@@ -25,7 +25,7 @@ export default function ManageTiersScreen() {
     Alert.alert('Delete Tier', 'Are you sure?', [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Delete', style: 'destructive', onPress: async () => {
-        await subscriptionService.deleteTier(tierId);
+        await deleteTier(tierId);
         fetchTiers();
       }},
     ]);

@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { EXPLORE_PAGE_SIZE } from '@/lib/constants';
-import * as trendingService from '@/services/trending.service';
+import { getTrendingPosts, getTrendingPrompts, getTrendingStyles } from '@/services/trending.service';
 import type { TrendingPost } from '@/services/trending.service';
 
 export function useTrending() {
@@ -11,8 +11,8 @@ export function useTrending() {
   const fetch = useCallback(async () => {
     setLoading(true);
     const [promptRes, styleRes] = await Promise.all([
-      trendingService.getTrendingPrompts(),
-      trendingService.getTrendingStyles(),
+      getTrendingPrompts(),
+      getTrendingStyles(),
     ]);
     setPrompts(promptRes.data || []);
     setStyles(styleRes.data || []);
@@ -46,7 +46,7 @@ export function useTrendingPosts(viewerId: string | undefined) {
   const fetchTrending = useCallback(async () => {
     setLoading(true);
     setError(null);
-    const { data, error: fetchError } = await trendingService.getTrendingPosts(
+    const { data, error: fetchError } = await getTrendingPosts(
       0,
       EXPLORE_PAGE_SIZE,
       viewerId,
@@ -65,7 +65,7 @@ export function useTrendingPosts(viewerId: string | undefined) {
   const refresh = useCallback(async () => {
     if (!isMounted.current) return;
     setRefreshing(true);
-    const { data, error: refreshError } = await trendingService.getTrendingPosts(
+    const { data, error: refreshError } = await getTrendingPosts(
       0,
       EXPLORE_PAGE_SIZE,
       viewerId,
@@ -86,7 +86,7 @@ export function useTrendingPosts(viewerId: string | undefined) {
     if (!viewerId || loadingMore || !hasMore) return;
     setLoadingMore(true);
     const nextPage = page + 1;
-    const { data, error: loadError } = await trendingService.getTrendingPosts(
+    const { data, error: loadError } = await getTrendingPosts(
       nextPage,
       EXPLORE_PAGE_SIZE,
       viewerId,

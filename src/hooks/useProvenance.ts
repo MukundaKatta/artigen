@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import * as provenanceService from '@/services/provenance.service';
+import { getProvenance, verifyProvenance } from '@/services/provenance.service';
 
 export function useProvenance(postId?: string) {
   const [provenance, setProvenance] = useState<any>(null);
@@ -8,7 +8,7 @@ export function useProvenance(postId?: string) {
   const fetch = useCallback(async () => {
     if (!postId) return;
     setLoading(true);
-    const { data } = await provenanceService.getProvenance(postId);
+    const { data } = await getProvenance(postId);
     setProvenance(data);
     setLoading(false);
   }, [postId]);
@@ -17,7 +17,7 @@ export function useProvenance(postId?: string) {
 
   const verify = useCallback(async () => {
     if (!postId) return;
-    return provenanceService.verifyProvenance(postId);
+    return verifyProvenance(postId);
   }, [postId]);
 
   return { provenance, loading, verify, refresh: fetch };

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import * as portfolioService from '@/services/portfolio.service';
+import { addItem as addItemApi, createSection as createSectionApi, deleteSection as deleteSectionApi, disablePortfolio as disablePortfolioApi, enablePortfolio as enablePortfolioApi, getPortfolio, removeItem as removeItemApi, reorderSections as reorderSectionsApi } from '@/services/portfolio.service';
 import type { PortfolioSection } from '@/services/portfolio.service';
 
 export function usePortfolio(userId: string | undefined) {
@@ -13,7 +13,7 @@ export function usePortfolio(userId: string | undefined) {
       return;
     }
     setLoading(true);
-    const { data } = await portfolioService.getPortfolio(userId);
+    const { data } = await getPortfolio(userId);
     setSections(data);
     setLoading(false);
   }, [userId]);
@@ -25,7 +25,7 @@ export function usePortfolio(userId: string | undefined) {
   const createSection = useCallback(
     async (title: string, description?: string) => {
       if (!userId) return null;
-      const { data, error } = await portfolioService.createSection(userId, title, description);
+      const { data, error } = await createSectionApi(userId, title, description);
       if (data && !error) {
         setSections((prev) => [...prev, { ...data, items: [] }]);
       }
@@ -35,7 +35,7 @@ export function usePortfolio(userId: string | undefined) {
   );
 
   const deleteSection = useCallback(async (sectionId: string) => {
-    const { error } = await portfolioService.deleteSection(sectionId);
+    const { error } = await deleteSectionApi(sectionId);
     if (!error) {
       setSections((prev) => prev.filter((s) => s.id !== sectionId));
     }
@@ -44,7 +44,7 @@ export function usePortfolio(userId: string | undefined) {
 
   const addItem = useCallback(
     async (sectionId: string, postId: string, captionOverride?: string) => {
-      const { data, error } = await portfolioService.addItem(sectionId, postId, captionOverride);
+      const { data, error } = await addItemApi(sectionId, postId, captionOverride);
       if (data && !error) {
         setSections((prev) =>
           prev.map((s) =>
@@ -61,7 +61,7 @@ export function usePortfolio(userId: string | undefined) {
 
   const removeItem = useCallback(
     async (sectionId: string, itemId: string) => {
-      const { error } = await portfolioService.removeItem(itemId);
+      const { error } = await removeItemApi(itemId);
       if (!error) {
         setSections((prev) =>
           prev.map((s) =>
@@ -79,7 +79,7 @@ export function usePortfolio(userId: string | undefined) {
   const reorderSections = useCallback(
     async (sectionIds: string[]) => {
       if (!userId) return;
-      await portfolioService.reorderSections(userId, sectionIds);
+      await reorderSectionsApi(userId, sectionIds);
       setSections((prev) => {
         const map = new Map(prev.map((s) => [s.id, s]));
         return sectionIds.map((id, i) => ({ ...map.get(id)!, sort_order: i }));
@@ -91,7 +91,7 @@ export function usePortfolio(userId: string | undefined) {
   const enablePortfolio = useCallback(
     async (bio?: string, contactEmail?: string) => {
       if (!userId) return;
-      const { error } = await portfolioService.enablePortfolio(userId, bio, contactEmail);
+      const { error } = await enablePortfolioApi(userId, bio, contactEmail);
       if (!error) setPortfolioEnabled(true);
     },
     [userId]
@@ -100,7 +100,7 @@ export function usePortfolio(userId: string | undefined) {
   const disablePortfolio = useCallback(
     async () => {
       if (!userId) return;
-      const { error } = await portfolioService.disablePortfolio(userId);
+      const { error } = await disablePortfolioApi(userId);
       if (!error) setPortfolioEnabled(false);
     },
     [userId]

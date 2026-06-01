@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import * as subscriptionService from '@/services/subscription.service';
+import { cancelSubscription, checkSubscription as checkSubscriptionApi, getCreatorTiers, subscribe as subscribeApi } from '@/services/subscription.service';
 
 export function useSubscriptions(creatorId?: string, currentUserId?: string) {
   const [tiers, setTiers] = useState<any[]>([]);
@@ -10,14 +10,14 @@ export function useSubscriptions(creatorId?: string, currentUserId?: string) {
   const fetchTiers = useCallback(async () => {
     if (!creatorId) return;
     setLoading(true);
-    const { data } = await subscriptionService.getCreatorTiers(creatorId);
+    const { data } = await getCreatorTiers(creatorId);
     setTiers(data || []);
     setLoading(false);
   }, [creatorId]);
 
   const checkSubscription = useCallback(async () => {
     if (!currentUserId || !creatorId) return;
-    const { data } = await subscriptionService.checkSubscription(currentUserId, creatorId);
+    const { data } = await checkSubscriptionApi(currentUserId, creatorId);
     setActiveSubscription(data);
   }, [currentUserId, creatorId]);
 
@@ -29,7 +29,7 @@ export function useSubscriptions(creatorId?: string, currentUserId?: string) {
   const subscribe = useCallback(async (tierId: string) => {
     if (!currentUserId || !creatorId) return;
     setSubscribing(true);
-    const { data, error } = await subscriptionService.subscribe(currentUserId, creatorId, tierId);
+    const { data, error } = await subscribeApi(currentUserId, creatorId, tierId);
     if (!error) setActiveSubscription(data);
     setSubscribing(false);
     return { error };
@@ -37,7 +37,7 @@ export function useSubscriptions(creatorId?: string, currentUserId?: string) {
 
   const cancel = useCallback(async () => {
     if (!currentUserId || !creatorId) return;
-    const { error } = await subscriptionService.cancelSubscription(currentUserId, creatorId);
+    const { error } = await cancelSubscription(currentUserId, creatorId);
     if (!error) setActiveSubscription(null);
     return { error };
   }, [currentUserId, creatorId]);

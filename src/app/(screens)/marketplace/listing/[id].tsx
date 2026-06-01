@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Platform } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Image } from 'expo-image';
-import * as Haptics from 'expo-haptics';
+import { NotificationFeedbackType, notificationAsync } from 'expo-haptics';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useAuth } from '@/providers/AuthProvider';
-import * as marketplaceService from '@/services/marketplace.service';
-import * as orderService from '@/services/order.service';
+import { getListing } from '@/services/marketplace.service';
+import { createOrder } from '@/services/order.service';
 import { PrintOptions } from '@/components/marketplace/PrintOptions';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Button } from '@/components/ui/Button';
@@ -23,7 +23,7 @@ export default function ListingDetailScreen() {
 
   useEffect(() => {
     (async () => {
-      const { data } = await marketplaceService.getListing(id!);
+      const { data } = await getListing(id!);
       setListing(data);
       setLoading(false);
     })();
@@ -33,9 +33,9 @@ export default function ListingDetailScreen() {
 
   const handleBuy = async () => {
     if (!user?.id) return;
-    if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    if (Platform.OS !== 'web') notificationAsync(NotificationFeedbackType.Success);
     setBuying(true);
-    await orderService.createOrder({
+    await createOrder({
       buyerId: user.id,
       sellerId: listing.seller_id,
       listingId: listing.id,

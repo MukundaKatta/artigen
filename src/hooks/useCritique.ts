@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import * as critiqueService from '@/services/critique.service';
+import { getCritiques, getPostCritiqueSummary, getUserCritiqueForPost, getUserHelpfulVoteIds, markHelpful, submitCritique, unmarkHelpful } from '@/services/critique.service';
 import type { Critique, CritiqueSummary, CritiqueRatings } from '@/services/critique.service';
 
 const PAGE_SIZE = 20;
@@ -22,7 +22,7 @@ export function useCritique(postId: string | undefined, userId: string | undefin
       if (!postId) return;
       if (pageNum === 0) setLoading(true);
 
-      const { data } = await critiqueService.getCritiques(postId, pageNum);
+      const { data } = await getCritiques(postId, pageNum);
 
       if (pageNum === 0) {
         setCritiques(data);
@@ -36,7 +36,7 @@ export function useCritique(postId: string | undefined, userId: string | undefin
       // Fetch which critiques the current user voted helpful
       if (userId && data.length > 0) {
         const ids = data.map((c) => c.id);
-        const voted = await critiqueService.getUserHelpfulVoteIds(ids, userId);
+        const voted = await getUserHelpfulVoteIds(ids, userId);
         if (pageNum === 0) {
           setHelpfulVotes(voted);
         } else {
@@ -57,7 +57,7 @@ export function useCritique(postId: string | undefined, userId: string | undefin
 
   const fetchSummary = useCallback(async () => {
     if (!postId) return;
-    const { data } = await critiqueService.getPostCritiqueSummary(postId);
+    const { data } = await getPostCritiqueSummary(postId);
     setSummary(data);
   }, [postId]);
 
@@ -65,7 +65,7 @@ export function useCritique(postId: string | undefined, userId: string | undefin
 
   const fetchUserCritique = useCallback(async () => {
     if (!postId || !userId) return;
-    const { data } = await critiqueService.getUserCritiqueForPost(postId, userId);
+    const { data } = await getUserCritiqueForPost(postId, userId);
     setUserCritique(data);
   }, [postId, userId]);
 
@@ -83,7 +83,7 @@ export function useCritique(postId: string | undefined, userId: string | undefin
       if (!postId || !userId) return { error: 'Missing postId or userId' };
       setSubmitting(true);
 
-      const { data, error } = await critiqueService.submitCritique(postId, userId, ratings, feedbackText);
+      const { data, error } = await submitCritique(postId, userId, ratings, feedbackText);
 
       if (data) {
         setCritiques((prev) => [data, ...prev]);
@@ -125,9 +125,9 @@ export function useCritique(postId: string | undefined, userId: string | undefin
 
       try {
         if (isHelpful) {
-          await critiqueService.unmarkHelpful(critiqueId, userId);
+          await unmarkHelpful(critiqueId, userId);
         } else {
-          await critiqueService.markHelpful(critiqueId, userId);
+          await markHelpful(critiqueId, userId);
         }
       } catch {
         // Revert optimistic update on error

@@ -1,14 +1,14 @@
 import { useState, useCallback, useEffect } from 'react';
-import * as controlnetService from '@/services/controlnet.service';
+import { createControlNetJob, getControlNetJob, getControlNetPresets } from '@/services/controlnet.service';
 import { useJobPolling } from '@/hooks/useJobPolling';
 
 export function useControlNet(userId?: string) {
   const [presets, setPresets] = useState<any[]>([]);
   const [selectedPreset, setSelectedPreset] = useState<any>(null);
-  const { job, loading, setLoading, startPolling } = useJobPolling(controlnetService.getControlNetJob);
+  const { job, loading, setLoading, startPolling } = useJobPolling(getControlNetJob);
 
   const fetchPresets = useCallback(async (controlType?: string) => {
-    const { data } = await controlnetService.getControlNetPresets(controlType);
+    const { data } = await getControlNetPresets(controlType);
     setPresets(data || []);
   }, []);
 
@@ -17,7 +17,7 @@ export function useControlNet(userId?: string) {
   const startControlNet = useCallback(async (controlImageUrl: string, controlType: string, prompt: string, sourcePostId?: string, negativePrompt?: string, controlStrength?: number) => {
     if (!userId) return;
     setLoading(true);
-    const { data, error } = await controlnetService.createControlNetJob({
+    const { data, error } = await createControlNetJob({
       userId,
       sourcePostId,
       controlImageUrl,

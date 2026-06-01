@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import * as crossPostService from '@/services/cross-post.service';
+import { connectAccount, crossPost, disconnectAccount, getAccounts, getCrossPostStatus } from '@/services/cross-post.service';
 import type { CrossPostAccount, CrossPost } from '@/services/cross-post.service';
 
 export function useCrossPost(userId: string | undefined) {
@@ -13,7 +13,7 @@ export function useCrossPost(userId: string | undefined) {
       return;
     }
     setLoading(true);
-    const { data } = await crossPostService.getAccounts(userId);
+    const { data } = await getAccounts(userId);
     setAccounts(data);
     setLoading(false);
   }, [userId]);
@@ -25,7 +25,7 @@ export function useCrossPost(userId: string | undefined) {
   const connect = useCallback(
     async (platform: string, username: string) => {
       if (!userId) return null;
-      const { data, error } = await crossPostService.connectAccount(userId, platform, username);
+      const { data, error } = await connectAccount(userId, platform, username);
       if (data && !error) {
         setAccounts((prev) => {
           const existing = prev.findIndex((a) => a.platform === platform);
@@ -43,7 +43,7 @@ export function useCrossPost(userId: string | undefined) {
   );
 
   const disconnect = useCallback(async (accountId: string) => {
-    const { error } = await crossPostService.disconnectAccount(accountId);
+    const { error } = await disconnectAccount(accountId);
     if (!error) {
       setAccounts((prev) =>
         prev.map((a) =>
@@ -57,7 +57,7 @@ export function useCrossPost(userId: string | undefined) {
   const doCrossPost = useCallback(
     async (postId: string, platforms: string[]) => {
       if (!userId) return { data: [], error: new Error('Not authenticated') };
-      const { data, error } = await crossPostService.crossPost(postId, userId, platforms);
+      const { data, error } = await crossPost(postId, userId, platforms);
       if (data && !error) {
         setCrossPosts((prev) => [...data, ...prev]);
       }
@@ -67,7 +67,7 @@ export function useCrossPost(userId: string | undefined) {
   );
 
   const fetchCrossPostStatus = useCallback(async (postId: string) => {
-    const { data } = await crossPostService.getCrossPostStatus(postId);
+    const { data } = await getCrossPostStatus(postId);
     setCrossPosts(data);
     return data;
   }, []);

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
-import * as orderService from '@/services/order.service';
+import { getOrder } from '@/services/order.service';
 import { OrderStatusTracker } from '@/components/marketplace/OrderStatusTracker';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
@@ -13,7 +13,7 @@ export default function OrderDetailScreen() {
 
   useEffect(() => {
     (async () => {
-      const { data } = await orderService.getOrder(id!);
+      const { data } = await getOrder(id!);
       setOrder(data);
       setLoading(false);
     })();

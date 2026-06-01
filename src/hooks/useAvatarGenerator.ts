@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import * as avatarService from '@/services/avatar.service';
+import { createAvatarJob, getAvatarJob, getMyAvatars, removeAvatar, saveAvatar, setActiveAvatar } from '@/services/avatar.service';
 import type { AvatarStyle, AvatarGenerationJob, UserAvatar } from '@/services/avatar.service';
 
 export function useAvatarGenerator(userId?: string) {
@@ -15,7 +15,7 @@ export function useAvatarGenerator(userId?: string) {
   const fetchAvatars = useCallback(async () => {
     if (!userId) return;
     setLoadingAvatars(true);
-    const { data } = await avatarService.getMyAvatars(userId);
+    const { data } = await getMyAvatars(userId);
     setAvatars(data);
     setLoadingAvatars(false);
   }, [userId]);
@@ -31,7 +31,7 @@ export function useAvatarGenerator(userId?: string) {
       if (!userId) return;
       setLoading(true);
 
-      const { data, error } = await avatarService.createAvatarJob(
+      const { data, error } = await createAvatarJob(
         userId,
         sourceImageUrls,
         selectedStyle,
@@ -46,7 +46,7 @@ export function useAvatarGenerator(userId?: string) {
 
         // Poll every 3 seconds for job completion
         pollRef.current = setInterval(async () => {
-          const { data: updated } = await avatarService.getAvatarJob(data.id);
+          const { data: updated } = await getAvatarJob(data.id);
           if (updated) {
             setJob(updated);
             if (updated.status === 'completed' || updated.status === 'failed') {
@@ -69,7 +69,7 @@ export function useAvatarGenerator(userId?: string) {
   const saveAvatarFromResult = useCallback(
     async (imageUrl: string) => {
       if (!userId) return;
-      const { data } = await avatarService.saveAvatar(userId, imageUrl, selectedStyle);
+      const { data } = await saveAvatar(userId, imageUrl, selectedStyle);
       if (data) {
         setAvatars((prev) => [data, ...prev]);
       }
@@ -83,7 +83,7 @@ export function useAvatarGenerator(userId?: string) {
   const setActive = useCallback(
     async (avatarId: string) => {
       if (!userId) return;
-      const { data } = await avatarService.setActiveAvatar(userId, avatarId);
+      const { data } = await setActiveAvatar(userId, avatarId);
       if (data) {
         setAvatars((prev) =>
           prev.map((a) => ({
@@ -100,7 +100,7 @@ export function useAvatarGenerator(userId?: string) {
   // ── Remove a saved avatar ──────────────────────────
 
   const remove = useCallback(async (avatarId: string) => {
-    const { error } = await avatarService.removeAvatar(avatarId);
+    const { error } = await removeAvatar(avatarId);
     if (!error) {
       setAvatars((prev) => prev.filter((a) => a.id !== avatarId));
     }

@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import * as similarityService from '@/services/similarity.service';
+import { findSimilarPosts, searchByImage as searchByImageApi } from '@/services/similarity.service';
 
 export function useVisualSearch() {
   const [results, setResults] = useState<any[]>([]);
@@ -7,14 +7,14 @@ export function useVisualSearch() {
 
   const searchByImage = useCallback(async (imageUrl: string) => {
     setLoading(true);
-    const { data } = await similarityService.searchByImage(imageUrl);
+    const { data } = await searchByImageApi(imageUrl);
     setResults(data || []);
     setLoading(false);
   }, []);
 
   const findSimilar = useCallback(async (postId: string) => {
     setLoading(true);
-    const { data } = await similarityService.findSimilarPosts(postId);
+    const { data } = await findSimilarPosts(postId);
     setResults(data || []);
     setLoading(false);
   }, []);

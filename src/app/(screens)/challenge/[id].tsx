@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import * as challengeService from '@/services/challenge.service';
+import { getChallengeEntries } from '@/services/challenge.service';
 import { ChallengeEntryGrid } from '@/components/challenges/ChallengeEntryGrid';
 import { LeaderboardList } from '@/components/challenges/LeaderboardList';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -15,7 +15,7 @@ export default function ChallengeDetailScreen() {
 
   useEffect(() => {
     (async () => {
-      const { data } = await challengeService.getChallengeEntries(id!);
+      const { data } = await getChallengeEntries(id!);
       setEntries(data || []);
       setLoading(false);
     })();

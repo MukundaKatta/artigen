@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import * as orderService from '@/services/order.service';
+import { getMyOrders, getMySales } from '@/services/order.service';
 
 export function useOrders(userId?: string, mode: 'buyer' | 'seller' = 'buyer') {
   const [orders, setOrders] = useState<any[]>([]);
@@ -9,8 +9,8 @@ export function useOrders(userId?: string, mode: 'buyer' | 'seller' = 'buyer') {
     if (!userId) return;
     setLoading(true);
     const { data } = mode === 'buyer'
-      ? await orderService.getMyOrders(userId)
-      : await orderService.getMySales(userId);
+      ? await getMyOrders(userId)
+      : await getMySales(userId);
     setOrders(data || []);
     setLoading(false);
   }, [userId, mode]);

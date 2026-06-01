@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import * as arPreviewService from '@/services/ar-preview.service';
+import { createArPreview, getArPreview, updateArPreview } from '@/services/ar-preview.service';
 import type { ArPreview, FrameStyle } from '@/services/ar-preview.service';
 
 export function useArPreview(postId: string | undefined) {
@@ -12,7 +12,7 @@ export function useArPreview(postId: string | undefined) {
       return;
     }
     setLoading(true);
-    const { data } = await arPreviewService.getArPreview(postId);
+    const { data } = await getArPreview(postId);
     setPreview(data);
     setLoading(false);
   }, [postId]);
@@ -24,7 +24,7 @@ export function useArPreview(postId: string | undefined) {
   const create = useCallback(
     async (frameStyle: FrameStyle, widthCm: number, heightCm: number) => {
       if (!postId) return null;
-      const { data, error } = await arPreviewService.createArPreview(
+      const { data, error } = await createArPreview(
         postId,
         frameStyle,
         widthCm,
@@ -39,7 +39,7 @@ export function useArPreview(postId: string | undefined) {
   const update = useCallback(
     async (updates: { frame_style?: FrameStyle; default_width_cm?: number; default_height_cm?: number }) => {
       if (!postId) return null;
-      const { data, error } = await arPreviewService.updateArPreview(postId, updates);
+      const { data, error } = await updateArPreview(postId, updates);
       if (data && !error) setPreview(data);
       return data;
     },

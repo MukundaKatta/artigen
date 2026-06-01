@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import * as tipService from '@/services/tip.service';
+import { sendTip as sendTipApi } from '@/services/tip.service';
 import { TIP_PRESETS } from '@/lib/constants';
 
 export function useTipJar(senderId?: string) {
@@ -9,7 +9,7 @@ export function useTipJar(senderId?: string) {
   const sendTip = useCallback(async (recipientId: string, postId?: string, message?: string) => {
     if (!senderId) return { error: new Error('Not logged in') };
     setSending(true);
-    const result = await tipService.sendTip({
+    const result = await sendTipApi({
       senderId,
       recipientId,
       postId,

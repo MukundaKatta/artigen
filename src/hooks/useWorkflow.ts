@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import * as workflowService from '@/services/workflow.service';
+import { createRun, createTemplate as createTemplateApi, getRun, getTemplate, updateRun } from '@/services/workflow.service';
 import type { WorkflowTemplateWithUser, WorkflowRun, WorkflowStep } from '@/services/workflow.service';
 
 export function useWorkflow(userId?: string) {
@@ -13,7 +13,7 @@ export function useWorkflow(userId?: string) {
 
   const loadTemplate = useCallback(async (templateId: string) => {
     setLoading(true);
-    const { data } = await workflowService.getTemplate(templateId);
+    const { data } = await getTemplate(templateId);
     setTemplate(data);
     setLoading(false);
     return data;
@@ -23,7 +23,7 @@ export function useWorkflow(userId?: string) {
 
   const loadRun = useCallback(async (runId: string) => {
     setLoading(true);
-    const { data } = await workflowService.getRun(runId);
+    const { data } = await getRun(runId);
     if (data) {
       setRun(data);
       setCurrentStep(data.current_step);
@@ -38,7 +38,7 @@ export function useWorkflow(userId?: string) {
     async (name: string, description: string | undefined, steps: WorkflowStep[], isPublic = false) => {
       if (!userId) return { data: null, error: 'Not authenticated' };
       setLoading(true);
-      const result = await workflowService.createTemplate(userId, name, description, steps, isPublic);
+      const result = await createTemplateApi(userId, name, description, steps, isPublic);
       setLoading(false);
       return result;
     },
@@ -52,7 +52,7 @@ export function useWorkflow(userId?: string) {
       if (!userId) return { data: null, error: 'Not authenticated' };
       setLoading(true);
 
-      const { data, error } = await workflowService.createRun(userId, name, steps, templateId);
+      const { data, error } = await createRun(userId, name, steps, templateId);
       if (data) {
         setRun(data);
         setCurrentStep(0);
@@ -60,7 +60,7 @@ export function useWorkflow(userId?: string) {
         // Start polling for progress (3s interval)
         if (pollRef.current) clearInterval(pollRef.current);
         pollRef.current = setInterval(async () => {
-          const { data: updated } = await workflowService.getRun(data.id);
+          const { data: updated } = await getRun(data.id);
           if (updated) {
             setRun(updated);
             setCurrentStep(updated.current_step);
@@ -83,7 +83,7 @@ export function useWorkflow(userId?: string) {
 
   const pauseRun = useCallback(async () => {
     if (!run) return;
-    const { data } = await workflowService.updateRun(run.id, { status: 'paused' });
+    const { data } = await updateRun(run.id, { status: 'paused' });
     if (data) {
       setRun(data);
       if (pollRef.current) clearInterval(pollRef.current);
@@ -96,14 +96,14 @@ export function useWorkflow(userId?: string) {
   const resumeRun = useCallback(async () => {
     if (!run) return;
     setLoading(true);
-    const { data } = await workflowService.updateRun(run.id, { status: 'running' });
+    const { data } = await updateRun(run.id, { status: 'running' });
     if (data) {
       setRun(data);
 
       // Resume polling
       if (pollRef.current) clearInterval(pollRef.current);
       pollRef.current = setInterval(async () => {
-        const { data: updated } = await workflowService.getRun(run.id);
+        const { data: updated } = await getRun(run.id);
         if (updated) {
           setRun(updated);
           setCurrentStep(updated.current_step);
