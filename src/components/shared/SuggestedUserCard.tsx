@@ -21,6 +21,8 @@ export const SuggestedUserCard = React.memo(function SuggestedUserCard({ user, c
       style={styles.card}
       onPress={() => router.push(`/(screens)/user/${user.id}`)}
       activeOpacity={0.8}
+      accessibilityRole="button"
+      accessibilityLabel={`View ${user.username}'s profile${user.mutual_count > 0 ? `, ${user.mutual_count} mutual` : ''}`}
     >
       <Avatar uri={user.avatar_url} size="lg" />
       <Text style={styles.username} numberOfLines={1}>{user.username}</Text>
