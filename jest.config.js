@@ -21,6 +21,9 @@ module.exports = {
     '^expo-image$': '<rootDir>/src/__mocks__/expo-image.ts',
     '^expo-linear-gradient$': '<rootDir>/src/__mocks__/expo-linear-gradient.ts',
     '^@expo/vector-icons$': '<rootDir>/src/__mocks__/expo-vector-icons.ts',
+    '^react-native-gesture-handler$': '<rootDir>/src/__mocks__/react-native-gesture-handler.ts',
+    '^@gorhom/bottom-sheet$': '<rootDir>/src/__mocks__/gorhom-bottom-sheet.ts',
+    '\\.(png|jpg|jpeg|gif|webp|svg)$': '<rootDir>/src/__mocks__/file-stub.ts',
     '^@/(.*)$': '<rootDir>/src/$1',
   },
   transform: {
