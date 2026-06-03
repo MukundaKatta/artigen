@@ -24,9 +24,12 @@ export async function createOutpaintingJob(params: {
     .single();
 
   if (data) {
-    supabase.functions.invoke('outpaint', { body: { job_id: data.id } }).catch((err) => {
+    supabase.functions.invoke('outpaint', { body: { job_id: data.id } }).catch(async (err) => {
       logger.warn('Outpaint invoke failed:', err);
-      supabase.from('outpainting_jobs').update({ status: 'failed', error_message: 'Failed to start processing' }).eq('id', data.id);
+      await supabase
+        .from('outpainting_jobs')
+        .update({ status: 'failed', error_message: 'Failed to start processing' })
+        .eq('id', data.id);
     });
   }
   return { data, error };

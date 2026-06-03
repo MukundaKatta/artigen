@@ -22,9 +22,12 @@ export async function createText3DJob(
     .single();
 
   if (data) {
-    supabase.functions.invoke('text-to-3d', { body: { job_id: data.id } }).catch((err) => {
+    supabase.functions.invoke('text-to-3d', { body: { job_id: data.id } }).catch(async (err) => {
       logger.warn('Text-to-3D invoke failed:', err);
-      supabase.from('text_to_3d_jobs').update({ status: 'failed', error_message: 'Failed to start processing' }).eq('id', data.id);
+      await supabase
+        .from('text_to_3d_jobs')
+        .update({ status: 'failed', error_message: 'Failed to start processing' })
+        .eq('id', data.id);
     });
   }
 

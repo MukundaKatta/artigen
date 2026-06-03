@@ -26,9 +26,12 @@ export async function createMusicJob(
     .single();
 
   if (data) {
-    supabase.functions.invoke('generate-music', { body: { job_id: data.id } }).catch((err) => {
+    supabase.functions.invoke('generate-music', { body: { job_id: data.id } }).catch(async (err) => {
       logger.warn('Music generation invoke failed:', err);
-      supabase.from('music_generation_jobs').update({ status: 'failed', error_message: 'Failed to start processing' }).eq('id', data.id);
+      await supabase
+        .from('music_generation_jobs')
+        .update({ status: 'failed', error_message: 'Failed to start processing' })
+        .eq('id', data.id);
     });
   }
 
