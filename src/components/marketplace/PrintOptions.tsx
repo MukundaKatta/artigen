@@ -11,7 +11,7 @@ export function PrintOptions({ options, selected, onSelect }: Props) {
       <Text style={styles.title}>Print Options</Text>
       {options.map((opt, i) => (
         <TouchableOpacity
-          key={i}
+          key={`${opt.size}-${opt.material}`}
           style={[styles.option, selected === i && styles.optionActive]}
           onPress={() => onSelect(i)}
         >

@@ -111,6 +111,8 @@ export function ConfettiOverlay({ visible, onComplete }: Props) {
 
   return (
     <Animated.View style={StyleSheet.absoluteFill} pointerEvents="none">
+      {/* Index key is correct here: this is a fixed-length particle array
+          that never reorders or changes size, so index === stable identity. */}
       {Array.from({ length: CONFETTI_COUNT }).map((_, i) => (
         <ConfettiPiece
           key={i}
