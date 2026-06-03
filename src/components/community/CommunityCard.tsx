@@ -22,7 +22,13 @@ export function CommunityCard({ community }: Props) {
   }
 
   return (
-    <AnimatedPressable style={styles.card} onPress={handlePress} scaleValue={0.97}>
+    <AnimatedPressable
+      style={styles.card}
+      onPress={handlePress}
+      scaleValue={0.97}
+      accessibilityRole="button"
+      accessibilityLabel={`${community.name}, ${formatNumber(community.member_count)} ${community.member_count === 1 ? 'member' : 'members'}${community.is_private ? ', private' : ''}`}
+    >
       <Image
         source={
           community.avatar_url

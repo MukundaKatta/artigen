@@ -80,6 +80,9 @@ export function CommunityHeader({ community, isMember, isOwner, joining, onToggl
             onPress={onToggleJoin}
             disabled={joining}
             activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={isMember ? 'Leave community' : 'Join community'}
+            accessibilityState={{ selected: isMember, disabled: joining, busy: joining }}
           >
             <Text style={[styles.joinButtonText, isMember && styles.joinedButtonText]}>
               {joining ? '...' : isMember ? 'Joined' : 'Join'}
