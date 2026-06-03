@@ -107,7 +107,7 @@ export default function CreateCritiqueScreen() {
         </View>
 
         {/* Feedback text */}
-        <Text style={styles.feedbackLabel}>Written Feedback</Text>
+        <Text style={styles.feedbackLabel} nativeID="critique-feedback-label">Written Feedback</Text>
         <TextInput
           style={styles.textInput}
           placeholder="Share constructive feedback about this artwork... (min 10 characters)"
@@ -118,8 +118,11 @@ export default function CreateCritiqueScreen() {
           numberOfLines={6}
           textAlignVertical="top"
           maxLength={2000}
+          accessibilityLabel="Written feedback"
+          accessibilityLabelledBy="critique-feedback-label"
+          accessibilityHint="Minimum 10 characters; up to 2000 characters"
         />
-        <Text style={styles.charCount}>
+        <Text style={styles.charCount} accessibilityLiveRegion="polite">
           {feedbackText.length}/2000
         </Text>
 
