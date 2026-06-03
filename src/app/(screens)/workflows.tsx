@@ -3,11 +3,11 @@ import {
   View,
   Text,
   StyleSheet,
-  FlatList,
   TouchableOpacity,
   TextInput,
   Platform,
 } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -108,16 +108,16 @@ export default function WorkflowsScreen() {
       {loading && data.length === 0 ? (
         <View style={styles.list}><WorkflowsSkeleton /></View>
       ) : (
-        <FlatList
+        <FlashList
           data={data}
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
+          estimatedItemSize={120}
           contentContainerStyle={styles.list}
           onEndReached={tab === 'discover' ? loadMore : undefined}
           onEndReachedThreshold={0.5}
           refreshing={loading}
           onRefresh={refresh}
-          removeClippedSubviews
           ListHeaderComponent={
             tab === 'mine' ? (
               <TouchableOpacity

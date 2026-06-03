@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, Platform } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
 import * as Haptics from 'expo-haptics';
 import Animated, { FadeInRight } from 'react-native-reanimated';
@@ -55,13 +56,10 @@ export function LeaderboardList({ entries, onPress }: Props) {
   const keyExtractor = useCallback((item: LeaderboardEntry) => item.id, []);
 
   return (
-    <FlatList
+    <FlashList
       data={entries}
       keyExtractor={keyExtractor}
-      removeClippedSubviews={true}
-      maxToRenderPerBatch={10}
-      windowSize={5}
-      initialNumToRender={10}
+      estimatedItemSize={56}
       renderItem={renderItem}
     />
   );

@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
 import { colors, spacing, fontSize, typography } from '@/lib/theme';
 import { SCREEN_WIDTH, POST_GRID_GAP } from '@/lib/constants';
@@ -42,15 +43,12 @@ export function BlendFeedView({ posts, onPostPress, loading }: Props) {
   }
 
   return (
-    <FlatList
+    <FlashList
       data={posts}
       numColumns={COLS}
       keyExtractor={keyExtractor}
+      estimatedItemSize={SIZE}
       contentContainerStyle={styles.grid}
-      removeClippedSubviews={true}
-      maxToRenderPerBatch={10}
-      windowSize={5}
-      initialNumToRender={10}
       renderItem={renderItem}
     />
   );

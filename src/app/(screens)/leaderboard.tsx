@@ -3,9 +3,9 @@ import {
   View,
   Text,
   StyleSheet,
-  FlatList,
   Platform,
 } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -151,7 +151,7 @@ export default function LeaderboardScreen() {
           <Text style={styles.emptyText}>Be the first to earn points!</Text>
         </View>
       ) : (
-        <FlatList
+        <FlashList
           data={restEntries}
           keyExtractor={(item) => item.id}
           renderItem={({ item, index }) => (
@@ -159,6 +159,7 @@ export default function LeaderboardScreen() {
               <LeaderboardRow entry={item} onPress={handleUserPress} />
             </Animated.View>
           )}
+          estimatedItemSize={64}
           ListHeaderComponent={<TopThreeHeader entries={entries} onPress={handleUserPress} />}
           contentContainerStyle={styles.list}
           onRefresh={refresh}
