@@ -10,17 +10,23 @@ module.exports = {
   moduleNameMapper: {
     '^@/lib/supabase$': '<rootDir>/src/__mocks__/lib/supabase.ts',
     '^react-native$': '<rootDir>/src/__mocks__/react-native.ts',
+    '^react-native-reanimated$': '<rootDir>/src/__mocks__/react-native-reanimated.ts',
+    '^react-native-safe-area-context$': '<rootDir>/src/__mocks__/react-native-safe-area-context.ts',
     '^expo-file-system$': '<rootDir>/src/__mocks__/expo-file-system.ts',
     '^expo-modules-core$': '<rootDir>/src/__mocks__/expo-modules-core.ts',
     '^expo-linking$': '<rootDir>/src/__mocks__/expo-linking.ts',
     '^expo-router$': '<rootDir>/src/__mocks__/expo-router.ts',
+    '^expo-haptics$': '<rootDir>/src/__mocks__/expo-haptics.ts',
+    '^expo-image$': '<rootDir>/src/__mocks__/expo-image.ts',
+    '^expo-linear-gradient$': '<rootDir>/src/__mocks__/expo-linear-gradient.ts',
+    '^@expo/vector-icons$': '<rootDir>/src/__mocks__/expo-vector-icons.ts',
     '^@/(.*)$': '<rootDir>/src/$1',
   },
   transform: {
     '^.+\\.tsx?$': [
       'ts-jest',
       {
-        tsconfig: 'tsconfig.json',
+        tsconfig: 'tsconfig.test.json',
         diagnostics: false,
       },
     ],
