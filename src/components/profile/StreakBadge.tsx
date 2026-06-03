@@ -1,13 +1,13 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { spacing, fontSize, typography, borderRadius } from '@/lib/theme';
+import { spacing, fontSize, typography, borderRadius, accentColors, withOpacity } from '@/lib/theme';
 
 type Props = {
   currentStreak: number;
 };
 
-const STREAK_ORANGE = '#F59E0B';
-const STREAK_AMBER_BG = 'rgba(245, 158, 11, 0.12)';
+const STREAK_ORANGE = accentColors.amber;
+const STREAK_AMBER_BG = withOpacity(accentColors.amber, 0.12);
 
 export function StreakBadge({ currentStreak }: Props) {
   if (currentStreak <= 0) return null;

@@ -50,7 +50,7 @@ function PulseBadge({ config }: { config: { label: string; color: string; icon: 
 
   return (
     <Animated.View style={[styles.statusBadge, { backgroundColor: config.color }, animStyle]}>
-      <Ionicons name={config.icon} size={10} color="#fff" />
+      <Ionicons name={config.icon} size={10} color={colors.textLight} />
       <Text style={styles.statusText}>{config.label}</Text>
     </Animated.View>
   );
@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontFamily: typography.bold,
     fontWeight: '700',
-    color: '#fff',
+    color: colors.textLight,
     letterSpacing: 0.5,
   },
   title: {

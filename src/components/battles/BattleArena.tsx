@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
     fontSize: fontSize.sm,
     fontFamily: typography.bold,
     fontWeight: '700',
-    color: '#fff',
+    color: colors.textLight,
   },
   placeholder: {
     aspectRatio: 1,

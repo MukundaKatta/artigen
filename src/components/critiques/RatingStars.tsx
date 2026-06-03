@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing, fontSize, typography } from '@/lib/theme';
+import { colors, spacing, fontSize, typography, accentColors } from '@/lib/theme';
 
 type Props = {
   label: string;
@@ -26,7 +26,7 @@ export function RatingStars({ label, value, onChange, readonly = false, size = 2
                 key={star}
                 name={filled ? 'star' : 'star-outline'}
                 size={size}
-                color={filled ? colors.warning : colors.border}
+                color={filled ? accentColors.amber : colors.border}
                 style={styles.star}
               />
             );
@@ -44,7 +44,7 @@ export function RatingStars({ label, value, onChange, readonly = false, size = 2
               <Ionicons
                 name={filled ? 'star' : 'star-outline'}
                 size={size}
-                color={filled ? colors.warning : colors.border}
+                color={filled ? accentColors.amber : colors.border}
                 style={styles.star}
               />
             </TouchableOpacity>

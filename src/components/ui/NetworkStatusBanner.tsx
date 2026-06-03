@@ -107,7 +107,7 @@ export function NetworkStatusBanner(_: NetworkStatusBannerProps = {}) {
       <Ionicons
         name={isOffline ? 'cloud-offline-outline' : 'checkmark-circle-outline'}
         size={16}
-        color="#fff"
+        color={colors.textLight}
       />
       <Text style={styles.text}>
         {isOffline ? 'No internet connection' : 'Back online'}
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.success,
   },
   text: {
-    color: '#fff',
+    color: colors.textLight,
     fontSize: fontSize.sm,
     fontFamily: typography.medium,
   },

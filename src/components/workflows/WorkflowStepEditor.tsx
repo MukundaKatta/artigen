@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
+import { colors, spacing, fontSize, typography, borderRadius, accentColors } from '@/lib/theme';
 import type { WorkflowStep, WorkflowStepType } from '@/services/workflow.service';
 
 type Props = {
@@ -14,9 +14,9 @@ type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
 
 const STEP_TYPES: { type: WorkflowStepType; icon: IoniconName; label: string; color: string }[] = [
   { type: 'generate', icon: 'sparkles', label: 'Generate', color: colors.accent },
-  { type: 'restyle', icon: 'color-palette', label: 'Restyle', color: '#EC4899' },
-  { type: 'inpaint', icon: 'brush', label: 'Inpaint', color: '#F59E0B' },
-  { type: 'upscale', icon: 'resize', label: 'Upscale', color: '#10B981' },
+  { type: 'restyle', icon: 'color-palette', label: 'Restyle', color: accentColors.pink },
+  { type: 'inpaint', icon: 'brush', label: 'Inpaint', color: accentColors.amber },
+  { type: 'upscale', icon: 'resize', label: 'Upscale', color: accentColors.emerald },
 ];
 
 const SCALE_OPTIONS = [2, 4];
@@ -237,8 +237,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   scaleChipActive: {
-    backgroundColor: '#10B981',
-    borderColor: '#10B981',
+    backgroundColor: accentColors.emerald,
+    borderColor: accentColors.emerald,
   },
   scaleChipText: {
     fontSize: fontSize.md,
@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   scaleChipTextActive: {
-    color: '#fff',
+    color: colors.textLight,
   },
   actions: {
     flexDirection: 'row',
@@ -277,6 +277,6 @@ const styles = StyleSheet.create({
     fontSize: fontSize.md,
     fontFamily: typography.semiBold,
     fontWeight: '600',
-    color: '#fff',
+    color: colors.textLight,
   },
 });
