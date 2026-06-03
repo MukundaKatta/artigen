@@ -6,6 +6,11 @@ import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
 import { useResponsive } from '@/hooks/useResponsive';
 
+// Lets the close animation play before firing the chosen action's
+// onPress — otherwise navigation can race the closing sheet.
+const ITEM_PRESS_CLOSE_DELAY_MS = 100; // desktop popover (no slide)
+const ITEM_PRESS_SHEET_DELAY_MS = 200; // mobile bottom sheet (longer slide)
+
 export type ActionSheetItem = {
   label: string;
   onPress: () => void;
@@ -42,7 +47,7 @@ function DesktopActionSheet({ visible, onClose, items, title }: Props) {
             <AnimatedPressable
               key={index}
               style={[desktopStyles.item, index < items.length - 1 && desktopStyles.itemBorder]}
-              onPress={() => { onClose(); setTimeout(() => item.onPress(), 100); }}
+              onPress={() => { onClose(); setTimeout(() => item.onPress(), ITEM_PRESS_CLOSE_DELAY_MS); }}
               scaleValue={0.97}
               accessibilityRole="menuitem"
               accessibilityLabel={item.label}
@@ -168,7 +173,7 @@ export function ActionSheet({ visible, onClose, items, title }: Props) {
       }
     }
     onClose();
-    setTimeout(() => item.onPress(), 200);
+    setTimeout(() => item.onPress(), ITEM_PRESS_SHEET_DELAY_MS);
   };
 
   // Use centered dialog on desktop web

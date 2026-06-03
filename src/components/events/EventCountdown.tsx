@@ -2,6 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { colors, spacing, fontSize, typography, borderRadius } from '@/lib/theme';
 
+// Re-render cadence for the live countdown digits.
+const EVENT_COUNTDOWN_TICK_MS = 1_000;
+
 type Props = {
   startsAt: string;
   compact?: boolean;
@@ -26,7 +29,7 @@ export function EventCountdown({ startsAt, compact = false }: Props) {
   useEffect(() => {
     intervalRef.current = setInterval(() => {
       setTime(getTimeRemaining(startsAt));
-    }, 1000);
+    }, EVENT_COUNTDOWN_TICK_MS);
 
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);

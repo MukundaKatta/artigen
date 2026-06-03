@@ -17,6 +17,7 @@ import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Avatar } from '@/components/ui/Avatar';
 import { colors, fontSize, spacing, typography, borderRadius } from '@/lib/theme';
+import { SEARCH_DEBOUNCE_MS } from '@/lib/constants';
 import { searchUsers } from '@/services/profile.service';
 import { getOrCreateConversation, sendMessage } from '@/services/message.service';
 import type { Profile } from '@/types/database';
@@ -63,7 +64,7 @@ export function ShareSheet({
       const { data } = await searchUsers(query);
       setUsers(((data || []) as ShareSheetProfile[]).filter((u) => u.id !== currentUserId));
       setSearching(false);
-    }, 300);
+    }, SEARCH_DEBOUNCE_MS);
     return () => clearTimeout(timer);
   }, [query, currentUserId]);
 

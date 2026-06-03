@@ -4,6 +4,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, fontSize, typography, borderRadius, withOpacity } from '@/lib/theme';
 import type { StorySticker } from '@/types';
 
+// Re-render cadence for the live countdown digits.
+const COUNTDOWN_TICK_MS = 1_000;
+
 type Props = {
   sticker: StorySticker;
   userId: string;
@@ -35,7 +38,7 @@ export function CountdownSticker({ sticker, onRespond }: Props) {
     }
 
     update();
-    const interval = setInterval(update, 1000);
+    const interval = setInterval(update, COUNTDOWN_TICK_MS);
     return () => clearInterval(interval);
   }, [config.end_time]);
 
