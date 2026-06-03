@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import * as WebBrowser from 'expo-web-browser';
+import { openBrowserAsync } from 'expo-web-browser';
 
 export type CreditPackage = {
   id: string;
@@ -92,6 +92,6 @@ export async function createRazorpayOrder(
 export async function openStripeCheckout(packageId: string): Promise<{ error: string | null }> {
   const { checkout_url, error } = await createStripeCheckout(packageId);
   if (error || !checkout_url) return { error: error || 'Failed to create checkout' };
-  await WebBrowser.openBrowserAsync(checkout_url);
+  await openBrowserAsync(checkout_url);
   return { error: null };
 }

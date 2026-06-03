@@ -1,5 +1,10 @@
 import { supabase } from '@/lib/supabase';
-import * as FileSystem from 'expo-file-system';
+import {
+  readAsStringAsync,
+  downloadAsync,
+  cacheDirectory,
+  EncodingType,
+} from 'expo-file-system';
 import { STORAGE_BUCKETS, MAX_IMAGE_SIZE_MB, MAX_VIDEO_SIZE_MB } from '@/lib/constants';
 import { decode } from 'base64-arraybuffer';
 
@@ -29,8 +34,8 @@ export async function uploadFile(
   const sanitizedName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
 
   // Read the file as base64
-  const base64 = await FileSystem.readAsStringAsync(fileUri, {
-    encoding: FileSystem.EncodingType.Base64,
+  const base64 = await readAsStringAsync(fileUri, {
+    encoding: EncodingType.Base64,
   });
 
   // Validate file size
@@ -81,8 +86,8 @@ export async function deleteFile(bucket: BucketName, filePath: string) {
  */
 export async function downloadToLocal(remoteUrl: string): Promise<string | null> {
   try {
-    const localPath = FileSystem.cacheDirectory + `ai_${Date.now()}.png`;
-    const { uri } = await FileSystem.downloadAsync(remoteUrl, localPath);
+    const localPath = cacheDirectory + `ai_${Date.now()}.png`;
+    const { uri } = await downloadAsync(remoteUrl, localPath);
     return uri;
   } catch {
     return null;
