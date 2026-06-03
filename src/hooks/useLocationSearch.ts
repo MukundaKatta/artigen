@@ -2,6 +2,9 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { searchLocations } from '@/services/location.service';
 import type { Location } from '@/types';
 
+// Don't hit the server until the user has typed something searchable.
+const MIN_QUERY_LENGTH = 2;
+
 export function useLocationSearch() {
   const [results, setResults] = useState<Location[]>([]);
   const [searching, setSearching] = useState(false);
@@ -10,7 +13,7 @@ export function useLocationSearch() {
   const search = useCallback((query: string) => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
-    if (!query.trim()) {
+    if (query.trim().length < MIN_QUERY_LENGTH) {
       setResults([]);
       setSearching(false);
       return;

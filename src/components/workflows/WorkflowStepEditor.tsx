@@ -21,6 +21,9 @@ const STEP_TYPES: { type: WorkflowStepType; icon: IoniconName; label: string; co
 
 const SCALE_OPTIONS = [2, 4];
 
+// Cap free-text prompt fields (mirrors the generation prompt cap).
+const MAX_PROMPT_LENGTH = 2000;
+
 export function WorkflowStepEditor({ step, onSave, onCancel }: Props) {
   const [type, setType] = useState<WorkflowStepType>(step?.type || 'generate');
   const [prompt, setPrompt] = useState(step?.prompt || '');
@@ -84,6 +87,7 @@ export function WorkflowStepEditor({ step, onSave, onCancel }: Props) {
             onChangeText={setPrompt}
             multiline
             numberOfLines={3}
+            maxLength={MAX_PROMPT_LENGTH}
           />
         </View>
       )}
@@ -99,6 +103,7 @@ export function WorkflowStepEditor({ step, onSave, onCancel }: Props) {
             onChangeText={setCustomPrompt}
             multiline
             numberOfLines={3}
+            maxLength={MAX_PROMPT_LENGTH}
           />
         </View>
       )}
@@ -113,6 +118,7 @@ export function WorkflowStepEditor({ step, onSave, onCancel }: Props) {
               placeholderTextColor={colors.textSecondary}
               value={maskPrompt}
               onChangeText={setMaskPrompt}
+              maxLength={MAX_PROMPT_LENGTH}
             />
           </View>
           <View style={styles.field}>
@@ -125,6 +131,7 @@ export function WorkflowStepEditor({ step, onSave, onCancel }: Props) {
               onChangeText={setPrompt}
               multiline
               numberOfLines={3}
+              maxLength={MAX_PROMPT_LENGTH}
             />
           </View>
         </>

@@ -15,6 +15,12 @@ export type PromptFormValues = {
   is_public: boolean;
 };
 
+// Input bounds (also enforced server-side; these are the UX guardrails).
+const MAX_TITLE_LENGTH = 100;
+const MAX_PROMPT_LENGTH = 2000;
+const MAX_NEGATIVE_LENGTH = 1000;
+const MAX_STYLE_TAGS = 10;
+
 type Props = {
   initial?: Partial<PromptFormValues>;
   onSubmit: (values: PromptFormValues) => Promise<void>;
@@ -28,27 +34,31 @@ export function PromptForm({ initial = {}, onSubmit, submitting }: Props) {
   const [modelId, setModelId] = useState(initial.model_id || AI_MODELS[0].id);
   const [styleTagsText, setStyleTagsText] = useState((initial.style_tags || []).join(', '));
   const [isPublic, setIsPublic] = useState(initial.is_public ?? true);
-  const [errors, setErrors] = useState<{ title?: string; prompt?: string }>({});
+  const [errors, setErrors] = useState<{ title?: string; prompt?: string; styleTags?: string }>({});
 
-  const validate = (): boolean => {
-    const newErrors: { title?: string; prompt?: string } = {};
+  const validate = (parsedTags: string[]): boolean => {
+    const newErrors: { title?: string; prompt?: string; styleTags?: string } = {};
     if (!title.trim()) newErrors.title = 'Title is required';
     if (!prompt.trim()) newErrors.prompt = 'Prompt is required';
+    if (parsedTags.length > MAX_STYLE_TAGS) {
+      newErrors.styleTags = `Up to ${MAX_STYLE_TAGS} style tags allowed`;
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async () => {
-    if (!validate()) return;
+    const parsedTags = styleTagsText
+      .split(',')
+      .map((t) => t.trim())
+      .filter(Boolean);
+    if (!validate(parsedTags)) return;
     const values: PromptFormValues = {
       title: title.trim(),
       prompt: prompt.trim(),
       negative_prompt: negative.trim(),
       model_id: modelId,
-      style_tags: styleTagsText
-        .split(',')
-        .map((t) => t.trim())
-        .filter(Boolean),
+      style_tags: parsedTags,
       is_public: isPublic,
     };
     await onSubmit(values);
@@ -63,6 +73,7 @@ export function PromptForm({ initial = {}, onSubmit, submitting }: Props) {
         onChangeText={(v) => { setTitle(v); if (errors.title) setErrors((e) => ({ ...e, title: undefined })); }}
         placeholder="Enter a title"
         placeholderTextColor={colors.textSecondary}
+        maxLength={MAX_TITLE_LENGTH}
         accessibilityLabel="Prompt title"
         accessibilityHint="Enter a title for your prompt"
       />
@@ -76,6 +87,7 @@ export function PromptForm({ initial = {}, onSubmit, submitting }: Props) {
         placeholder="Describe what you want to generate"
         placeholderTextColor={colors.textSecondary}
         multiline
+        maxLength={MAX_PROMPT_LENGTH}
         accessibilityLabel="Generation prompt"
         accessibilityHint="Describe the image you want to create"
       />
@@ -89,6 +101,7 @@ export function PromptForm({ initial = {}, onSubmit, submitting }: Props) {
         placeholder="What to avoid (optional)"
         placeholderTextColor={colors.textSecondary}
         multiline
+        maxLength={MAX_NEGATIVE_LENGTH}
         accessibilityLabel="Negative prompt"
         accessibilityHint="Describe what to avoid in the generated image"
       />
@@ -121,14 +134,15 @@ export function PromptForm({ initial = {}, onSubmit, submitting }: Props) {
 
       <Text style={styles.label}>Style Tags (comma separated)</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, errors.styleTags ? styles.inputError : undefined]}
         value={styleTagsText}
-        onChangeText={setStyleTagsText}
+        onChangeText={(v) => { setStyleTagsText(v); if (errors.styleTags) setErrors((e) => ({ ...e, styleTags: undefined })); }}
         placeholder="e.g. fantasy, dark, neon"
         placeholderTextColor={colors.textSecondary}
         accessibilityLabel="Style tags"
-        accessibilityHint="Enter comma separated style tags"
+        accessibilityHint={`Enter up to ${MAX_STYLE_TAGS} comma separated style tags`}
       />
+      {errors.styleTags && <Text style={styles.errorText}>{errors.styleTags}</Text>}
 
       <View style={styles.switchRow}>
         <Text style={styles.label}>Public</Text>
