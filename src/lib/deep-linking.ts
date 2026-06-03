@@ -16,7 +16,12 @@ import { Platform } from 'react-native';
  *   /post/:id, /user/:id, /community/:id, /challenge/:id, /profile
  */
 
-const WEB_ORIGIN = 'https://artigen.app';
+/**
+ * Web origin used when constructing share-able links. Override with
+ * `EXPO_PUBLIC_WEB_ORIGIN` so staging / preview deploys don't generate
+ * links pointing at production.
+ */
+const WEB_ORIGIN = process.env.EXPO_PUBLIC_WEB_ORIGIN ?? 'https://artigen.app';
 
 type DeepLinkRoute =
   | { screen: '/(screens)/post/[id]'; params: { id: string } }

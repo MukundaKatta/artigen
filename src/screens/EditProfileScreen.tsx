@@ -157,7 +157,7 @@ export function EditProfileScreen() {
         render={({ field: { onChange, onBlur, value } }) => (
           <Input
             label="Website"
-            placeholder="https://example.com"
+            placeholder="https://your-site.com"
             keyboardType="url"
             onBlur={onBlur}
             onChangeText={onChange}
