@@ -80,6 +80,7 @@ src/
 - **Theming:** light/dark via `ThemeProvider`, tokens in `src/lib/theme.ts`
 - **Errors:** wrap features in `ErrorBoundary` (`src/components/shared/ErrorBoundary.tsx`)
 - **Feature flags:** see `src/lib/feature-flags.ts`
+- **Observability:** `src/lib/telemetry.ts` batches analytics events (queued, auto-flushed every 30s or once 10 events accumulate, with re-queue-on-failure); `src/lib/error-tracking.ts` layers a Sentry-style API (breadcrumbs, user context, performance transactions) on top of it
 
 ## Contributing
 
