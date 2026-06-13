@@ -1,18 +1,65 @@
 {
+  "id": "artigen-app",
   "name": "Artigen — AI Art Community",
   "short_name": "Artigen",
   "description": "Create, share, and discover AI-generated art",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "browser"],
   "background_color": "#FFFFFF",
   "theme_color": "#0095F6",
   "orientation": "portrait-primary",
+  "dir": "ltr",
+  "lang": "en-US",
   "icons": [
     {
       "src": "/favicon.ico",
       "sizes": "64x64",
       "type": "image/x-icon"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
-  "categories": ["social", "art", "entertainment"]
+  "shortcuts": [
+    {
+      "name": "Feed",
+      "short_name": "Feed",
+      "description": "Jump to your home feed",
+      "url": "/(tabs)/feed",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Generate",
+      "short_name": "Generate",
+      "description": "Create new AI art",
+      "url": "/(camera)/generate",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Profile",
+      "short_name": "Profile",
+      "description": "Open your profile",
+      "url": "/(tabs)/profile",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "categories": ["social", "art", "entertainment", "photo"],
+  "prefer_related_applications": false
 }

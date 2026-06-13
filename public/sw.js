@@ -1,7 +1,8 @@
-const CACHE_NAME = 'artigen-v1';
+const CACHE_NAME = 'artigen-v2';
 const STATIC_ASSETS = [
   '/',
   '/favicon.ico',
+  '/manifest.json',
 ];
 
 // Install: cache essential static assets
@@ -20,6 +21,13 @@ self.addEventListener('activate', (event) => {
     )
   );
   self.clients.claim();
+});
+
+// Allow the app to ask the SW to activate a new version immediately.
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 // Fetch: network-first for HTML/API, cache-first for static assets
