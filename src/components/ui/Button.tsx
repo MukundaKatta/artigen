@@ -6,13 +6,25 @@ import {
   ViewStyle,
   TextStyle,
   Platform,
+  View,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
-import { colors, fontSize, borderRadius, spacing, typography, shadows, gradients } from '@/lib/theme';
+import {
+  colors,
+  fontSize,
+  borderRadius,
+  spacing,
+  typography,
+  shadows,
+  gradients,
+  opacity as opacityScale,
+  letterSpacing,
+  hitSlop,
+} from '@/lib/theme';
 
-type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'text';
+type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'text' | 'ghost' | 'destructive';
 
 type Props = {
   title: string;
@@ -20,6 +32,9 @@ type Props = {
   variant?: ButtonVariant;
   loading?: boolean;
   disabled?: boolean;
+  fullWidth?: boolean;
+  iconLeft?: React.ReactNode;
+  iconRight?: React.ReactNode;
   style?: ViewStyle;
   textStyle?: TextStyle;
   size?: 'sm' | 'md' | 'lg';
@@ -33,6 +48,9 @@ export function Button({
   variant = 'primary',
   loading = false,
   disabled = false,
+  fullWidth = false,
+  iconLeft,
+  iconRight,
   style,
   textStyle,
   size = 'md',
@@ -42,36 +60,59 @@ export function Button({
   const isDisabled = disabled || loading;
 
   const handlePress = () => {
-    if (Platform.OS !== 'web') {
+    if (Platform.OS !== 'web' && !isDisabled) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
     onPress();
   };
 
-  const inner = loading ? (
-    <ActivityIndicator
-      color={variant === 'primary' ? colors.textLight : colors.primary}
-      size="small"
-    />
-  ) : (
-    <Text
-      style={[
-        styles.buttonText,
-        styles[`${variant}Text`],
-        styles[`size_${size}_text`],
-        textStyle,
-      ]}
-    >
-      {title}
-    </Text>
+  const labelColor =
+    variant === 'primary' || variant === 'destructive'
+      ? colors.textLight
+      : variant === 'text'
+        ? colors.primary
+        : variant === 'ghost'
+          ? colors.textSecondary
+          : colors.text;
+
+  const inner = (
+    <View style={styles.row}>
+      {iconLeft ? <View style={styles.icon}>{iconLeft}</View> : null}
+      {loading ? (
+        <ActivityIndicator color={labelColor} size="small" />
+      ) : (
+        <Text
+          style={[
+            styles.buttonText,
+            styles[`${variant}Text`],
+            styles[`size_${size}_text`],
+            textStyle,
+          ]}
+          numberOfLines={1}
+        >
+          {title}
+        </Text>
+      )}
+      {iconRight ? <View style={styles.icon}>{iconRight}</View> : null}
+    </View>
   );
 
+  // Gradient primary — only when not disabled, so the disabled state
+  // can reuse the flat-fill branch below.
   if (variant === 'primary' && !isDisabled) {
     return (
       <AnimatedPressable
         onPress={handlePress}
         disabled={isDisabled}
-        style={[styles[`size_${size}`], shadows.md as ViewStyle, style] as ViewStyle[]}
+        hitSlop={hitSlop.sm}
+        style={
+          [
+            styles[`size_${size}`],
+            shadows.md as ViewStyle,
+            fullWidth && styles.fullWidth,
+            style,
+          ] as ViewStyle[]
+        }
         accessibilityRole="button"
         accessibilityLabel={accessibilityLabel ?? title}
         accessibilityHint={accessibilityHint}
@@ -93,14 +134,18 @@ export function Button({
     <AnimatedPressable
       onPress={handlePress}
       disabled={isDisabled}
-      style={[
-        styles.base,
-        styles[variant],
-        styles[`size_${size}`],
-        isDisabled && styles.disabled,
-        variant === 'primary' && isDisabled && styles.primaryDisabled,
-        style,
-      ] as ViewStyle[]}
+      hitSlop={hitSlop.sm}
+      style={
+        [
+          styles.base,
+          styles[variant],
+          styles[`size_${size}`],
+          fullWidth && styles.fullWidth,
+          isDisabled && styles.disabled,
+          variant === 'primary' && isDisabled && styles.primaryDisabled,
+          style,
+        ] as ViewStyle[]
+      }
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? title}
       accessibilityHint={accessibilityHint}
@@ -112,6 +157,19 @@ export function Button({
 }
 
 const styles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+  },
+  icon: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  fullWidth: {
+    alignSelf: 'stretch',
+  },
   base: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -129,7 +187,7 @@ const styles = StyleSheet.create({
   },
   primaryDisabled: {
     backgroundColor: colors.primary,
-    opacity: 0.5,
+    opacity: opacityScale.disabled,
   },
   secondary: {
     backgroundColor: colors.backgroundSecondary,
@@ -141,6 +199,13 @@ const styles = StyleSheet.create({
   },
   text: {
     backgroundColor: 'transparent',
+  },
+  ghost: {
+    backgroundColor: 'transparent',
+  },
+  destructive: {
+    backgroundColor: colors.error,
+    borderRadius: borderRadius.md,
   },
   size_sm: {
     paddingVertical: spacing.xs,
@@ -161,10 +226,11 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
   },
   disabled: {
-    opacity: 0.5,
+    opacity: opacityScale.disabled,
   },
   buttonText: {
     fontFamily: typography.semiBold,
+    letterSpacing: letterSpacing.wide,
   },
   primaryText: {
     color: colors.textLight,
@@ -180,6 +246,14 @@ const styles = StyleSheet.create({
   },
   textText: {
     color: colors.primary,
+    fontWeight: '600',
+  },
+  ghostText: {
+    color: colors.textSecondary,
+    fontWeight: '600',
+  },
+  destructiveText: {
+    color: colors.textLight,
     fontWeight: '600',
   },
   size_sm_text: {

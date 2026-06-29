@@ -8,7 +8,9 @@ import {
   ViewStyle,
   NativeSyntheticEvent,
   TextInputFocusEventData,
+  Pressable,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -16,18 +18,52 @@ import Animated, {
   withSequence,
   interpolateColor,
 } from 'react-native-reanimated';
-import { colors, fontSize, borderRadius, spacing, typography } from '@/lib/theme';
+import {
+  colors,
+  fontSize,
+  borderRadius,
+  spacing,
+  typography,
+  hitSlop,
+  lineHeight,
+} from '@/lib/theme';
 
 type Props = TextInputProps & {
   label?: string;
+  hint?: string;
   error?: string;
+  iconLeft?: keyof typeof Ionicons.glyphMap;
+  iconRight?: keyof typeof Ionicons.glyphMap;
+  onIconRightPress?: () => void;
+  clearable?: boolean;
+  showCount?: boolean;
   containerStyle?: ViewStyle;
 };
 
 const AnimatedView = Animated.View;
 
 export const Input = forwardRef<TextInput, Props>(
-  ({ label, error, containerStyle, style, onFocus, onBlur, ...props }, ref) => {
+  (
+    {
+      label,
+      hint,
+      error,
+      iconLeft,
+      iconRight,
+      onIconRightPress,
+      clearable,
+      showCount,
+      containerStyle,
+      style,
+      onFocus,
+      onBlur,
+      onChangeText,
+      value,
+      maxLength,
+      ...props
+    },
+    ref,
+  ) => {
     const focusAnim = useSharedValue(0);
     const shakeAnim = useSharedValue(0);
     const prevError = React.useRef<string | undefined>();
@@ -50,7 +86,7 @@ export const Input = forwardRef<TextInput, Props>(
       const borderColor = interpolateColor(
         focusAnim.value,
         [0, 1],
-        [error ? colors.error : colors.border, error ? colors.error : colors.primary]
+        [error ? colors.error : colors.border, error ? colors.error : colors.primary],
       );
       return { borderColor, transform: [{ translateX: shakeAnim.value }] };
     });
@@ -65,26 +101,77 @@ export const Input = forwardRef<TextInput, Props>(
       onBlur?.(e);
     };
 
+    const showClear = clearable && !!value && !props.editable === false;
+    const count = value?.length ?? 0;
+    const overLimit = maxLength != null && count > maxLength;
+
     return (
       <View style={[styles.container, containerStyle]}>
-        {label && <Text style={styles.label}>{label}</Text>}
+        {label ? <Text style={styles.label}>{label}</Text> : null}
         <AnimatedView style={[styles.inputWrapper, borderStyle, error && styles.inputErrorBg]}>
+          {iconLeft ? (
+            <View style={styles.iconLeft}>
+              <Ionicons name={iconLeft} size={18} color={colors.textSecondary} />
+            </View>
+          ) : null}
           <TextInput
             ref={ref}
-            style={[styles.input, style]}
+            style={[styles.input, !!iconLeft && styles.inputWithLeftIcon, style]}
             placeholderTextColor={colors.textSecondary}
             autoCapitalize="none"
             onFocus={handleFocus}
             onBlur={handleBlur}
+            onChangeText={onChangeText}
+            value={value}
+            maxLength={maxLength}
             accessibilityLabel={label || props.placeholder}
             accessibilityState={{ disabled: props.editable === false }}
             {...props}
           />
+          {showClear ? (
+            <Pressable
+              onPress={() => onChangeText?.('')}
+              hitSlop={hitSlop.md}
+              accessibilityRole="button"
+              accessibilityLabel="Clear input"
+              style={styles.trailingPressable}
+            >
+              <Ionicons name="close-circle" size={18} color={colors.textSecondary} />
+            </Pressable>
+          ) : iconRight ? (
+            <Pressable
+              onPress={onIconRightPress}
+              hitSlop={hitSlop.md}
+              disabled={!onIconRightPress}
+              accessibilityRole={onIconRightPress ? 'button' : undefined}
+              style={styles.trailingPressable}
+            >
+              <Ionicons name={iconRight} size={18} color={colors.textSecondary} />
+            </Pressable>
+          ) : null}
         </AnimatedView>
-        {error && <Text style={styles.error} accessibilityRole="alert">{error}</Text>}
+        <View style={styles.footerRow}>
+          <View style={styles.footerLeft}>
+            {error ? (
+              <Text style={styles.error} accessibilityRole="alert">
+                {error}
+              </Text>
+            ) : hint ? (
+              <Text style={styles.hint}>{hint}</Text>
+            ) : null}
+          </View>
+          {showCount && maxLength != null ? (
+            <Text
+              style={[styles.count, overLimit && styles.countOver]}
+              accessibilityLabel={`${count} of ${maxLength} characters used`}
+            >
+              {count}/{maxLength}
+            </Text>
+          ) : null}
+        </View>
       </View>
     );
-  }
+  },
 );
 
 Input.displayName = 'Input';
@@ -101,25 +188,62 @@ const styles = StyleSheet.create({
     fontFamily: typography.medium,
   },
   inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: borderRadius.md,
     backgroundColor: colors.backgroundSecondary,
   },
+  iconLeft: {
+    paddingLeft: spacing.md,
+  },
   input: {
+    flex: 1,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm + 2,
     fontSize: fontSize.md,
     color: colors.text,
     fontFamily: typography.regular,
   },
+  inputWithLeftIcon: {
+    paddingLeft: spacing.sm,
+  },
+  trailingPressable: {
+    paddingHorizontal: spacing.md,
+  },
   inputErrorBg: {
     backgroundColor: 'rgba(237, 73, 86, 0.04)',
+  },
+  footerRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginTop: spacing.xs,
+  },
+  footerLeft: {
+    flex: 1,
+  },
+  hint: {
+    fontSize: fontSize.xs,
+    color: colors.textSecondary,
+    fontFamily: typography.regular,
+    lineHeight: fontSize.xs * lineHeight.normal,
   },
   error: {
     fontSize: fontSize.xs,
     color: colors.error,
-    marginTop: spacing.xs,
     fontFamily: typography.regular,
+    lineHeight: fontSize.xs * lineHeight.normal,
+  },
+  count: {
+    fontSize: fontSize.xs,
+    color: colors.textSecondary,
+    fontFamily: typography.regular,
+    marginLeft: spacing.sm,
+  },
+  countOver: {
+    color: colors.error,
+    fontFamily: typography.semiBold,
   },
 });
