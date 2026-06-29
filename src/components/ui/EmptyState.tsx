@@ -1,31 +1,89 @@
 import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing, fontSize, borderRadius, typography } from '@/lib/theme';
+import * as Haptics from 'expo-haptics';
+import {
+  colors,
+  spacing,
+  fontSize,
+  borderRadius,
+  typography,
+  lineHeight,
+  opacity as opacityScale,
+  hitSlop,
+} from '@/lib/theme';
 
 type EmptyStateProps = {
   icon?: keyof typeof Ionicons.glyphMap;
   title: string;
   message?: string;
   actionLabel?: string;
+  secondaryActionLabel?: string;
   onAction?: () => void;
+  onSecondaryAction?: () => void;
+  tone?: 'neutral' | 'positive' | 'warning';
+};
+
+const TONE_ACCENT: Record<NonNullable<EmptyStateProps['tone']>, string> = {
+  neutral: colors.textSecondary,
+  positive: colors.success,
+  warning: colors.warning,
 };
 
 /**
  * Reusable empty state component for screens with no content.
  * Provides consistent UX across feed, search, messages, etc.
  */
-export function EmptyState({ icon = 'layers-outline', title, message, actionLabel, onAction }: EmptyStateProps) {
+export function EmptyState({
+  icon = 'layers-outline',
+  title,
+  message,
+  actionLabel,
+  secondaryActionLabel,
+  onAction,
+  onSecondaryAction,
+  tone = 'neutral',
+}: EmptyStateProps) {
+  const handlePrimary = () => {
+    if (Platform.OS !== 'web') Haptics.selectionAsync();
+    onAction?.();
+  };
+  const handleSecondary = () => {
+    if (Platform.OS !== 'web') Haptics.selectionAsync();
+    onSecondaryAction?.();
+  };
+
   return (
-    <View style={styles.container}>
-      <Ionicons name={icon} size={64} color={colors.textSecondary} style={styles.icon} />
-      <Text style={styles.title}>{title}</Text>
-      {message && <Text style={styles.message}>{message}</Text>}
-      {actionLabel && onAction && (
-        <Pressable style={styles.button} onPress={onAction}>
+    <View style={styles.container} accessibilityRole="summary" accessibilityLabel={title}>
+      <View style={styles.iconHalo}>
+        <Ionicons name={icon} size={48} color={TONE_ACCENT[tone]} />
+      </View>
+      <Text style={styles.title} accessibilityRole="header">
+        {title}
+      </Text>
+      {message ? <Text style={styles.message}>{message}</Text> : null}
+      {actionLabel && onAction ? (
+        <Pressable
+          style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
+          onPress={handlePrimary}
+          hitSlop={hitSlop.md}
+          accessibilityRole="button"
+          accessibilityLabel={actionLabel}
+        >
           <Text style={styles.buttonText}>{actionLabel}</Text>
         </Pressable>
-      )}
+      ) : null}
+      {secondaryActionLabel && onSecondaryAction ? (
+        <Pressable
+          style={styles.secondaryButton}
+          onPress={handleSecondary}
+          hitSlop={hitSlop.md}
+          accessibilityRole="button"
+          accessibilityLabel={secondaryActionLabel}
+        >
+          <Text style={styles.secondaryButtonText}>{secondaryActionLabel}</Text>
+        </Pressable>
+      ) : null}
     </View>
   );
 }
@@ -106,9 +164,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xxxl,
     paddingVertical: spacing.xxxl * 2,
   },
-  icon: {
-    marginBottom: spacing.lg,
-    opacity: 0.5,
+  iconHalo: {
+    width: 88,
+    height: 88,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.backgroundSecondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.xl,
   },
   title: {
     fontSize: fontSize.xl,
@@ -122,18 +185,37 @@ const styles = StyleSheet.create({
     fontFamily: typography.regular,
     color: colors.textSecondary,
     textAlign: 'center',
-    lineHeight: 20,
+    lineHeight: fontSize.md * lineHeight.normal,
     marginBottom: spacing.xl,
+    maxWidth: 320,
   },
   button: {
     backgroundColor: colors.primary,
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.md,
     borderRadius: borderRadius.md,
+    minHeight: 44,
+    minWidth: 140,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonPressed: {
+    opacity: opacityScale.pressed,
+    transform: [{ scale: 0.98 }],
   },
   buttonText: {
     color: colors.textLight,
     fontSize: fontSize.md,
     fontFamily: typography.semiBold,
+  },
+  secondaryButton: {
+    marginTop: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  secondaryButtonText: {
+    color: colors.textSecondary,
+    fontSize: fontSize.sm,
+    fontFamily: typography.medium,
   },
 });
