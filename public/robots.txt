@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+# Auth and account-bound routes have no value to crawlers.
+Disallow: /(auth)/
+Disallow: /(messages)/
+Disallow: /(screens)/edit-profile
+Disallow: /(screens)/settings
+
+Sitemap: https://artigen-app.web.app/sitemap.xml
