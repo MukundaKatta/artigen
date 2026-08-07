@@ -27,20 +27,37 @@ export function CollectionPicker({ visible, onClose, collections, onSelect, onCr
   }
 
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={onClose}
+    >
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>Save to Collection</Text>
-          <AnimatedPressable onPress={onClose} scaleValue={0.85}>
+          <AnimatedPressable
+            onPress={onClose}
+            scaleValue={0.85}
+            accessibilityRole="button"
+            accessibilityLabel="Close collection picker"
+          >
             <Ionicons name="close" size={24} color={colors.text} />
           </AnimatedPressable>
         </View>
 
         {/* All Saved (unsorted) */}
-        <AnimatedPressable style={styles.row} onPress={() => {
-          if (Platform.OS !== 'web') Haptics.selectionAsync();
-          onSelect(null); onClose();
-        }} scaleValue={0.98}>
+        <AnimatedPressable
+          style={styles.row}
+          onPress={() => {
+            if (Platform.OS !== 'web') Haptics.selectionAsync();
+            onSelect(null);
+            onClose();
+          }}
+          scaleValue={0.98}
+          accessibilityRole="button"
+          accessibilityLabel="Save to All Saved"
+        >
           <Ionicons name="bookmark-outline" size={24} color={colors.text} />
           <Text style={styles.rowText}>All Saved</Text>
         </AnimatedPressable>
@@ -50,10 +67,17 @@ export function CollectionPicker({ visible, onClose, collections, onSelect, onCr
           data={collections}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <AnimatedPressable style={styles.row} onPress={() => {
-              if (Platform.OS !== 'web') Haptics.selectionAsync();
-              onSelect(item.id); onClose();
-            }} scaleValue={0.98}>
+            <AnimatedPressable
+              style={styles.row}
+              onPress={() => {
+                if (Platform.OS !== 'web') Haptics.selectionAsync();
+                onSelect(item.id);
+                onClose();
+              }}
+              scaleValue={0.98}
+              accessibilityRole="button"
+              accessibilityLabel={`Save to ${item.name}, ${item.post_count} posts`}
+            >
               <Ionicons name="folder-outline" size={24} color={colors.text} />
               <View style={{ flex: 1 }}>
                 <Text style={styles.rowText}>{item.name}</Text>
@@ -73,19 +97,35 @@ export function CollectionPicker({ visible, onClose, collections, onSelect, onCr
               value={newName}
               onChangeText={setNewName}
               autoFocus
+              accessibilityLabel="Collection name"
             />
-            <AnimatedPressable onPress={() => {
-              if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              handleCreate();
-            }} disabled={!newName.trim()} scaleValue={0.9}>
-              <Text style={[styles.createButtonText, !newName.trim() && { opacity: 0.5 }]}>Create</Text>
+            <AnimatedPressable
+              onPress={() => {
+                if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                handleCreate();
+              }}
+              disabled={!newName.trim()}
+              scaleValue={0.9}
+              accessibilityRole="button"
+              accessibilityLabel="Create collection"
+              accessibilityState={{ disabled: !newName.trim() }}
+            >
+              <Text style={[styles.createButtonText, !newName.trim() && { opacity: 0.5 }]}>
+                Create
+              </Text>
             </AnimatedPressable>
           </View>
         ) : (
-          <AnimatedPressable style={styles.row} onPress={() => {
-            if (Platform.OS !== 'web') Haptics.selectionAsync();
-            setShowCreate(true);
-          }} scaleValue={0.98}>
+          <AnimatedPressable
+            style={styles.row}
+            onPress={() => {
+              if (Platform.OS !== 'web') Haptics.selectionAsync();
+              setShowCreate(true);
+            }}
+            scaleValue={0.98}
+            accessibilityRole="button"
+            accessibilityLabel="Create new collection"
+          >
             <Ionicons name="add-circle-outline" size={24} color={colors.primary} />
             <Text style={[styles.rowText, { color: colors.primary }]}>New Collection</Text>
           </AnimatedPressable>

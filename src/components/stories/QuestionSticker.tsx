@@ -37,9 +37,20 @@ export function QuestionSticker({ sticker, onRespond }: Props) {
             placeholderTextColor={withOpacity(colors.backgroundDark, 0.4)}
             value={answer}
             onChangeText={setAnswer}
+            accessibilityLabel="Your answer"
           />
-          <TouchableOpacity onPress={handleSend} disabled={!answer.trim()}>
-            <Ionicons name="send" size={18} color={answer.trim() ? colors.primary : colors.border} />
+          <TouchableOpacity
+            onPress={handleSend}
+            disabled={!answer.trim()}
+            accessibilityRole="button"
+            accessibilityLabel="Send answer"
+            accessibilityState={{ disabled: !answer.trim() }}
+          >
+            <Ionicons
+              name="send"
+              size={18}
+              color={answer.trim() ? colors.primary : colors.border}
+            />
           </TouchableOpacity>
         </View>
       )}
