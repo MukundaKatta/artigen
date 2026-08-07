@@ -100,7 +100,7 @@ jobs:
           if [ -z "${{ secrets.SUPABASE_PROJECT_REF }}" ]; then echo "::error::Missing SUPABASE_PROJECT_REF secret"; exit 1; fi
 
       - name: Setup Supabase CLI
-        uses: supabase/setup-cli@v1
+        uses: supabase/setup-cli@v2
         with:
           version: latest
 
