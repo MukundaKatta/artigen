@@ -39,6 +39,8 @@ export const Appearance = {
   addChangeListener: () => ({ remove: () => {} }),
 };
 
+export const useColorScheme = jest.fn().mockReturnValue('light');
+
 export const Alert = {
   alert: jest.fn(),
 };
