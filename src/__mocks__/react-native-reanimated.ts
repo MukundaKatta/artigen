@@ -33,6 +33,8 @@ export { View, Text, ScrollView, Image, FlatList };
 export const useSharedValue = <T,>(v: T) => ({ value: v });
 export const useAnimatedStyle = (fn: () => Record<string, unknown>) => fn();
 export const useAnimatedProps = (fn: () => Record<string, unknown>) => fn();
+export const useAnimatedScrollHandler = () => () => {};
+export const Extrapolation = { CLAMP: 'clamp', EXTEND: 'extend', IDENTITY: 'identity' };
 export const withTiming = <T,>(v: T) => v;
 export const withSpring = <T,>(v: T) => v;
 export const withRepeat = <T,>(v: T) => v;
